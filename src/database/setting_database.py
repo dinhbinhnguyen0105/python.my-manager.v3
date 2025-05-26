@@ -1,24 +1,23 @@
-# src/database/product_database.py
+# src/database/setting_database.py
 from PyQt6.QtSql import QSqlDatabase, QSqlQuery
 
 from src.my_constants import (
-    CONNECTION_DB_PRODUCT,
-    PATH_DB_PRODUCT,
+    CONNECTION_DB_SETTING,
+    PATH_DB_SETTING,
 )
 from src.database.sql_commands import (
-    CREATE_REAL_ESTATE_PRODUCT_TABLE,
-    CREATE_MISC_PRODUCT_TABLE,
-    CREATE_REAL_ESTATE_TEMPLATE_TABLE,
+    CREATE_SETTING_UDD_TABLE,
+    CREATE_SETTING_PROXY_TABLE,
 )
 
 
-def initialize_product_database():
-    if QSqlDatabase.contains(CONNECTION_DB_PRODUCT):
-        db = QSqlDatabase.database(CONNECTION_DB_PRODUCT)
+def initialize_setting_database():
+    if QSqlDatabase.contains(CONNECTION_DB_SETTING):
+        db = QSqlDatabase.database(CONNECTION_DB_SETTING)
     else:
-        db = QSqlDatabase.addDatabase(CONNECTION_DB_PRODUCT)
+        db = QSqlDatabase.addDatabase(CONNECTION_DB_SETTING)
 
-    db.setDatabaseName(PATH_DB_PRODUCT)
+    db.setDatabaseName(PATH_DB_SETTING)
     if not db.open():
         raise Exception(
             f"An error occurred while opening the database: {db.lastError().text()}"
@@ -30,19 +29,18 @@ def initialize_product_database():
     try:
         if db.transaction():
             for sql in [
-                CREATE_REAL_ESTATE_PRODUCT_TABLE,
-                CREATE_MISC_PRODUCT_TABLE,
-                CREATE_REAL_ESTATE_TEMPLATE_TABLE,
+                CREATE_SETTING_UDD_TABLE,
+                CREATE_SETTING_PROXY_TABLE,
             ]:
                 if not query.exec(sql):
                     db.rollback()
                     raise Exception(
-                        f"[initialize_product_database] An error occurred while creating table: {query.lastError().text()}"
+                        f"[initialize_setting_database] An error occurred while creating table: {query.lastError().text()}"
                     )
             if not db.commit():
                 db.rollback()
                 raise Exception(
-                    f"[initialize_product_database] Cannot commit transaction: {db.lastError().text()}"
+                    f"[initialize_setting_database] Cannot commit transaction: {db.lastError().text()}"
                 )
             return True
         else:

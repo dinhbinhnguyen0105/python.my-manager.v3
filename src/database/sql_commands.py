@@ -1,5 +1,5 @@
 # src/database/sql_commands.py
-from src import my_contants as constants
+from src import my_constants as constants
 
 CREATE_USER_TABLE = f"""
 CREATE TABLE IF NOT EXISTS {constants.TABLE_USER} (
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS {constants.TABLE_USER} (
 CREATE_USER_LISTED_PRODUCT_TABLE = f"""
 CREATE TABLE IF NOT EXISTS {constants.TABLE_USER_LISTED_PRODUCT} (
     id INTEGER PRIMARY KEY,
-    uid_user INTEGER REFERENCES {constants.TABLE_USER}(uid),
+    id_user INTEGER REFERENCES {constants.TABLE_USER}(id),
     pid TEXT,
     created_at TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now')),
     updated_at TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now'))
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS {constants.TABLE_USER_LISTED_PRODUCT} (
 CREATE_USER_ACTION_TABLE = f"""
 CREATE TABLE IF NOT EXISTS {constants.TABLE_USER_ACTION} (
     id INTEGER PRIMARY KEY,
-    uid INTEGER REFERENCES {constants.TABLE_USER}(uid),
+    id_user INTEGER REFERENCES {constants.TABLE_USER}(id),
     action_name TEXT,
     action_payload TEXT,
     created_at TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now')),
@@ -104,3 +104,8 @@ CREATE TABLE IF NOT EXISTS {constants.TABLE_REAL_ESTATE_TEMPLATE} (
     updated_at TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now'))
 )
 """
+
+
+# giả sử tôi sử dụng 3 bản để hiển thị (constants.TABLE_USER,
+# constants.TABLE_USER_LISTED_PRODUCT,
+# constants.TABLE_USER_ACTION,) làm cách nào để thay đổi đồng bộ

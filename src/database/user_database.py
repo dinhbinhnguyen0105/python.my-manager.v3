@@ -1,14 +1,14 @@
 # src/database/user_database.py
 from PyQt6.QtSql import QSqlDatabase, QSqlQuery
 
-from src.my_contants import (
+from src.my_constants import (
     CONNECTION_DB_USER,
-    PATHDB_USER,
+    PATH_DB_USER,
 )
 from src.database.sql_commands import (
     CREATE_USER_TABLE,
     CREATE_USER_LISTED_PRODUCT_TABLE,
-    CREATE_USER_ACTION_TABLE,
+    # CREATE_USER_ACTION_TABLE,
 )
 
 
@@ -17,7 +17,7 @@ def initialize_user_database():
         db = QSqlDatabase.database(CONNECTION_DB_USER)
     else:
         db = QSqlDatabase.addDatabase("QSQLITE", CONNECTION_DB_USER)
-    db.setDatabaseName(PATHDB_USER)
+    db.setDatabaseName(PATH_DB_USER)
     if not db.open():
         raise Exception(
             f"An error occurred while opening the database: {db.lastError().text()}"
@@ -31,7 +31,7 @@ def initialize_user_database():
             for sql in [
                 CREATE_USER_TABLE,
                 CREATE_USER_LISTED_PRODUCT_TABLE,
-                CREATE_USER_ACTION_TABLE,
+                # CREATE_USER_ACTION_TABLE,
             ]:
                 if not query.exec(sql):
                     db.rollback()
