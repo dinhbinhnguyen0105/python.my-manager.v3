@@ -13,6 +13,7 @@ from src.controllers.setting_controller import (
     SettingUserDataDirController,
 )
 
+from src.views.product.real_estate_product_page import RealEstateProductPage
 from src.ui.mainwindow_ui import Ui_MainWindow
 
 
@@ -43,6 +44,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._setting_proxy_controller = setting_proxy_controller
         self._setting_user_data_dir_controller = setting_user_data_dir_controller
 
+        self.real_estate_product_page = RealEstateProductPage(
+            self._real_estate_product_controller,
+            self._real_estate_template_controller,
+            self,
+        )
+
+        self.init_ui()
+        self.init_events()
+
         self.set_status_bar_message()
 
     def set_status_bar_message(self):
@@ -72,3 +82,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             controller.info_signal.connect(
                 lambda message: self.status_bar.showMessage(f"Info: {message}.", 1000)
             )
+
+    def init_ui(self):
+        self.content_container.addWidget(self.real_estate_product_page)
+
+    def init_events(self):
+        self.sidebar_re_btn.clicked.connect(
+            lambda: self.on_sidebar_btn_clicked("real_estate_product")
+        )
+        self.sidebar_misc_btn.clicked.connect(
+            lambda: self.on_sidebar_btn_clicked("misc_product")
+        )
+        self.sidebar_user_btn.clicked.connect(
+            lambda: self.on_sidebar_btn_clicked("user")
+        )
+        self.sidebar_robot_btn.clicked.connect(
+            lambda: self.on_sidebar_btn_clicked("robot")
+        )
+
+    @pyqtSlot(str)
+    def on_sidebar_btn_clicked(self, page_name: str):
+        if page_name == "real_estate_product":
+            self.content_container.setCurrentWidget(self.real_estate_product_page)
+        # elif page_name == "misc_product":
+        #     self.content_container.setCurrentWidget()
+        # elif page_name == "user":
+        #     self.content_container.setCurrentWidget()
+        # elif page_name == "robot":
+        #     self.content_container.setCurrentWidget()
