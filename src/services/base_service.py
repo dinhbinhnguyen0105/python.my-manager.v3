@@ -51,8 +51,10 @@ class BaseService:
             raise TypeError("model mus be an instance of BaseModel or its subclass.")
         self.model = model
         self._db = model.database()
+        # print(self._db.isOpen())
+        # print()
 
-        if not self._db.isValid or not self._db.isOpen():
+        if not self._db.isValid() or not self._db.isOpen():
             warning_msg = f"[{self.__class__.__name__}.__init__] Warning: db connection '{self._db.connectionName()}' is not valid or not open."
             print(warning_msg)
 

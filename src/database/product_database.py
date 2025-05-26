@@ -16,7 +16,7 @@ def initialize_product_database():
     if QSqlDatabase.contains(CONNECTION_DB_PRODUCT):
         db = QSqlDatabase.database(CONNECTION_DB_PRODUCT)
     else:
-        db = QSqlDatabase.addDatabase(CONNECTION_DB_PRODUCT)
+        db = QSqlDatabase.addDatabase("QSQLITE", CONNECTION_DB_PRODUCT)
 
     db.setDatabaseName(PATH_DB_PRODUCT)
     if not db.open():

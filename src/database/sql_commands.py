@@ -57,6 +57,7 @@ id INTEGER PRIMARY KEY AUTOINCREMENT,
 value TEXT UNIQUE NOT NULL,
 updated_at TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now')),
 created_at TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now'))
+)
 """
 
 CREATE_REAL_ESTATE_PRODUCT_TABLE = f"""

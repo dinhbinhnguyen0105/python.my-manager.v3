@@ -15,7 +15,7 @@ def initialize_setting_database():
     if QSqlDatabase.contains(CONNECTION_DB_SETTING):
         db = QSqlDatabase.database(CONNECTION_DB_SETTING)
     else:
-        db = QSqlDatabase.addDatabase(CONNECTION_DB_SETTING)
+        db = QSqlDatabase.addDatabase("QSQLITE", CONNECTION_DB_SETTING)
 
     db.setDatabaseName(PATH_DB_SETTING)
     if not db.open():

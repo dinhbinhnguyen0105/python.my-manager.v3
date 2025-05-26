@@ -7,7 +7,7 @@ from PyQt6.QtGui import QBrush, QColor
 
 class BaseModel(QSqlTableModel):
     def __init__(self, table_name, db, parent=None):
-        super().__init__(parent)
+        super().__init__(parent, db=db)
         self.setTable(table_name)
         self.setEditStrategy(QSqlTableModel.EditStrategy.OnManualSubmit)
         self.status_col = self.fieldIndex("status")

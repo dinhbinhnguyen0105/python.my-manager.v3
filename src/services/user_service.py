@@ -16,7 +16,6 @@ class UserService(BaseService):
             raise TypeError("model must be an instance of UserModel or its subclass.")
         super().__init__(model)
         self.listed_product_service = None
-        self.udd_service = None
 
     def create(self, payload: UserType) -> bool:
         ua_desktop = UserAgent(os="Mac OS X")

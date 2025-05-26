@@ -28,7 +28,7 @@ class UserType:
 @dataclass
 class UserListedProductType:
     id: Optional[int]
-    user_id: int
+    id_user: int
     pid: str
     created_at: Optional[str]
     updated_at: Optional[str]

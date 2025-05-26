@@ -1,4 +1,4 @@
-# src/my_contants.py
+# src/my_constants.py
 CONNECTION_DB_USER = "user_connection"
 CONNECTION_DB_PRODUCT = "product_connection"
 CONNECTION_DB_SETTING = "setting_connection"
