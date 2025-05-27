@@ -15,3 +15,19 @@ TABLE_SETTING_PROXY = "proxy"
 TABLE_REAL_ESTATE_PRODUCT = "real_estate_product"
 TABLE_MISC_PRODUCT = "misc"
 TABLE_REAL_ESTATE_TEMPLATE = "real_estate_template"
+
+
+RE_TRANSACTION = {"sell": "bán", "rent": "cho thuê", "assignment": "sang nhượng"}
+RE_AVAILABILTY = {"available": "khả dụng", "not_available": "không khả dụng"}
+RE_CATEGORY = {
+    "apartment": "căn hộ/chung cư",
+    "house": "nhà phố",
+    "shop_house": "nhà mặt tiền",
+    "land": "đất nền",
+    "workshop": "kho/bãi",
+}
+RE_PROVINCE = {
+    "lam_dong": "lâm đồng",
+}
+RE_DISTRICT = {"da_lat": "đà lạt"}
+RE_WARD = {}

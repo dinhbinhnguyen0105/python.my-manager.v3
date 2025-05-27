@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QWidget
 from PyQt6.QtWidgets import QWidget, QMenu
 from PyQt6.QtCore import (
     Qt,
+    pyqtSlot,
     pyqtSignal,
     QPoint,
     QSortFilterProxyModel,
@@ -24,6 +25,8 @@ from src.models.product_model import (
     RealEstateProductModel,
     RealEstateTemplateModel,
 )
+
+from src.views.product.dialog_re_product import DialogREProduct
 
 
 class MultiFieldFilterProxyModel(QSortFilterProxyModel):
@@ -74,10 +77,13 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
         self.proxy_product_model.setSourceModel(self.base_product_model)
 
         self.init_ui()
+        self.init_events()
 
     def init_ui(self):
         self.set_product_table()
-        pass
+
+    def init_events(self):
+        self.action_create_btn.clicked.connect(self.on_create_product)
 
     def set_product_table(self):
         self.products_table.setModel(self.proxy_product_model)
@@ -95,3 +101,11 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
             )
             if column_name in ["id", "status", "province", "district"]:
                 self.products_table.setColumnHidden(i, True)
+
+    @pyqtSlot()
+    def on_create_product(self):
+        dialog = DialogREProduct(self)
+        dialog.show()
+        # dialog.accepted.connect(self.handle_create_product)
+
+    # @pyqtSlot()
