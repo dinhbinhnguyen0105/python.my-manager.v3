@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file '/Volumes/KINGSTON/Dev/python/python.my-manager.v3/ui/user.ui'
+# Form implementation generated from reading ui file '/Users/ndb/Dev/python/python.my-manager.v3/ui/user.ui'
 #
 # Created by: PyQt6 UI code generator 6.9.0
 #

@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file '/Volumes/KINGSTON/Dev/python/python.my-manager.v3/ui/mainwindow.ui'
+# Form implementation generated from reading ui file '/Users/ndb/Dev/python/python.my-manager.v3/ui/mainwindow.ui'
 #
 # Created by: PyQt6 UI code generator 6.9.0
 #
@@ -51,6 +51,11 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.sidebar_robot_btn)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
         self.verticalLayout.addItem(spacerItem)
+        self.sidebar_robot_settings = QtWidgets.QPushButton(parent=self.sidebar_container)
+        self.sidebar_robot_settings.setMinimumSize(QtCore.QSize(0, 60))
+        self.sidebar_robot_settings.setMaximumSize(QtCore.QSize(60, 60))
+        self.sidebar_robot_settings.setObjectName("sidebar_robot_settings")
+        self.verticalLayout.addWidget(self.sidebar_robot_settings)
         self.verticalLayout_2.addLayout(self.verticalLayout)
         self.horizontalLayout.addWidget(self.sidebar_container)
         self.line = QtWidgets.QFrame(parent=self.centralwidget)
@@ -77,3 +82,4 @@ class Ui_MainWindow(object):
         self.sidebar_misc_btn.setText(_translate("MainWindow", "Misc"))
         self.sidebar_user_btn.setText(_translate("MainWindow", "User"))
         self.sidebar_robot_btn.setText(_translate("MainWindow", "Robot"))
+        self.sidebar_robot_settings.setText(_translate("MainWindow", "Settings"))

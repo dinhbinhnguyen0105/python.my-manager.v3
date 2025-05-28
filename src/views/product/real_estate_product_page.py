@@ -86,8 +86,8 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
 
         self.udd_container_dir = self._setting_controller.get_selected_user_data_dir()
 
-        if not self.udd_container_dir:
-            raise ValueError("Invalid udd value")
+        # if not self.udd_container_dir:
+        #     raise ValueError("Invalid udd value")
 
         self.init_ui()
         self.init_events()

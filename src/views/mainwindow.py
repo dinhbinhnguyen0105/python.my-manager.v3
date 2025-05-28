@@ -14,6 +14,7 @@ from src.controllers.setting_controller import (
 )
 
 from src.views.product.real_estate_product_page import RealEstateProductPage
+from src.views.settings.dialog_settings import DialogSettings
 from src.ui.mainwindow_ui import Ui_MainWindow
 
 
@@ -100,6 +101,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.sidebar_robot_btn.clicked.connect(
             lambda: self.on_sidebar_btn_clicked("robot")
         )
+        self.sidebar_robot_settings.clicked.connect(self.on_robot_settings_clicked)
 
     @pyqtSlot(str)
     def on_sidebar_btn_clicked(self, page_name: str):
@@ -111,3 +113,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #     self.content_container.setCurrentWidget()
         # elif page_name == "robot":
         #     self.content_container.setCurrentWidget()
+
+    @pyqtSlot()
+    def on_robot_settings_clicked(self):
+        dialog_settings = DialogSettings(
+            proxy_setting_model=self._setting_proxy_controller.service.model,
+            udd_setting_model=self._setting_user_data_dir_controller.service.model,
+            parent=self,
+        )
+        dialog_settings.exec()

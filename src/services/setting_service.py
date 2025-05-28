@@ -14,6 +14,7 @@ class SettingProxyService(BaseService):
                 "model must be an instance of SettingProxyType or its subclass."
             )
         super().__init__(model)
+        self.model = model
 
     def create(self, payload: SettingProxyType):
         return super().create(payload)
