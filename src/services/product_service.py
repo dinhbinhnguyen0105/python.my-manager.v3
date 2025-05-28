@@ -1,4 +1,5 @@
 # src/services/product_service.py
+import uuid
 from typing import Optional, List
 from src.services.base_service import BaseService
 from src.models.product_model import (
@@ -7,6 +8,7 @@ from src.models.product_model import (
     MiscProductModel,
 )
 from src.my_types import RealEstateProductType, RealEstateTemplateType, MiscProductType
+from src.my_constants import RE_TRANSACTION
 
 
 class RealEstateProductService(BaseService):
@@ -74,6 +76,34 @@ class RealEstateProductService(BaseService):
                 f"[{self.__class__.__name__}.toggle_status] Failed to update status for product ID '{product_id}'."
             )
             return False
+
+    def initialize_new_pid(self, transaction_type: str) -> str:
+        """
+        Initializes and generates a new unique product identifier (PID).
+
+        Returns:
+            str: The newly generated unique product identifier.
+        """
+        try:
+            if not transaction_type in RE_TRANSACTION.keys():
+                raise KeyError()
+            else:
+                while True:
+                    uuid_str = str(uuid.uuid4())
+                    pid = uuid_str.replace("-", "")[:8]
+                    if transaction_type == "sell":
+                        pid = "S." + pid
+                    elif transaction_type == "rent":
+                        pid = "R." + pid
+                    elif transaction_type == "assignment":
+                        pid = "A." + pid
+                    pid = "RE." + pid
+                    if not self.find_by_pid(pid):
+                        return pid
+        except KeyError:
+            raise KeyError(
+                f"[{__class__.__name__}.initialize_new_pid] Error: Invalid transaction type ({transaction_type})."
+            )
 
 
 class RealEstateTemplateService(BaseService):

@@ -137,6 +137,19 @@ class RealEstateProductController(BaseController):
             self.error_signal.emit("Error occurred while toggling product status.")
             return False
 
+    def initialize_new_pid(self, transaction_type: str) -> str:
+        try:
+            self.success_signal.emit(
+                f"Successfully initialized new PID for transaction type '{transaction_type}'."
+            )
+            return self.service.initialize_new_pid(transaction_type)
+        except Exception as e:
+            print(f"[{self.__class__.__name__}.initialize_new_pid] Error: {e}")
+            self.error_signal.emit(
+                f"Failed to initialize new PID for transaction type '{transaction_type}'. Error: {e}"
+            )
+            return False
+
 
 class RealEstateTemplateController(BaseController):
     def __init__(self, service: RealEstateTemplateService, parent=None):

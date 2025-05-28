@@ -104,8 +104,15 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
 
     @pyqtSlot()
     def on_create_product(self):
-        dialog = DialogREProduct(self)
-        dialog.show()
+        self.re_create_product_dialog = DialogREProduct(self)
+        self.re_create_product_dialog.request_new_pid_signal.connect(
+            self.handle_new_pid
+        )
+        self.re_create_product_dialog.show()
         # dialog.accepted.connect(self.handle_create_product)
 
-    # @pyqtSlot()
+    @pyqtSlot(str)
+    def handle_new_pid(self, transaction_type: str):
+        new_pid = self._product_controller.initialize_new_pid(transaction_type)
+        if hasattr(self, "re_create_product_dialog"):
+            self.re_create_product_dialog.pid_input.setText(new_pid)
