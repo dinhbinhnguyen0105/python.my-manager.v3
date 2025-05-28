@@ -26,7 +26,13 @@ from src.models.product_model import (
     RealEstateTemplateModel,
 )
 
+from src.models.setting_model import SettingUserDataDirModel
+from src.services.setting_service import SettingUserDataDirModel
+from src.controllers.setting_controller import SettingUserDataDirController
+
 from src.views.product.dialog_re_product import DialogREProduct
+
+from src.my_types import RealEstateProductType
 
 
 class MultiFieldFilterProxyModel(QSortFilterProxyModel):
@@ -56,6 +62,7 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
         self,
         product_controller: RealEstateProductController,
         template_controller: RealEstateTemplateController,
+        setting_controller: SettingUserDataDirController,
         parent=None,
     ):
         super(RealEstateProductPage, self).__init__(parent)
@@ -66,6 +73,7 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
 
         self._product_controller = product_controller
         self._template_controller = template_controller
+        self._setting_controller = setting_controller
 
         self.base_product_model: RealEstateProductModel = (
             self._product_controller.service.model
@@ -75,6 +83,11 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
         )
         self.proxy_product_model = MultiFieldFilterProxyModel()
         self.proxy_product_model.setSourceModel(self.base_product_model)
+
+        self.udd_container_dir = self._setting_controller.get_selected_user_data_dir()
+
+        if not self.udd_container_dir:
+            raise ValueError("Invalid udd value")
 
         self.init_ui()
         self.init_events()
@@ -108,11 +121,22 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
         self.re_create_product_dialog.request_new_pid_signal.connect(
             self.handle_new_pid
         )
+        self.re_create_product_dialog.product_data_signal.connect(
+            self.handle_create_new_product
+        )
         self.re_create_product_dialog.show()
-        # dialog.accepted.connect(self.handle_create_product)
 
     @pyqtSlot(str)
     def handle_new_pid(self, transaction_type: str):
         new_pid = self._product_controller.initialize_new_pid(transaction_type)
         if hasattr(self, "re_create_product_dialog"):
             self.re_create_product_dialog.pid_input.setText(new_pid)
+
+    @pyqtSlot(list, RealEstateProductType)
+    def handle_create_new_product(
+        self, image_paths: List[str], product_data: RealEstateProductType
+    ):
+        # print(image_paths)
+        # print(product_data)
+
+        print(self.udd_container_dir)

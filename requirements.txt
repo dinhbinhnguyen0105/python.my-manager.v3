@@ -1,3 +1,5 @@
+fake-useragent==2.2.0
+pycurl==7.45.6
 PyQt6==6.9.0
 PyQt6-Qt6==6.9.0
 PyQt6_sip==13.10.2

@@ -14,13 +14,18 @@ class RealEstateProductController(BaseController):
     def __init__(self, service: RealEstateProductService, parent=None):
         super().__init__(service, parent)
 
-    def create_product(self, product_data: RealEstateProductType):
+    def create_product(
+        self,
+        destination_folder: str,
+        image_paths: List[str],
+        product_data: RealEstateProductType,
+    ):
         try:
             if not isinstance(product_data, RealEstateProductType):
                 raise TypeError(
                     f"Expected RealEstateProductType, got {type(product_data)}"
                 )
-            if not self.service.create(product_data):
+            if not self.service.create(destination_folder, image_paths, product_data):
                 self.error_signal.emit("Failed to create real estate product.")
                 return False
             self.success_signal.emit("Successfully created real estate product.")
@@ -140,7 +145,7 @@ class RealEstateProductController(BaseController):
     def initialize_new_pid(self, transaction_type: str) -> str:
         try:
             self.success_signal.emit(
-                f"Successfully initialized new PID for transaction type '{transaction_type}'."
+                f"Successfully initialized new PID for transaction type '{transaction_type}'"
             )
             return self.service.initialize_new_pid(transaction_type)
         except Exception as e:

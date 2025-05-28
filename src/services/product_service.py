@@ -9,6 +9,8 @@ from src.models.product_model import (
 )
 from src.my_types import RealEstateProductType, RealEstateTemplateType, MiscProductType
 from src.my_constants import RE_TRANSACTION
+import os
+import shutil
 
 
 class RealEstateProductService(BaseService):
@@ -21,7 +23,19 @@ class RealEstateProductService(BaseService):
             )
         super().__init__(model)
 
-    def create(self, payload: RealEstateProductType) -> bool:
+    def create(
+        self,
+        destination_folder: str,
+        image_paths: List[str],
+        payload: RealEstateProductType,
+    ) -> bool:
+        product_dir = os.path.abspath(os.path.join(destination_folder, payload.pid))
+        if not os.path.exists(product_dir):
+            os.makedirs(product_dir)
+
+        for image_path in image_paths:
+            if os.path.isfile(image_path):
+                shutil.copy(image_path, product_dir)
         return super().create(payload)
 
     def read(self, record_id: int) -> Optional[RealEstateProductType]:

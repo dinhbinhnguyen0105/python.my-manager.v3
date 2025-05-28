@@ -45,9 +45,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._setting_user_data_dir_controller = setting_user_data_dir_controller
 
         self.real_estate_product_page = RealEstateProductPage(
-            self._real_estate_product_controller,
-            self._real_estate_template_controller,
-            self,
+            product_controller=self._real_estate_product_controller,
+            template_controller=self._real_estate_template_controller,
+            setting_controller=self._setting_user_data_dir_controller,
+            parent=self,
         )
 
         self.init_ui()

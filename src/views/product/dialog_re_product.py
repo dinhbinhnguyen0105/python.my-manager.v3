@@ -1,8 +1,8 @@
 # src/views/product/dialog_re_product.py
 from typing import List
 from PyQt6.QtCore import Qt, pyqtSlot, pyqtSignal
-from PyQt6.QtWidgets import QDialog, QRadioButton
-from PyQt6.QtGui import QDoubleValidator
+from PyQt6.QtWidgets import QDialog, QRadioButton, QMessageBox
+from PyQt6.QtGui import QDoubleValidator, QDragEnterEvent, QDropEvent, QPixmap
 
 from src.my_types import RealEstateProductType
 from src.ui.dialog_re_product_ui import Ui_Dialog_REProduct
@@ -21,7 +21,7 @@ from src.my_constants import (
 
 
 class DialogREProduct(QDialog, Ui_Dialog_REProduct):
-    product_data = pyqtSignal(RealEstateProductType)
+    product_data_signal = pyqtSignal(list, RealEstateProductType)
     request_new_pid_signal = pyqtSignal(str)
 
     def __init__(self, parent=None):
@@ -38,20 +38,26 @@ class DialogREProduct(QDialog, Ui_Dialog_REProduct):
         )
 
         self.transaction_option_widgets: List[QRadioButton] = []
+        self.image_paths: List[str] = []
+        self.transaction_value: str = ""
 
         self.init_options()
         self.init_validate_input()
         self.init_events()
+        self._setupImageDrop()
 
     def init_options(self):
-        for _key in RE_TRANSACTION.keys():
-            transaction_option = QRadioButton(RE_TRANSACTION[_key].capitalize())
+        for transaction_type in RE_TRANSACTION.keys():
+            transaction_option = QRadioButton(
+                RE_TRANSACTION[transaction_type].capitalize()
+            )
 
             transaction_option.setStyleSheet("padding: 0 24px;")
-            # transaction_option.setProperty("value", )
+            transaction_option.setProperty("value", transaction_type)
             transaction_option.clicked.connect(
-                # lambda: self.request_new_pid_signal(transaction_option.property("value"))
-                lambda: print(_key)
+                lambda _, opt=transaction_option: self.on_transaction_option_clicked(
+                    opt.property("value")
+                )
             )
             self.transaction_option_widgets.append(transaction_option)
             self.transaction_container_w.layout().addWidget(transaction_option)
@@ -95,13 +101,99 @@ class DialogREProduct(QDialog, Ui_Dialog_REProduct):
 
     def init_events(self):
         pass
-        # for transaction_option in self.transaction_option_widgets:
-        # print(transaction_option.property("value"))
 
-    # @pyqtSlot(str)
-    # def on_transaction_clicked(self, str):
+    def init_ui(self):
+        pass
+
+    def _setupImageDrop(self):
+        self.image_input.setAcceptDrops(True)
+        self.image_input.dragEnterEvent = self._imagesDragEnterEvent
+        self.image_input.dropEvent = self._imagesDropEvent
+
+    def _imagesDragEnterEvent(self, event: QDragEnterEvent):
+        if event.mimeData().hasUrls():
+            event.accept()
+        else:
+            event.ignore()
+
+    def _imagesDropEvent(self, event: QDropEvent):
+        if event.mimeData().hasUrls():
+            images = [url.toLocalFile() for url in event.mimeData().urls()]
+            self._handleDroppedImages(images)
+            self.image_paths = images
+
+    def _handleDroppedImages(self, image_paths):
+        if image_paths:
+            self._display_image(image_paths[0])
+        else:
+            self.image_input.setText("No images dropped.")
+
+    def _display_image(self, image_path):
+        pixmap = QPixmap(image_path)
+        if not pixmap.isNull():
+            self.image_input.setPixmap(
+                pixmap.scaled(
+                    self.image_input.size(),
+                    Qt.AspectRatioMode.KeepAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation,
+                )
+            )
+        else:
+            self.image_input.setText("Failed to load image.")
+
+    @pyqtSlot(str)
+    def on_transaction_option_clicked(self, transaction_type: str):
+        self.transaction_value = transaction_type
+        self.request_new_pid_signal.emit(transaction_type)
+
+    def validation(self):
+        if not len(self.image_paths):
+            QMessageBox.critical(self, "Invalid images", "Need lasted 1")
+            return False
+        return True
 
     @pyqtSlot()
     def on_accepted(self):
-        print("accepted!")
+        product_data = RealEstateProductType(
+            id=-1,
+            pid=self.pid_input.text(),
+            availability=self.availability_combobox.currentData(),
+            transaction_type=self.transaction_value,
+            province=self.provinces_combobox.currentData(),
+            district=self.districts_combobox.currentData(),
+            ward=self.wards_combobox.currentData(),
+            street=self.street_input.text().lower(),
+            category=self.categories_combobox.currentData(),
+            area=self.area_input.text(),
+            price=self.price_input.text(),
+            legal=self.legal_s_combobox.currentData(),
+            structure=self.structure_input.text().lower(),
+            function=self.function_input.text(),
+            building_line=self.building_line_s_combobox.currentData(),
+            furniture=self.furniture_s_combobox.currentData(),
+            description=self.description_input.toPlainText(),
+            created_at=None,
+            updated_at=None,
+        )
+        if not len(self.image_paths):
+            QMessageBox.warning(self, "Missing Images", "Please add at least 1 image.")
+            return
+        elif not product_data.pid:
+            QMessageBox.warning(self, "Missing Product ID", "Product ID is missing.")
+            return
+        elif not product_data.transaction_type:
+            QMessageBox.warning(
+                self, "Missing Transaction Type", "Please select a transaction type."
+            )
+            return
+        elif not product_data.street:
+            QMessageBox.warning(
+                self, "Missing Street Name", "Please enter a street name."
+            )
+            return
+        elif not product_data.price:
+            QMessageBox.warning(self, "Missing Price", "Please enter a price.")
+            return
+
+        self.product_data_signal.emit(self.image_paths, product_data)
         self.accept()

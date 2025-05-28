@@ -223,3 +223,17 @@ class SettingUserDataDirController(BaseController):
                 "Error occurred while importing user data dir settings."
             )
             return False
+
+    def get_selected_user_data_dir(self):
+        try:
+            udd = None
+            udd = self.service.get_selected()
+            self.success_signal.emit(
+                "Successfully get selected user data dir settings."
+            )
+            self.data_changed_signal.emit()
+            return udd
+        except Exception as e:
+            print(f"[{self.__class__.__name__}.get_selected_user_data_dir] Error: {e}")
+            self.error_signal.emit("Error occurred while get user data dir setting.")
+            return False
