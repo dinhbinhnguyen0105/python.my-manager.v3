@@ -144,6 +144,25 @@
              </property>
             </spacer>
            </item>
+           <item>
+            <widget class="QPushButton" name="sidebar_robot_settings">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>60</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>60</width>
+               <height>60</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Settings</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </item>
         </layout>
