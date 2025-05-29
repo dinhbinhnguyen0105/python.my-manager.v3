@@ -1,4 +1,4 @@
-# src/views/product/dialog_re_product.py
+# src/views/product/dialog_create_re_product.py
 from typing import List
 from PyQt6.QtCore import Qt, pyqtSlot, pyqtSignal
 from PyQt6.QtWidgets import QDialog, QRadioButton, QMessageBox
@@ -20,15 +20,15 @@ from src.my_constants import (
 )
 
 
-class DialogREProduct(QDialog, Ui_Dialog_REProduct):
+class DialogCreateREProduct(QDialog, Ui_Dialog_REProduct):
     product_data_signal = pyqtSignal(list, RealEstateProductType)
     request_new_pid_signal = pyqtSignal(str)
 
     def __init__(self, parent=None):
-        super(DialogREProduct, self).__init__(parent)
+        super(DialogCreateREProduct, self).__init__(parent)
         self.setupUi(self)
 
-        self.setWindowTitle("Real estate product")
+        self.setWindowTitle("Create new re product")
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         self.setModal(False)
@@ -146,12 +146,6 @@ class DialogREProduct(QDialog, Ui_Dialog_REProduct):
         self.transaction_value = transaction_type
         self.request_new_pid_signal.emit(transaction_type)
 
-    def validation(self):
-        if not len(self.image_paths):
-            QMessageBox.critical(self, "Invalid images", "Need lasted 1")
-            return False
-        return True
-
     @pyqtSlot()
     def on_accepted(self):
         product_data = RealEstateProductType(
@@ -159,18 +153,18 @@ class DialogREProduct(QDialog, Ui_Dialog_REProduct):
             pid=self.pid_input.text(),
             availability=self.availability_combobox.currentData(),
             transaction_type=self.transaction_value,
-            province=self.provinces_combobox.currentData(),
-            district=self.districts_combobox.currentData(),
-            ward=self.wards_combobox.currentData(),
+            province=self.provinces_combobox.currentText().lower(),
+            district=self.districts_combobox.currentText().lower(),
+            ward=self.wards_combobox.currentText().lower(),
             street=self.street_input.text().lower(),
-            category=self.categories_combobox.currentData(),
+            category=self.categories_combobox.currentText().lower(),
             area=self.area_input.text(),
             price=self.price_input.text(),
-            legal=self.legal_s_combobox.currentData(),
+            legal=self.legal_s_combobox.currentText().lower(),
             structure=self.structure_input.text().lower(),
             function=self.function_input.text(),
-            building_line=self.building_line_s_combobox.currentData(),
-            furniture=self.furniture_s_combobox.currentData(),
+            building_line=self.building_line_s_combobox.currentText().lower(),
+            furniture=self.furniture_s_combobox.currentText().lower(),
             description=self.description_input.toPlainText(),
             created_at=None,
             updated_at=None,
@@ -195,5 +189,5 @@ class DialogREProduct(QDialog, Ui_Dialog_REProduct):
             QMessageBox.warning(self, "Missing Price", "Please enter a price.")
             return
 
-        self.product_data_signal.emit(self.image_paths, product_data)
+        self.product_data_signal.emit(sorted(self.image_paths), product_data)
         self.accept()

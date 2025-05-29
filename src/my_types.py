@@ -55,7 +55,7 @@ class SettingUserDataDirType:
 class RealEstateProductType:
     id: Optional[int]
     pid: Optional[str]
-    availability: Optional[str]
+    availability: Optional[int]
     transaction_type: Optional[str]
     province: Optional[str]
     district: Optional[str]

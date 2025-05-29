@@ -307,6 +307,7 @@ class BaseService:
             print(info_msg)
             return False
         if self.model.submitAll():
+            self.model.select()
             return True
         else:
             info_msg = f"[{self.__class__.__name__}.delete] Failed to submit deletion. Error: {self.model.lastError().text()}"

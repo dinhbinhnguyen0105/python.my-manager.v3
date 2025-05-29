@@ -10,7 +10,7 @@ class BaseModel(QSqlTableModel):
         super().__init__(parent, db=db)
         self.setTable(table_name)
         self.setEditStrategy(QSqlTableModel.EditStrategy.OnManualSubmit)
-        self.status_col = self.fieldIndex("status")
+        self.availability_col = self.fieldIndex("availability")
         self.select()
 
     def flags(self, index):
@@ -23,14 +23,14 @@ class BaseModel(QSqlTableModel):
     def data(self, index: QModelIndex, role: int = Qt.ItemDataRole.DisplayRole):
         if role == Qt.ItemDataRole.DisplayRole:
             return super().data(index, role)
-        if role == Qt.ItemDataRole.BackgroundRole and self.status_col != -1:
-            status_index = self.index(index.row(), self.status_col)
-            status = super().data(status_index, Qt.ItemDataRole.DisplayRole)
+        if role == Qt.ItemDataRole.BackgroundRole and self.availability_col != -1:
+            availability_index = self.index(index.row(), self.availability_col)
+            status = super().data(availability_index, Qt.ItemDataRole.DisplayRole)
             try:
-                status_value = int(status)
+                availability_value = int(status)
             except Exception:
-                status_value = None
-            if status_value == 0:
+                availability_value = None
+            if availability_value == 0:
                 return QBrush(QColor("#e7625f"))
         return super().data(index, role)
 

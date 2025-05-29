@@ -73,6 +73,18 @@ class Application:
             setting_user_data_dir_service
         )
 
+        # from src.my_types import SettingUserDataDirType
+
+        # setting_user_data_dir_controller.create_user_data_dir(
+        #     SettingUserDataDirType(
+        #         id=None,
+        #         value="src/repositories/user_data_dirs",
+        #         is_selected=1,
+        #         updated_at=None,
+        #         created_at=None,
+        #     )
+        # )
+
         self.mainWindow = MainWindow(
             user_controller=user_controller,
             user_listed_product_controller=user_listed_product_controller,

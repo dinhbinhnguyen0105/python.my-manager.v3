@@ -15,7 +15,7 @@ class DialogSettings(QDialog, Ui_Dialog_Settings):
     new_udd_data_signal = pyqtSignal(SettingUserDataDirType)
     delete_proxy_signal = pyqtSignal(int)
     delete_udd_signal = pyqtSignal(int)
-    set_proxy_selected_signal = pyqtSignal(int)
+    set_udd_selected_signal = pyqtSignal(int)
 
     def __init__(
         self,
@@ -47,35 +47,47 @@ class DialogSettings(QDialog, Ui_Dialog_Settings):
         # self.tableView
 
         self.init_events()
+        self.init_ui()
 
     def init_ui(self):
-
-        pass
+        self.set_table_ui()
 
     def init_events(self):
         self.udd_radio.clicked.connect(lambda: self.on_setting_option_clicked("udd"))
         self.proxy_radio.clicked.connect(
             lambda: self.on_setting_option_clicked("proxy")
         )
+        self.create_new_btn.clicked.connect(self.on_save_clicked)
 
     def set_table_ui(self):
         self.tableView.setSortingEnabled(True)
         self.tableView.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.tableView.setSelectionBehavior(self.tableView.SelectionBehavior.SelectRows)
         self.tableView.customContextMenuRequested.connect(self.show_context_menu)
 
     def show_context_menu(self, pos: QPoint):
-        global_pos = self.products_table.mapToGlobal(pos)
-        menu = QMenu(self.products_table)
-        selected_action = QAction("Select", self)
+        global_pos = self.tableView.mapToGlobal(pos)
+        menu = QMenu(self.tableView)
+        if type(self.tableView.model()).__name__ == "SettingUserDataDirModel":
+            selected_action = QAction("Select", self)
+            selected_action.triggered.connect(self.on_set_selected)
+            menu.addAction(selected_action)
+
         delete_action = QAction("Delete", self)
-
-        selected_action.triggered.connect(self.handle_edit)
-        delete_action.triggered.connect(self.handle_delete)
-
-        menu.addAction(selected_action)
+        delete_action.triggered.connect(self.on_deleted_clicked)
         menu.addAction(delete_action)
 
         menu.popup(global_pos)
+
+    def get_selected_ids(self):
+        selected_indexes = self.tableView.selectionModel().selectedRows()
+        model = self.tableView.model()
+        id_col = model.fieldIndex("id") if hasattr(model, "fieldIndex") else 0
+        ids = []
+        for index in selected_indexes:
+            id_index = model.index(index.row(), id_col)
+            ids.append(model.data(id_index))
+        return ids
 
     @pyqtSlot(str)
     def on_setting_option_clicked(self, setting_option_name: str):
@@ -113,9 +125,9 @@ class DialogSettings(QDialog, Ui_Dialog_Settings):
         else:
             return
 
-    @pyqtSlot(int)
-    def on_deleted_clicked(self, record_id: int):
-        self.
+    @pyqtSlot()
+    def on_deleted_clicked(self):
+        record_id = self.get_selected_ids()[0]
 
         if "udd" == self.current_setting_option:
             self.delete_udd_signal.emit(record_id)
@@ -124,9 +136,10 @@ class DialogSettings(QDialog, Ui_Dialog_Settings):
         else:
             return
 
-    @pyqtSlot(int)
-    def on_set_selected(self, record_id: int):
-        self.set_proxy_selected_signal.emit(record_id)
+    @pyqtSlot()
+    def on_set_selected(self):
+        record_id = self.get_selected_ids()[0]
+        self.set_udd_selected_signal.emit(record_id)
         pass
 
 

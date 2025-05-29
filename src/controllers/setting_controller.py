@@ -64,7 +64,7 @@ class SettingProxyController(BaseController):
     def delete_proxy(self, record_id: int) -> bool:
         try:
             if not self.service.delete(record_id):
-                self.operation_warning_signal.emit(
+                self.warning_signal.emit(
                     f"Failed to delete proxy setting (id: {record_id})."
                 )
                 return False
@@ -75,9 +75,7 @@ class SettingProxyController(BaseController):
             return True
         except Exception as e:
             print(f"[{self.__class__.__name__}.delete_proxy] Error: {e}")
-            self.operation_error_signal.emit(
-                "Error occurred while deleting proxy setting."
-            )
+            self.error_signal.emit("Error occurred while deleting proxy setting.")
             return False
 
     def delete_multiple_proxies(self, record_ids: List[int]) -> bool:
@@ -88,7 +86,7 @@ class SettingProxyController(BaseController):
             return True
         except Exception as e:
             print(f"[{self.__class__.__name__}.delete_multiple_proxies] Error: {e}")
-            self.operation_error_signal.emit(
+            self.error_signal.emit(
                 "Error occurred while deleting multiple proxy settings."
             )
             return False
@@ -108,6 +106,7 @@ class SettingProxyController(BaseController):
 class SettingUserDataDirController(BaseController):
     def __init__(self, service: SettingUserDataDirService, parent=None):
         super().__init__(service, parent)
+        self.service = service
 
     def create_user_data_dir(self, data_dir: SettingUserDataDirType):
         try:
@@ -178,7 +177,7 @@ class SettingUserDataDirController(BaseController):
     def delete_user_data_dir(self, record_id: int) -> bool:
         try:
             if not self.service.delete(record_id):
-                self.operation_warning_signal.emit(
+                self.warning_signal.emit(
                     f"Failed to delete user data dir setting (id: {record_id})."
                 )
                 return False
@@ -189,7 +188,7 @@ class SettingUserDataDirController(BaseController):
             return True
         except Exception as e:
             print(f"[{self.__class__.__name__}.delete_user_data_dir] Error: {e}")
-            self.operation_error_signal.emit(
+            self.error_signal.emit(
                 "Error occurred while deleting user data dir setting."
             )
             return False
@@ -206,7 +205,7 @@ class SettingUserDataDirController(BaseController):
             print(
                 f"[{self.__class__.__name__}.delete_multiple_user_data_dirs] Error: {e}"
             )
-            self.operation_error_signal.emit(
+            self.error_signal.emit(
                 "Error occurred while deleting multiple user data dir settings."
             )
             return False
@@ -236,4 +235,38 @@ class SettingUserDataDirController(BaseController):
         except Exception as e:
             print(f"[{self.__class__.__name__}.get_selected_user_data_dir] Error: {e}")
             self.error_signal.emit("Error occurred while get user data dir setting.")
+            return False
+
+    def set_selected_user_data_dir(self, record_id: int):
+        """
+        Sets the selected user data directory based on the provided record ID.
+
+        Attempts to set the selected user data directory by invoking the service's `set_selected` method.
+        Emits different signals based on the outcome:
+        - Emits `info_signal` if the selection was not successful.
+        - Emits `success_signal` and `data_changed_signal` if the selection was successful.
+        - Emits `error_signal` if an exception occurs.
+
+        Args:
+            record_id (int): The ID of the record to be set as selected.
+
+        Returns:
+            bool: True if the selection was successful, False otherwise.
+        """
+        try:
+            if not self.service.set_selected(record_id=record_id):
+                self.info_signal.emit(
+                    f"Failed to select user data directory for record ID {record_id}."
+                )
+            else:
+                self.success_signal.emit(
+                    f"User data directory for record ID {record_id} successfully selected."
+                )
+                self.data_changed_signal.emit()
+                return True
+        except Exception as e:
+            print(f"[{self.__class__.__name__}.set_selected_user_data_dir] Error: {e}")
+            self.error_signal.emit(
+                f"An error occurred while setting user data directory for record ID {record_id}. Error: {e}"
+            )
             return False

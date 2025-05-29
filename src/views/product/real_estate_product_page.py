@@ -1,4 +1,5 @@
 # src/views/product/product.py
+import os
 from typing import List, Any
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import QWidget
@@ -30,7 +31,7 @@ from src.models.setting_model import SettingUserDataDirModel
 from src.services.setting_service import SettingUserDataDirModel
 from src.controllers.setting_controller import SettingUserDataDirController
 
-from src.views.product.dialog_re_product import DialogREProduct
+from src.views.product.dialog_create_re_product import DialogCreateREProduct
 
 from src.my_types import RealEstateProductType
 
@@ -86,9 +87,6 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
 
         self.udd_container_dir = self._setting_controller.get_selected_user_data_dir()
 
-        # if not self.udd_container_dir:
-        #     raise ValueError("Invalid udd value")
-
         self.init_ui()
         self.init_events()
 
@@ -97,6 +95,24 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
 
     def init_events(self):
         self.action_create_btn.clicked.connect(self.on_create_product)
+
+    def get_selected_ids(self):
+        selected_indexes = self.products_table.selectionModel().selectedRows()
+        ids = []
+        for proxy_index in selected_indexes:
+            # Chuyển sang index của source model
+            source_index = self.proxy_product_model.mapToSource(proxy_index)
+            source_model = self.proxy_product_model.sourceModel()
+            # Tìm cột id
+            id_col = (
+                source_model.fieldIndex("id")
+                if hasattr(source_model, "fieldIndex")
+                else 0
+            )
+            id_index = source_model.index(source_index.row(), id_col)
+            id_value = source_model.data(id_index, Qt.ItemDataRole.DisplayRole)
+            ids.append(id_value)
+        return sorted(ids)
 
     def set_product_table(self):
         self.products_table.setModel(self.proxy_product_model)
@@ -112,12 +128,56 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
             column_name = self.base_product_model.headerData(
                 i, Qt.Orientation.Horizontal, Qt.ItemDataRole.DisplayRole
             )
-            if column_name in ["id", "status", "province", "district"]:
+            if column_name in ["id", "availability", "province", "district"]:
                 self.products_table.setColumnHidden(i, True)
+        self.products_table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.products_table.customContextMenuRequested.connect(self.show_context_menu)
+
+    def show_context_menu(self, pos: QPoint):
+        proxy_index = self.products_table.indexAt(pos)
+        if not proxy_index.isValid():
+            return
+
+        # Chuyển sang index của source model
+        source_index = self.proxy_product_model.mapToSource(proxy_index)
+        source_model = self.proxy_product_model.sourceModel()
+
+        # Tìm cột status
+        availability_col = (
+            source_model.fieldIndex("availability")
+            if hasattr(source_model, "fieldIndex")
+            else 0
+        )
+        availability_index = source_model.index(source_index.row(), availability_col)
+        availability_value: int = source_model.data(
+            availability_index, Qt.ItemDataRole.DisplayRole
+        )
+        global_pos = self.products_table.mapToGlobal(pos)
+
+        menu = QMenu(self.products_table)
+
+        if availability_value == 1:
+            set_unavailable = QAction("Change to unavailable", self)
+            menu.addAction(set_unavailable)
+            set_unavailable.triggered.connect(self.handle_change_availability)
+        else:
+            set_available = QAction("Change to available", self)
+            menu.addAction(set_available)
+            set_available.triggered.connect(self.handle_change_availability)
+            pass
+
+        update_action = QAction("Update", self)
+        delete_action = QAction("Delete", self)
+        update_action.triggered.connect(self.handle_update_product)
+        delete_action.triggered.connect(self.handle_delete_product)
+        menu.addAction(update_action)
+        menu.addAction(delete_action)
+
+        menu.popup(global_pos)
 
     @pyqtSlot()
     def on_create_product(self):
-        self.re_create_product_dialog = DialogREProduct(self)
+        self.re_create_product_dialog = DialogCreateREProduct(self)
         self.re_create_product_dialog.request_new_pid_signal.connect(
             self.handle_new_pid
         )
@@ -136,7 +196,22 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
     def handle_create_new_product(
         self, image_paths: List[str], product_data: RealEstateProductType
     ):
-        # print(image_paths)
-        # print(product_data)
+        self._product_controller.create_product(
+            os.path.join(self.udd_container_dir, "..", "images"),
+            image_paths,
+            product_data,
+        )
 
-        print(self.udd_container_dir)
+    @pyqtSlot()
+    def handle_delete_product(self):
+        pass
+
+    @pyqtSlot()
+    def handle_update_product(self):
+        pass
+
+    @pyqtSlot()
+    def handle_change_availability(self):
+        selected_ids = self.get_selected_ids()
+        if len(selected_ids):
+            self._product_controller.toggle_availability(selected_ids[0])

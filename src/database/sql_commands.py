@@ -64,7 +64,7 @@ CREATE_REAL_ESTATE_PRODUCT_TABLE = f"""
 CREATE TABLE IF NOT EXISTS {constants.TABLE_REAL_ESTATE_PRODUCT} (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     pid TEXT UNIQUE,
-    availability TEXT,
+    availability INT,
     transaction_type TEXT,
     province TEXT,
     district TEXT,
