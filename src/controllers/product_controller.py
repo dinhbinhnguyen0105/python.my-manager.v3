@@ -83,7 +83,7 @@ class RealEstateProductController(BaseController):
     def delete_product(self, record_id: int) -> bool:
         try:
             if not self.service.delete(record_id):
-                self.operation_warning_signal.emit(
+                self.warning_signal.emit(
                     f"Failed to delete real estate product (id: {record_id})."
                 )
                 return False
@@ -155,6 +155,24 @@ class RealEstateProductController(BaseController):
                 f"Failed to initialize new PID for transaction type '{transaction_type}'. Error: {e}"
             )
             return False
+
+    def get_images_by_id(self, record_id: int) -> List[str]:
+        try:
+            images = self.service.get_images_by_id(record_id)
+            return images
+        except Exception as e:
+            print(f"[{self.__class__.__name__}.get_images_by_id] Error: {e}")
+            self.error_signal.emit("Error occurred while getting images by id.")
+            return []
+
+    def get_images_by_path(self, path: str) -> List[str]:
+        try:
+            images = self.service.get_images_by_path(path)
+            return images
+        except Exception as e:
+            print(f"[{self.__class__.__name__}.get_images_by_path] Error: {e}")
+            self.error_signal.emit("Error occurred while getting images by path.")
+            return []
 
 
 class RealEstateTemplateController(BaseController):
@@ -228,7 +246,7 @@ class RealEstateTemplateController(BaseController):
     def delete_template(self, record_id: int) -> bool:
         try:
             if not self.service.delete(record_id):
-                self.operation_warning_signal.emit(
+                self.warning_signal.emit(
                     f"Failed to delete real estate template (id: {record_id})."
                 )
                 return False
@@ -332,7 +350,7 @@ class MiscProductController(BaseController):
     def delete_product(self, record_id: int) -> bool:
         try:
             if not self.service.delete(record_id):
-                self.operation_warning_signal.emit(
+                self.warning_signal.emit(
                     f"Failed to delete misc product (id: {record_id})."
                 )
                 return False

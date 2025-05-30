@@ -2,7 +2,7 @@
 from typing import List
 from PyQt6.QtCore import Qt, pyqtSlot, pyqtSignal
 from PyQt6.QtWidgets import QDialog, QRadioButton, QMessageBox
-from PyQt6.QtGui import QDoubleValidator, QDragEnterEvent, QDropEvent, QPixmap
+from PyQt6.QtGui import QDoubleValidator, QPixmap
 
 from src.my_types import RealEstateProductType
 from src.ui.dialog_re_product_ui import Ui_Dialog_REProduct
@@ -21,12 +21,14 @@ from src.my_constants import (
 
 
 class DialogUpdateREProduct(QDialog, Ui_Dialog_REProduct):
+    product_data_signal = pyqtSignal(RealEstateProductType)
+
     def __init__(
         self, image_paths: List[str], product_data: RealEstateProductType, parent=None
     ):
         super().__init__(parent)
         self.setupUi(self)
-        self.setWindowTitle("Update new re product")
+        self.setWindowTitle(f"Update {product_data.pid}")
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         self.setModal(False)
@@ -34,31 +36,13 @@ class DialogUpdateREProduct(QDialog, Ui_Dialog_REProduct):
         self.buttonBox.button(self.buttonBox.StandardButton.Save).clicked.connect(
             self.on_accepted
         )
-        # self.transaction_option_widgets: List[QRadioButton] = []
         self.image_paths: List[str] = image_paths
-        # self.transaction_value: str = ""
-
+        self.product_data = product_data
+        self.init_options()
         self._display_image(image_paths)
+        self.init_data()
 
     def init_options(self):
-        # for transaction_type in RE_TRANSACTION.keys():
-        #     transaction_option = QRadioButton(
-        #         RE_TRANSACTION[transaction_type].capitalize()
-        #     )
-
-        #     transaction_option.setStyleSheet("padding: 0 24px;")
-        #     transaction_option.setProperty("value", transaction_type)
-        #     transaction_option.clicked.connect(
-        #         lambda _, opt=transaction_option: self.on_transaction_option_clicked(
-        #             opt.property("value")
-        #         )
-        #     )
-        #     self.transaction_option_widgets.append(transaction_option)
-        #     self.transaction_container_w.layout().addWidget(transaction_option)
-        # self.transaction_container_w.layout().setAlignment(
-        #     Qt.AlignmentFlag.AlignJustify
-        # )
-
         self.transaction_container_w.setHidden(True)
         self.pid_input.setDisabled(True)
 
@@ -97,11 +81,78 @@ class DialogUpdateREProduct(QDialog, Ui_Dialog_REProduct):
         self.structure_input.setValidator(validator)
 
     def init_data(self):
+        # Set giá trị cho các input từ self.product_data
+        if not self.product_data:
+            return
 
-        pass
+        # PID
+        self.pid_input.setText(str(self.product_data.pid))
 
-    def _display_image(self, image_path):
-        pixmap = QPixmap(image_path)
+        # Availability
+        idx = self.availability_combobox.findData(self.product_data.availability)
+        if idx != -1:
+            self.availability_combobox.setCurrentIndex(idx)
+
+        # Transaction type (ẩn, nhưng nếu cần thì set)
+        # self.transaction_value = self.product_data.transaction_type
+
+        # Province
+        idx = self.provinces_combobox.findData(self.product_data.province)
+        if idx != -1:
+            self.provinces_combobox.setCurrentIndex(idx)
+
+        # District
+        idx = self.districts_combobox.findData(self.product_data.district)
+        if idx != -1:
+            self.districts_combobox.setCurrentIndex(idx)
+
+        # Ward
+        idx = self.wards_combobox.findData(self.product_data.ward)
+        if idx != -1:
+            self.wards_combobox.setCurrentIndex(idx)
+
+        # Street
+        self.street_input.setText(str(self.product_data.street))
+
+        # Category
+        idx = self.categories_combobox.findData(self.product_data.category)
+        if idx != -1:
+            self.categories_combobox.setCurrentIndex(idx)
+
+        # Area
+        self.area_input.setText(str(self.product_data.area))
+
+        # Price
+        self.price_input.setText(str(self.product_data.price))
+
+        # Legal
+        idx = self.legal_s_combobox.findData(self.product_data.legal)
+        if idx != -1:
+            self.legal_s_combobox.setCurrentIndex(idx)
+
+        # Structure
+        self.structure_input.setText(str(self.product_data.structure))
+
+        # Function
+        self.function_input.setText(str(self.product_data.function))
+
+        # Building line
+        idx = self.building_line_s_combobox.findData(self.product_data.building_line)
+        if idx != -1:
+            self.building_line_s_combobox.setCurrentIndex(idx)
+
+        # Furniture
+        idx = self.furniture_s_combobox.findData(self.product_data.furniture)
+        if idx != -1:
+            self.furniture_s_combobox.setCurrentIndex(idx)
+
+        # Description
+        self.description_input.setPlainText(str(self.product_data.description))
+
+    def _display_image(self, image_paths: List[str]):
+        if not len(image_paths):
+            self.image_input.setText("Failed to load image.")
+        pixmap = QPixmap(image_paths[0])
         if not pixmap.isNull():
             self.image_input.setPixmap(
                 pixmap.scaled(
@@ -112,3 +163,50 @@ class DialogUpdateREProduct(QDialog, Ui_Dialog_REProduct):
             )
         else:
             self.image_input.setText("Failed to load image.")
+
+    @pyqtSlot()
+    def on_accepted(self):
+        product_data = RealEstateProductType(
+            id=self.product_data.id,
+            pid=self.product_data.pid,
+            availability=self.availability_combobox.currentData(),
+            transaction_type=self.product_data.transaction_type,
+            province=self.provinces_combobox.currentText().lower(),
+            district=self.districts_combobox.currentText().lower(),
+            ward=self.wards_combobox.currentText().lower(),
+            street=self.street_input.text().lower(),
+            category=self.categories_combobox.currentText().lower(),
+            area=self.area_input.text(),
+            price=self.price_input.text(),
+            legal=self.legal_s_combobox.currentText().lower(),
+            structure=self.structure_input.text().lower(),
+            function=self.function_input.text(),
+            building_line=self.building_line_s_combobox.currentText().lower(),
+            furniture=self.furniture_s_combobox.currentText().lower(),
+            description=self.description_input.toPlainText(),
+            image_dir=self.product_data.image_dir,
+            created_at=self.product_data.created_at,
+            updated_at=None,
+        )
+        if not len(self.image_paths):
+            QMessageBox.warning(self, "Missing Images", "Please add at least 1 image.")
+            return
+        elif not product_data.pid:
+            QMessageBox.warning(self, "Missing Product ID", "Product ID is missing.")
+            return
+        elif not product_data.transaction_type:
+            QMessageBox.warning(
+                self, "Missing Transaction Type", "Please select a transaction type."
+            )
+            return
+        elif not product_data.street:
+            QMessageBox.warning(
+                self, "Missing Street Name", "Please enter a street name."
+            )
+            return
+        elif not product_data.price:
+            QMessageBox.warning(self, "Missing Price", "Please enter a price.")
+            return
+
+        self.product_data_signal.emit(product_data)
+        self.accept()

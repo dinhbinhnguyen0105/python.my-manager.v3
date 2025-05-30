@@ -1,6 +1,6 @@
 # src/my_types.py
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, List
 
 from PyQt6.QtCore import QObject, pyqtSignal
 
@@ -70,6 +70,7 @@ class RealEstateProductType:
     building_line: Optional[str]
     furniture: Optional[str]
     description: Optional[str]
+    image_dir: Optional[str]
     created_at: Optional[str]
     updated_at: Optional[str]
 

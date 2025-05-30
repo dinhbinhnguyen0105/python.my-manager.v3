@@ -84,7 +84,7 @@ class UserController(BaseController):
     def delete_user(self, udd_container, record_id) -> bool:
         try:
             if not self.service.delete(udd_container, record_id):
-                self.operation_warning_signal.emit(
+                self.warning_signal.emit(
                     f"Failed to delete user (id: {record_id}). Check logs for details."
                 )
                 return False
@@ -212,7 +212,7 @@ class UserListedProductController(BaseController):
     def delete_listed_product(self, record_id: int) -> bool:
         try:
             if not self.service.delete(record_id):
-                self.operation_warning_signal.emit(
+                self.warning_signal.emit(
                     f"Failed to delete listed product (id: {record_id})."
                 )
                 return False

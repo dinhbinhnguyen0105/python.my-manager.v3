@@ -79,6 +79,7 @@ CREATE TABLE IF NOT EXISTS {constants.TABLE_REAL_ESTATE_PRODUCT} (
     building_line TEXT,
     furniture TEXT,
     description TEXT,
+    image_dir TEXT,
     created_at TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now')),
     updated_at TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now'))
 )

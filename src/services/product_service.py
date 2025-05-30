@@ -1,5 +1,8 @@
 # src/services/product_service.py
 import uuid
+import glob
+import os
+import shutil
 from typing import Optional, List
 from src.services.base_service import BaseService
 from src.models.product_model import (
@@ -9,8 +12,6 @@ from src.models.product_model import (
 )
 from src.my_types import RealEstateProductType, RealEstateTemplateType, MiscProductType
 from src.my_constants import RE_TRANSACTION
-import os
-import shutil
 
 
 class RealEstateProductService(BaseService):
@@ -33,9 +34,16 @@ class RealEstateProductService(BaseService):
         if not os.path.exists(product_dir):
             os.makedirs(product_dir)
 
-        for image_path in image_paths:
+        for idx, image_path in enumerate(image_paths):
             if os.path.isfile(image_path):
-                shutil.copy(image_path, product_dir)
+                ext = os.path.splitext(image_path)[1]
+                base_name = getattr(payload, "uid", None) or getattr(
+                    payload, "pid", "img"
+                )
+                new_name = f"{base_name}_{idx+1}{ext}"
+                dest_path = os.path.join(product_dir, new_name)
+                shutil.copy(image_path, dest_path)
+        payload.image_dir = product_dir
         return super().create(payload)
 
     def read(self, record_id: int) -> Optional[RealEstateProductType]:
@@ -48,6 +56,16 @@ class RealEstateProductService(BaseService):
         return super().update(record_id, payload)
 
     def delete(self, record_id: int) -> bool:
+        product_data = self.read(record_id)
+        if product_data and getattr(product_data, "image_dir", None):
+            image_dir = product_data.image_dir
+            if os.path.isdir(image_dir):
+                try:
+                    shutil.rmtree(image_dir)
+                except Exception as e:
+                    print(
+                        f"[{self.__class__.__name__}.delete] Warning: Failed to remove image directory '{image_dir}': {e}"
+                    )
         return super().delete(record_id)
 
     def delete_multiple(self, record_ids: List[int]):
@@ -118,6 +136,63 @@ class RealEstateProductService(BaseService):
             raise KeyError(
                 f"[{__class__.__name__}.initialize_new_pid] Error: Invalid transaction type ({transaction_type})."
             )
+
+    def get_images_by_id(self, record_id: int) -> List[str]:
+        """
+        Retrieves image file paths from a directory associated with a product ID.
+
+        This method is designed to locate a specific directory linked to the given
+        `record_id` (e.g., a product or item ID) and then collect all image
+        file paths found within that directory.
+
+        Args:
+            record_id (int): The unique identifier of the product or item for which
+                             images are to be retrieved.
+
+        Returns:
+            List[str]: A list of absolute file paths to the images found in the
+                       corresponding directory. Returns an empty list if no images
+                       are found or if the directory does not exist.
+        """
+        product = self.read(record_id)
+        if not product or not getattr(product, "image_dir", None):
+            return []
+        return self.get_images_by_path(product.image_dir)
+
+    def get_images_by_path(self, path: str) -> List[str]:
+        """
+        Retrieves image file paths from a specified directory.
+
+        This method scans the directory provided by `path` and collects all
+        image file paths found directly within it. It does not recurse into
+        subdirectories.
+
+        Args:
+            path (str): The absolute or relative path to the directory from which
+                        to retrieve image files.
+
+        Returns:
+            List[str]: A list of absolute file paths to the images found in the
+                       specified directory. Returns an empty list if no images
+                       are found or if the directory does not exist.
+        """
+        if not path or not os.path.isdir(path):
+            return []
+        image_extensions = (
+            "*.png",
+            "*.jpg",
+            "*.jpeg",
+            "*.bmp",
+            "*.gif",
+            "*.webp",
+            "*.PNG",
+            "*.JPG",
+            "*.JPEG",
+        )
+        image_files = []
+        for ext in image_extensions:
+            image_files.extend(glob.glob(os.path.join(path, ext)))
+        return sorted(image_files)
 
 
 class RealEstateTemplateService(BaseService):

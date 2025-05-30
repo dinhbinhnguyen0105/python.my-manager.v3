@@ -166,6 +166,7 @@ class DialogCreateREProduct(QDialog, Ui_Dialog_REProduct):
             building_line=self.building_line_s_combobox.currentText().lower(),
             furniture=self.furniture_s_combobox.currentText().lower(),
             description=self.description_input.toPlainText(),
+            image_dir=None,
             created_at=None,
             updated_at=None,
         )

@@ -18,48 +18,50 @@ class Ui_Dialog_REProduct(object):
         font.setPointSize(13)
         font.setBold(True)
         Dialog_REProduct.setFont(font)
-        Dialog_REProduct.setStyleSheet("#Dialog_REProduct {\n"
-"  font-family: \"Courier New\";\n"
-"  background-color: #FFFFFF;\n"
-"}\n"
-"QGroupBox {\n"
-"  font-family: \"Courier New\";\n"
-"  font-size: 13px;\n"
-"  background-color: rgba(248, 249, 250, 1);\n"
-"}\n"
-"QLineEdit {\n"
-"  padding: 4px 0;\n"
-"  border: 1px solid #ced4da;\n"
-"  border-radius: 8px;\n"
-"  margin-left: 8px;\n"
-"  padding-left: 4px;\n"
-"  background-color: #FFFFFF;\n"
-"  color:#212529;\n"
-"}\n"
-"QPlainTextEdit {\n"
-"    background-color: #FFFFFF;\n"
-"  color:#212529;\n"
-"}\n"
-"QLabel {\n"
-"  font-family: \"Courier New\";\n"
-"  font-size: 13px;\n"
-"  color: rgb(90, 93, 97);\n"
-"}\n"
-"QRadioButton {\n"
-"  font-family: \"Courier New\";\n"
-"  font-size: 13px;\n"
-"  color: #212529;\n"
-"}\n"
-"QComboBox {\n"
-"  font-family: \"Courier New\";\n"
-"  font-size: 13px;\n"
-"  color: #212529;\n"
-"}\n"
-"QPushButton {\n"
-"  color: #212529;\n"
-"}\n"
-"\n"
-"")
+        Dialog_REProduct.setStyleSheet(
+            "#Dialog_REProduct {\n"
+            '  font-family: "Courier New";\n'
+            "  background-color: #FFFFFF;\n"
+            "}\n"
+            "QGroupBox {\n"
+            '  font-family: "Courier New";\n'
+            "  font-size: 13px;\n"
+            "  background-color: rgba(248, 249, 250, 1);\n"
+            "}\n"
+            "QLineEdit {\n"
+            "  padding: 4px 0;\n"
+            "  border: 1px solid #ced4da;\n"
+            "  border-radius: 8px;\n"
+            "  margin-left: 8px;\n"
+            "  padding-left: 4px;\n"
+            "  background-color: #FFFFFF;\n"
+            "  color:#212529;\n"
+            "}\n"
+            "QPlainTextEdit {\n"
+            "    background-color: #FFFFFF;\n"
+            "  color:#212529;\n"
+            "}\n"
+            "QLabel {\n"
+            '  font-family: "Courier New";\n'
+            "  font-size: 13px;\n"
+            "  color: rgb(90, 93, 97);\n"
+            "}\n"
+            "QRadioButton {\n"
+            '  font-family: "Courier New";\n'
+            "  font-size: 13px;\n"
+            "  color: #212529;\n"
+            "}\n"
+            "QComboBox {\n"
+            '  font-family: "Courier New";\n'
+            "  font-size: 13px;\n"
+            "  color: #212529;\n"
+            "}\n"
+            "QPushButton {\n"
+            "  color: #212529;\n"
+            "}\n"
+            "\n"
+            ""
+        )
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(Dialog_REProduct)
         self.verticalLayout_2.setContentsMargins(4, 8, 8, 8)
         self.verticalLayout_2.setSpacing(4)
@@ -78,11 +80,13 @@ class Ui_Dialog_REProduct(object):
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.image_input = QtWidgets.QLabel(parent=self.image_container_w)
         self.image_input.setMinimumSize(QtCore.QSize(460, 160))
-        self.image_input.setStyleSheet("font-weight: 600;\n"
-"font-size: 16px;\n"
-"color: #343A40;\n"
-"border: 2px dashed #CED4DA;\n"
-"border-radius: 4px;")
+        self.image_input.setStyleSheet(
+            "font-weight: 600;\n"
+            "font-size: 16px;\n"
+            "color: #343A40;\n"
+            "border: 2px dashed #CED4DA;\n"
+            "border-radius: 4px;"
+        )
         self.image_input.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.image_input.setObjectName("image_input")
         self.horizontalLayout.addWidget(self.image_input)
@@ -130,10 +134,9 @@ class Ui_Dialog_REProduct(object):
         self.verticalLayout_2.addWidget(self.basic_container_w)
         self.location_container = QtWidgets.QGroupBox(parent=Dialog_REProduct)
         self.location_container.setMaximumSize(QtCore.QSize(16777215, 114))
-        self.location_container.setStyleSheet("QLabel{\n"
-"font-family: \"Courier New\";\n"
-"font-size: 10px;\n"
-"}")
+        self.location_container.setStyleSheet(
+            "QLabel{\n" 'font-family: "Courier New";\n' "font-size: 10px;\n" "}"
+        )
         self.location_container.setTitle("")
         self.location_container.setObjectName("location_container")
         self.gridLayout_4 = QtWidgets.QGridLayout(self.location_container)
@@ -153,7 +156,9 @@ class Ui_Dialog_REProduct(object):
         self.provinces_combobox.setObjectName("provinces_combobox")
         self.provinces_combobox.addItem("")
         self.gridLayout_3.addWidget(self.provinces_combobox, 0, 0, 1, 1)
-        self.location_street_container_w = QtWidgets.QWidget(parent=self.location_container)
+        self.location_street_container_w = QtWidgets.QWidget(
+            parent=self.location_container
+        )
         self.location_street_container_w.setObjectName("location_street_container_w")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.location_street_container_w)
         self.verticalLayout_4.setContentsMargins(0, 0, 0, 0)
@@ -165,7 +170,7 @@ class Ui_Dialog_REProduct(object):
         self.street_label.setMaximumSize(QtCore.QSize(16777215, 12))
         font = QtGui.QFont()
         font.setFamily("Courier New")
-        font.setPointSize(-1)
+        font.setPointSize(12)
         self.street_label.setFont(font)
         self.street_label.setLineWidth(1)
         self.street_label.setIndent(-1)
@@ -179,10 +184,9 @@ class Ui_Dialog_REProduct(object):
         self.gridLayout_4.addLayout(self.gridLayout_3, 0, 0, 1, 1)
         self.verticalLayout_2.addWidget(self.location_container)
         self.detail_container_w = QtWidgets.QGroupBox(parent=Dialog_REProduct)
-        self.detail_container_w.setStyleSheet("QLabel{\n"
-"font-family: \"Courier New\";\n"
-"font-size: 10px;\n"
-"}")
+        self.detail_container_w.setStyleSheet(
+            "QLabel{\n" 'font-family: "Courier New";\n' "font-size: 10px;\n" "}"
+        )
         self.detail_container_w.setTitle("")
         self.detail_container_w.setObjectName("detail_container_w")
         self.gridLayout_6 = QtWidgets.QGridLayout(self.detail_container_w)
@@ -202,7 +206,7 @@ class Ui_Dialog_REProduct(object):
         self.price_label.setMaximumSize(QtCore.QSize(16777215, 12))
         font = QtGui.QFont()
         font.setFamily("Courier New")
-        font.setPointSize(-1)
+        font.setPointSize(12)
         self.price_label.setFont(font)
         self.price_label.setLineWidth(1)
         self.price_label.setIndent(-1)
@@ -217,7 +221,9 @@ class Ui_Dialog_REProduct(object):
         self.furniture_s_combobox.setObjectName("furniture_s_combobox")
         self.furniture_s_combobox.addItem("")
         self.gridLayout_5.addWidget(self.furniture_s_combobox, 2, 0, 1, 1)
-        self.building_line_s_combobox = QtWidgets.QComboBox(parent=self.detail_container_w)
+        self.building_line_s_combobox = QtWidgets.QComboBox(
+            parent=self.detail_container_w
+        )
         self.building_line_s_combobox.setObjectName("building_line_s_combobox")
         self.building_line_s_combobox.addItem("")
         self.gridLayout_5.addWidget(self.building_line_s_combobox, 2, 1, 1, 1)
@@ -233,7 +239,7 @@ class Ui_Dialog_REProduct(object):
         self.function_label.setMaximumSize(QtCore.QSize(16777215, 12))
         font = QtGui.QFont()
         font.setFamily("Courier New")
-        font.setPointSize(-1)
+        font.setPointSize(12)
         self.function_label.setFont(font)
         self.function_label.setLineWidth(1)
         self.function_label.setIndent(-1)
@@ -256,7 +262,7 @@ class Ui_Dialog_REProduct(object):
         self.structure_label.setMaximumSize(QtCore.QSize(16777215, 12))
         font = QtGui.QFont()
         font.setFamily("Courier New")
-        font.setPointSize(-1)
+        font.setPointSize(12)
         self.structure_label.setFont(font)
         self.structure_label.setLineWidth(1)
         self.structure_label.setIndent(-1)
@@ -279,7 +285,7 @@ class Ui_Dialog_REProduct(object):
         self.area_label.setMaximumSize(QtCore.QSize(16777215, 12))
         font = QtGui.QFont()
         font.setFamily("Courier New")
-        font.setPointSize(-1)
+        font.setPointSize(12)
         self.area_label.setFont(font)
         self.area_label.setLineWidth(1)
         self.area_label.setIndent(-1)
@@ -302,13 +308,15 @@ class Ui_Dialog_REProduct(object):
         self.description_label.setMaximumSize(QtCore.QSize(16777215, 12))
         font = QtGui.QFont()
         font.setFamily("Courier New")
-        font.setPointSize(-1)
+        font.setPointSize(12)
         self.description_label.setFont(font)
         self.description_label.setLineWidth(1)
         self.description_label.setIndent(-1)
         self.description_label.setObjectName("description_label")
         self.verticalLayout_23.addWidget(self.description_label)
-        self.description_input = QtWidgets.QPlainTextEdit(parent=self.description_container_w)
+        self.description_input = QtWidgets.QPlainTextEdit(
+            parent=self.description_container_w
+        )
         self.description_input.setObjectName("description_input")
         self.verticalLayout_23.addWidget(self.description_input)
         self.verticalLayout_22.addLayout(self.verticalLayout_23)
@@ -322,16 +330,21 @@ class Ui_Dialog_REProduct(object):
         self.verticalLayout_2.addWidget(self.detail_container_w)
         self.buttonBox = QtWidgets.QDialogButtonBox(parent=Dialog_REProduct)
         self.buttonBox.setOrientation(QtCore.Qt.Orientation.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.StandardButton.Cancel|QtWidgets.QDialogButtonBox.StandardButton.Save)
+        self.buttonBox.setStandardButtons(
+            QtWidgets.QDialogButtonBox.StandardButton.Cancel
+            | QtWidgets.QDialogButtonBox.StandardButton.Save
+        )
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayout_2.addWidget(self.buttonBox)
 
         self.retranslateUi(Dialog_REProduct)
-        self.buttonBox.accepted.connect(Dialog_REProduct.accept) # type: ignore
-        self.buttonBox.rejected.connect(Dialog_REProduct.reject) # type: ignore
+        self.buttonBox.accepted.connect(Dialog_REProduct.accept)  # type: ignore
+        self.buttonBox.rejected.connect(Dialog_REProduct.reject)  # type: ignore
         QtCore.QMetaObject.connectSlotsByName(Dialog_REProduct)
         Dialog_REProduct.setTabOrder(self.pid_input, self.availability_combobox)
-        Dialog_REProduct.setTabOrder(self.availability_combobox, self.categories_combobox)
+        Dialog_REProduct.setTabOrder(
+            self.availability_combobox, self.categories_combobox
+        )
         Dialog_REProduct.setTabOrder(self.categories_combobox, self.provinces_combobox)
         Dialog_REProduct.setTabOrder(self.provinces_combobox, self.districts_combobox)
         Dialog_REProduct.setTabOrder(self.districts_combobox, self.wards_combobox)
@@ -341,24 +354,40 @@ class Ui_Dialog_REProduct(object):
         Dialog_REProduct.setTabOrder(self.structure_input, self.price_input)
         Dialog_REProduct.setTabOrder(self.price_input, self.function_input)
         Dialog_REProduct.setTabOrder(self.function_input, self.furniture_s_combobox)
-        Dialog_REProduct.setTabOrder(self.furniture_s_combobox, self.building_line_s_combobox)
-        Dialog_REProduct.setTabOrder(self.building_line_s_combobox, self.legal_s_combobox)
+        Dialog_REProduct.setTabOrder(
+            self.furniture_s_combobox, self.building_line_s_combobox
+        )
+        Dialog_REProduct.setTabOrder(
+            self.building_line_s_combobox, self.legal_s_combobox
+        )
         Dialog_REProduct.setTabOrder(self.legal_s_combobox, self.description_input)
 
     def retranslateUi(self, Dialog_REProduct):
         _translate = QtCore.QCoreApplication.translate
         Dialog_REProduct.setWindowTitle(_translate("Dialog_REProduct", "Dialog"))
-        self.image_input.setText(_translate("Dialog_REProduct", "Kéo và thả hình ảnh ..."))
-        self.categories_combobox.setItemText(0, _translate("Dialog_REProduct", "Loại hình BDS"))
+        self.image_input.setText(
+            _translate("Dialog_REProduct", "Kéo và thả hình ảnh ...")
+        )
+        self.categories_combobox.setItemText(
+            0, _translate("Dialog_REProduct", "Loại hình BDS")
+        )
         self.pid_label.setText(_translate("Dialog_REProduct", "PID"))
-        self.availability_combobox.setItemText(0, _translate("Dialog_REProduct", "Trạng thái"))
+        self.availability_combobox.setItemText(
+            0, _translate("Dialog_REProduct", "Trạng thái")
+        )
         self.wards_combobox.setItemText(0, _translate("Dialog_REProduct", "Phường"))
-        self.districts_combobox.setItemText(0, _translate("Dialog_REProduct", "Thành phố"))
+        self.districts_combobox.setItemText(
+            0, _translate("Dialog_REProduct", "Thành phố")
+        )
         self.provinces_combobox.setItemText(0, _translate("Dialog_REProduct", "Tỉnh"))
         self.street_label.setText(_translate("Dialog_REProduct", "Tên đường"))
         self.price_label.setText(_translate("Dialog_REProduct", "Giá"))
-        self.furniture_s_combobox.setItemText(0, _translate("Dialog_REProduct", "Nội thất"))
-        self.building_line_s_combobox.setItemText(0, _translate("Dialog_REProduct", "Lộ giới"))
+        self.furniture_s_combobox.setItemText(
+            0, _translate("Dialog_REProduct", "Nội thất")
+        )
+        self.building_line_s_combobox.setItemText(
+            0, _translate("Dialog_REProduct", "Lộ giới")
+        )
         self.function_label.setText(_translate("Dialog_REProduct", "Công năng"))
         self.structure_label.setText(_translate("Dialog_REProduct", "Kết cấu"))
         self.area_label.setText(_translate("Dialog_REProduct", "Diện tích"))
