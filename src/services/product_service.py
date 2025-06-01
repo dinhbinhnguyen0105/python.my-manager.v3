@@ -77,35 +77,35 @@ class RealEstateProductService(BaseService):
     def find_by_pid(self, pid: str) -> Optional[RealEstateProductType]:
         return self._find_by_model_index(find_method_name="find_row_by_pid", value=pid)
 
-    def toggle_availability(self, record_id: int) -> bool:
+    def toggle_status(self, record_id: int) -> bool:
         product = self.read(record_id)
         if product is None:
             print(
-                f"[{self.__class__.__name__}.toggle_availability] Product with record_id '{record_id}' not found."
+                f"[{self.__class__.__name__}.toggle_status] Product with record_id '{record_id}' not found."
             )
             return False
 
-        current_availability = product.availability
-        if current_availability == 0:
-            new_availability = 1
-        elif current_availability == 1:
-            new_availability = 0
+        current_status = product.status
+        if current_status == 0:
+            new_status = 1
+        elif current_status == 1:
+            new_status = 0
         else:
             print(
-                f"[{self.__class__.__name__}.toggle_availability] Unexpected availability value for record_id '{record_id}': {current_availability}. Cannot toggle."
+                f"[{self.__class__.__name__}.toggle_status] Unexpected status value for record_id '{record_id}': {current_status}. Cannot toggle."
             )
             return False
 
-        product.availability = new_availability
+        product.status = new_status
         update_success = self.update(record_id, product)
         if update_success:
             print(
-                f"[{self.__class__.__name__}.toggle_availability] Successfully toggled availability for record_id '{record_id}' to {new_availability}."
+                f"[{self.__class__.__name__}.toggle_status] Successfully toggled status for record_id '{record_id}' to {new_status}."
             )
             return True
         else:
             print(
-                f"[{self.__class__.__name__}.toggle_availability] Failed to update availability for record_id '{record_id}'."
+                f"[{self.__class__.__name__}.toggle_status] Failed to update status for record_id '{record_id}'."
             )
             return False
 
@@ -261,11 +261,11 @@ class MiscProductService(BaseService):
     def find_by_pid(self, pid: str) -> Optional[MiscProductModel]:
         return self._find_by_model_index(find_method_name="find_row_by_pid", value=pid)
 
-    def toggle_availability(self, record_id: int) -> bool:
+    def toggle_status(self, record_id: int) -> bool:
         product = self.read(record_id)
         if product is None:
             print(
-                f"[{self.__class__.__name__}.toggle_availability] Product with record_id '{record_id}' not found."
+                f"[{self.__class__.__name__}.toggle_status] Product with record_id '{record_id}' not found."
             )
             return False
 
@@ -276,7 +276,7 @@ class MiscProductService(BaseService):
             new_status = 0
         else:
             print(
-                f"[{self.__class__.__name__}.toggle_availability] Unexpected status value for product ID '{record_id}': {current_status}. Cannot toggle."
+                f"[{self.__class__.__name__}.toggle_status] Unexpected status value for product ID '{record_id}': {current_status}. Cannot toggle."
             )
             return False
 
@@ -284,11 +284,11 @@ class MiscProductService(BaseService):
         update_success = self.update(product.id, product)
         if update_success:
             print(
-                f"[{self.__class__.__name__}.toggle_availability] Successfully toggled status for product ID '{record_id}' to {new_status}."
+                f"[{self.__class__.__name__}.toggle_status] Successfully toggled status for product ID '{record_id}' to {new_status}."
             )
             return True
         else:
             print(
-                f"[{self.__class__.__name__}.toggle_availability] Failed to update status for product ID '{record_id}'."
+                f"[{self.__class__.__name__}.toggle_status] Failed to update status for product ID '{record_id}'."
             )
             return False

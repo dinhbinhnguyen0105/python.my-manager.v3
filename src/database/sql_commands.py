@@ -64,7 +64,7 @@ CREATE_REAL_ESTATE_PRODUCT_TABLE = f"""
 CREATE TABLE IF NOT EXISTS {constants.TABLE_REAL_ESTATE_PRODUCT} (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     pid TEXT UNIQUE,
-    availability INT,
+    status INT,
     transaction_type TEXT,
     province TEXT,
     district TEXT,
@@ -88,7 +88,7 @@ CREATE_MISC_PRODUCT_TABLE = f"""
 CREATE TABLE IF NOT EXISTS {constants.TABLE_MISC_PRODUCT} (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     pid TEXT UNIQUE,
-    category INTEGER,
+    category TEXT,
     title TEXT,
     description TEXT,
     created_at TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now')),
@@ -99,9 +99,10 @@ CREATE_REAL_ESTATE_TEMPLATE_TABLE = f"""
 CREATE TABLE IF NOT EXISTS {constants.TABLE_REAL_ESTATE_TEMPLATE} (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tid TEXT UNIQUE,
-    action INTEGER,
-    part INTEGER,
-    content TEXT,
+    transaction_type TEXT,
+    category TEXT,
+    part TEXT,
+    value TEXT,
     created_at TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now')),
     updated_at TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now'))
 )

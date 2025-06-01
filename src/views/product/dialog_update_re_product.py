@@ -9,7 +9,7 @@ from src.ui.dialog_re_product_ui import Ui_Dialog_REProduct
 
 from src.my_constants import (
     RE_TRANSACTION,
-    RE_AVAILABILITY,
+    RE_status,
     RE_CATEGORY,
     RE_PROVINCE,
     RE_DISTRICT,
@@ -49,9 +49,9 @@ class DialogUpdateREProduct(QDialog, Ui_Dialog_REProduct):
         self.categories_combobox.clear()
         for _key in RE_CATEGORY.keys():
             self.categories_combobox.addItem(RE_CATEGORY[_key].capitalize(), _key)
-        self.availability_combobox.clear()
-        for _key in RE_AVAILABILITY:
-            self.availability_combobox.addItem(RE_AVAILABILITY[_key].capitalize(), _key)
+        self.status_combobox.clear()
+        for _key in RE_status:
+            self.status_combobox.addItem(RE_status[_key].capitalize(), _key)
         self.wards_combobox.clear()
         for _key in RE_WARD:
             self.wards_combobox.addItem(RE_WARD[_key].capitalize(), _key)
@@ -88,10 +88,10 @@ class DialogUpdateREProduct(QDialog, Ui_Dialog_REProduct):
         # PID
         self.pid_input.setText(str(self.product_data.pid))
 
-        # Availability
-        idx = self.availability_combobox.findData(self.product_data.availability)
+        # status
+        idx = self.status_combobox.findData(self.product_data.status)
         if idx != -1:
-            self.availability_combobox.setCurrentIndex(idx)
+            self.status_combobox.setCurrentIndex(idx)
 
         # Transaction type (ẩn, nhưng nếu cần thì set)
         # self.transaction_value = self.product_data.transaction_type
@@ -169,7 +169,7 @@ class DialogUpdateREProduct(QDialog, Ui_Dialog_REProduct):
         product_data = RealEstateProductType(
             id=self.product_data.id,
             pid=self.product_data.pid,
-            availability=self.availability_combobox.currentData(),
+            status=self.status_combobox.currentData(),
             transaction_type=self.product_data.transaction_type,
             province=self.provinces_combobox.currentText().lower(),
             district=self.districts_combobox.currentText().lower(),

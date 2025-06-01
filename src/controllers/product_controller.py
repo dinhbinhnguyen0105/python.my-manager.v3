@@ -127,9 +127,9 @@ class RealEstateProductController(BaseController):
             )
             return False
 
-    def toggle_availability(self, product_id: int) -> bool:
+    def toggle_status(self, product_id: int) -> bool:
         try:
-            result = self.service.toggle_availability(product_id)
+            result = self.service.toggle_status(product_id)
             if result:
                 self.success_signal.emit(f"Toggled status for product ID {product_id}.")
                 self.data_changed_signal.emit()
@@ -139,7 +139,7 @@ class RealEstateProductController(BaseController):
                 )
             return result
         except Exception as e:
-            print(f"[{self.__class__.__name__}.toggle_availability] Error: {e}")
+            print(f"[{self.__class__.__name__}.toggle_status] Error: {e}")
             self.error_signal.emit("Error occurred while toggling product status.")
             return False
 
@@ -390,9 +390,9 @@ class MiscProductController(BaseController):
             self.error_signal.emit("Error occurred while importing misc products.")
             return False
 
-    def toggle_availability(self, product_id: str) -> bool:
+    def toggle_status(self, product_id: str) -> bool:
         try:
-            result = self.service.toggle_availability(product_id)
+            result = self.service.toggle_status(product_id)
             if result:
                 self.success_signal.emit(
                     f"Toggled status for misc product ID {product_id}."
@@ -404,6 +404,6 @@ class MiscProductController(BaseController):
                 )
             return result
         except Exception as e:
-            print(f"[{self.__class__.__name__}.toggle_availability] Error: {e}")
+            print(f"[{self.__class__.__name__}.toggle_status] Error: {e}")
             self.error_signal.emit("Error occurred while toggling misc product status.")
             return False

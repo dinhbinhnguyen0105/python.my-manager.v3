@@ -16,6 +16,7 @@ from src.controllers.setting_controller import (
 )
 
 from src.views.product.real_estate_product_page import RealEstateProductPage
+from src.views.user.user_page import UserPage
 from src.views.settings.dialog_settings import DialogSettings
 from src.ui.mainwindow_ui import Ui_MainWindow
 
@@ -51,6 +52,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             product_controller=self._real_estate_product_controller,
             template_controller=self._real_estate_template_controller,
             setting_controller=self._setting_user_data_dir_controller,
+            parent=self,
+        )
+        self.user_page = UserPage(
+            user_controller=self._user_controller,
             parent=self,
         )
 
@@ -89,6 +94,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def init_ui(self):
         self.content_container.addWidget(self.real_estate_product_page)
+        self.content_container.addWidget(self.user_page)
+
+        self.content_container.setCurrentWidget(self.user_page)
 
     def init_events(self):
         self.sidebar_re_btn.clicked.connect(
@@ -111,8 +119,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.content_container.setCurrentWidget(self.real_estate_product_page)
         # elif page_name == "misc_product":
         #     self.content_container.setCurrentWidget()
-        # elif page_name == "user":
-        #     self.content_container.setCurrentWidget()
+        elif page_name == "user":
+            self.content_container.setCurrentWidget(self.user_page)
         # elif page_name == "robot":
         #     self.content_container.setCurrentWidget()
 

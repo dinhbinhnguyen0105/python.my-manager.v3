@@ -232,7 +232,7 @@ border-radius: 4px;</string>
          </widget>
         </item>
         <item row="0" column="2">
-         <widget class="QComboBox" name="availability_combobox">
+         <widget class="QComboBox" name="status_combobox">
           <item>
            <property name="text">
             <string>Trạng thái</string>
@@ -699,7 +699,7 @@ font-size: 10px;
  </widget>
  <tabstops>
   <tabstop>pid_input</tabstop>
-  <tabstop>availability_combobox</tabstop>
+  <tabstop>status_combobox</tabstop>
   <tabstop>categories_combobox</tabstop>
   <tabstop>provinces_combobox</tabstop>
   <tabstop>districts_combobox</tabstop>

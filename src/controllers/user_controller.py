@@ -110,6 +110,22 @@ class UserController(BaseController):
         password = "".join(secrets.choice(alphabet) for i in range(30))
         return password
 
+    def update_status(self, record_id: int, current_status: int):
+        try:
+            result = self.service.update_status(record_id, 1 ^ current_status)
+            if result:
+                self.success_signal.emit(f"Toggled status for user ID {record_id}.")
+                self.data_changed_signal.emit()
+            else:
+                self.warning_signal.emit(
+                    f"Failed to toggle status for user ID {record_id}."
+                )
+            return result
+        except Exception as e:
+            print(f"[{self.__class__.__name__}.update_status] Error: {e}")
+            self.error_signal.emit("Error occurred while toggling user status.")
+            return False
+
     def handle_check_users(self, selected_ids: List[int]) -> bool:
         list_uid = self.service.get_uids_by_record_ids(selected_ids)
         if not list_uid:

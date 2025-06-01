@@ -86,7 +86,6 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
         self.proxy_product_model = MultiFieldFilterProxyModel()
         self.proxy_product_model.setSourceModel(self.base_product_model)
 
-        self.udd_container_dir = self._setting_controller.get_selected_user_data_dir()
         self.current_product: Optional[RealEstateProductType] = None
         self.current_image_paths: List[str] = []
 
@@ -141,7 +140,7 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
             )
             if column_name in [
                 "id",
-                "availability",
+                "status",
                 "province",
                 "district",
                 "image_dir",
@@ -160,15 +159,13 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
         source_model = self.proxy_product_model.sourceModel()
 
         # Tìm cột status
-        availability_col = (
-            source_model.fieldIndex("availability")
+        status_col = (
+            source_model.fieldIndex("status")
             if hasattr(source_model, "fieldIndex")
             else 0
         )
-        availability_index = source_model.index(source_index.row(), availability_col)
-        availability_value: int = source_model.data(
-            availability_index, Qt.ItemDataRole.DisplayRole
-        )
+        status_index = source_model.index(source_index.row(), status_col)
+        status_value: int = source_model.data(status_index, Qt.ItemDataRole.DisplayRole)
 
         id_col = (
             source_model.fieldIndex("id") if hasattr(source_model, "fieldIndex") else 0
@@ -179,14 +176,14 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
         global_pos = self.products_table.mapToGlobal(pos)
         menu = QMenu(self.products_table)
 
-        if availability_value == 1:
+        if status_value == 1:
             set_unavailable = QAction("Change to unavailable", self)
             menu.addAction(set_unavailable)
-            set_unavailable.triggered.connect(self.handle_change_availability)
+            set_unavailable.triggered.connect(self.handle_change_status)
         else:
             set_available = QAction("Change to available", self)
             menu.addAction(set_available)
-            set_available.triggered.connect(self.handle_change_availability)
+            set_available.triggered.connect(self.handle_change_status)
 
         update_action = QAction("Update", self)
         delete_action = QAction("Delete", self)
@@ -236,6 +233,7 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
     def handle_create_new_product(
         self, image_paths: List[str], product_data: RealEstateProductType
     ):
+        self.udd_container_dir = self._setting_controller.get_selected_user_data_dir()
         if not self.udd_container_dir:
             QMessageBox.critical(
                 self,
@@ -262,10 +260,10 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
             self._product_controller.delete_product(record_id)
 
     @pyqtSlot()
-    def handle_change_availability(self):
+    def handle_change_status(self):
         selected_ids = self.get_selected_ids()
         if len(selected_ids):
-            self._product_controller.toggle_availability(selected_ids[0])
+            self._product_controller.toggle_status(selected_ids[0])
 
     @pyqtSlot(RealEstateProductType)
     def handle_update_product(self, product_data: RealEstateProductType):
