@@ -151,7 +151,7 @@ class DialogCreateREProduct(QDialog, Ui_Dialog_REProduct):
         product_data = RealEstateProductType(
             id=-1,
             pid=self.pid_input.text(),
-            status=self.status_combobox.currentData(),
+            status=self.status_combobox.currentText().lower(),
             transaction_type=self.transaction_value,
             province=self.provinces_combobox.currentText().lower(),
             district=self.districts_combobox.currentText().lower(),

@@ -2,7 +2,11 @@
 from PyQt6.QtCore import Qt, pyqtSlot
 from PyQt6.QtWidgets import QMainWindow
 
-from src.my_types import SettingProxyType, SettingUserDataDirType
+from src.my_types import (
+    SettingProxyType,
+    SettingUserDataDirType,
+    RealEstateTemplateType,
+)
 
 from src.controllers.user_controller import UserController, UserListedProductController
 from src.controllers.product_controller import (
@@ -129,15 +133,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog_settings = DialogSettings(
             proxy_setting_model=self._setting_proxy_controller.service.model,
             udd_setting_model=self._setting_user_data_dir_controller.service.model,
+            re_template_model=self._real_estate_template_controller.service.model,
             parent=self,
         )
         dialog_settings.new_proxy_data_signal.connect(self.handle_create_new_proxy)
         dialog_settings.new_udd_data_signal.connect(
             self.handle_create_new_user_data_dir
         )
+        dialog_settings.new_re_template_signal.connect(
+            self.handle_create_new_re_template
+        )
         dialog_settings.delete_proxy_signal.connect(self.handle_delete_proxy)
         dialog_settings.delete_udd_signal.connect(self.handle_delete_udd)
+        dialog_settings.delete_re_template_signal.connect(
+            self.handle_delete_re_template
+        )
         dialog_settings.set_udd_selected_signal.connect(self.handle_set_udd_selected)
+
         dialog_settings.exec()
 
     @pyqtSlot(SettingProxyType)
@@ -148,6 +160,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def handle_create_new_user_data_dir(self, udd_data: SettingUserDataDirType):
         self._setting_user_data_dir_controller.create_user_data_dir(udd_data)
 
+    @pyqtSlot(RealEstateTemplateType)
+    def handle_create_new_re_template(self, re_template_data: RealEstateTemplateType):
+        self._real_estate_template_controller.create_template(re_template_data)
+
     @pyqtSlot(int)
     def handle_delete_proxy(self, record_id: int):
         self._setting_proxy_controller.delete_proxy(record_id)
@@ -155,6 +171,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     @pyqtSlot(int)
     def handle_delete_udd(self, record_id: int):
         self._setting_user_data_dir_controller.delete_user_data_dir(record_id)
+
+    @pyqtSlot(int)
+    def handle_delete_re_template(self, record_id: int):
+        self._real_estate_template_controller.delete_template(record_id=record_id)
 
     @pyqtSlot(int)
     def handle_set_udd_selected(self, record_id: int):

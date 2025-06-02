@@ -226,6 +226,20 @@ class RealEstateTemplateService(BaseService):
     def import_data(self, payload: List[RealEstateTemplateType]):
         return super().import_data(payload)
 
+    def get_random(self, part: str, transaction_type: str, category: str) -> str:
+        query = """
+            SELECT value FROM real_estate_template
+            WHERE (? = '' OR part = ?)
+            AND (? = '' OR transaction_type = ?)
+            AND (? = '' OR category = ?)
+            ORDER BY RANDOM() LIMIT 1
+        """
+        params = (part, part, transaction_type, transaction_type, category, category)
+        cursor = self.model.db.connection.cursor()
+        cursor.execute(query, params)
+        row = cursor.fetchone()
+        return row[0] if row else ""
+
 
 class MiscProductService(BaseService):
     DATA_TYPE = MiscProductType

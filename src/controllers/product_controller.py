@@ -178,6 +178,7 @@ class RealEstateProductController(BaseController):
 class RealEstateTemplateController(BaseController):
     def __init__(self, service: RealEstateTemplateService, parent=None):
         super().__init__(service, parent)
+        self.service = service
 
     def create_template(self, template_data: RealEstateTemplateType):
         try:
@@ -289,6 +290,26 @@ class RealEstateTemplateController(BaseController):
                 "Error occurred while importing real estate templates."
             )
             return False
+
+    def get_random(self, part: str, transaction_type: str, category: str) -> str:
+        try:
+            template = self.service.get_random(part, transaction_type, category)
+            if template:
+                self.success_signal.emit(
+                    f"Successfully fetched random template for part='{part}', transaction_type='{transaction_type}', category='{category}'."
+                )
+                self.data_changed_signal.emit()
+            else:
+                self.warning_signal.emit(
+                    f"No template found for part='{part}', transaction_type='{transaction_type}', category='{category}'."
+                )
+            return template
+        except Exception as e:
+            print(f"[{self.__class__.__name__}.get_random] Error: {e}")
+            self.error_signal.emit(
+                f"Error occurred while fetching random template: {e}"
+            )
+            return ""
 
 
 class MiscProductController(BaseController):

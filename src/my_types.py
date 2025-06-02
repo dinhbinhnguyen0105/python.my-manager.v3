@@ -78,11 +78,12 @@ class RealEstateProductType:
 @dataclass
 class RealEstateTemplateType:
     id: Optional[int]
-    tid: Optional[str]
     transaction_type: Optional[str]
     category: Optional[str]
     part: Optional[str]
     value: Optional[str]
+    created_at: Optional[str]
+    updated_at: Optional[str]
 
 
 @dataclass

@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file '/Users/ndb/Dev/python/python.my-manager.v3/ui/dialog_settings.ui'
+# Form implementation generated from reading ui file '/Volumes/KINGSTON/Dev/python/python.my-manager.v3/ui/dialog_settings.ui'
 #
 # Created by: PyQt6 UI code generator 6.9.0
 #
@@ -12,7 +12,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_Dialog_Settings(object):
     def setupUi(self, Dialog_Settings):
         Dialog_Settings.setObjectName("Dialog_Settings")
-        Dialog_Settings.resize(480, 448)
+        Dialog_Settings.resize(480, 516)
         Dialog_Settings.setStyleSheet("#Dialog_UserSettings {\n"
 "  font-family: \"Courier New\";\n"
 "  background-color: #FFFFFF;\n"
@@ -77,6 +77,9 @@ class Ui_Dialog_Settings(object):
         self.udd_radio = QtWidgets.QRadioButton(parent=self.groupBox)
         self.udd_radio.setObjectName("udd_radio")
         self.gridLayout_4.addWidget(self.udd_radio, 0, 0, 1, 1)
+        self.re_template_radio = QtWidgets.QRadioButton(parent=self.groupBox)
+        self.re_template_radio.setObjectName("re_template_radio")
+        self.gridLayout_4.addWidget(self.re_template_radio, 0, 2, 1, 1)
         self.gridLayout_5.addLayout(self.gridLayout_4, 0, 0, 1, 1)
         self.verticalLayout.addWidget(self.groupBox)
         self.fields_container = QtWidgets.QGroupBox(parent=Dialog_Settings)
@@ -139,6 +142,36 @@ class Ui_Dialog_Settings(object):
         self.verticalLayout_12.addWidget(self.proxy_input)
         self.gridLayout_12.addLayout(self.verticalLayout_12, 0, 0, 1, 1)
         self.verticalLayout_2.addWidget(self.proxy_container)
+        self.re_template_container = QtWidgets.QWidget(parent=self.fields_container)
+        self.re_template_container.setObjectName("re_template_container")
+        self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.re_template_container)
+        self.verticalLayout_5.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout_5.setSpacing(4)
+        self.verticalLayout_5.setObjectName("verticalLayout_5")
+        self.re_template_container_layout = QtWidgets.QVBoxLayout()
+        self.re_template_container_layout.setContentsMargins(-1, -1, -1, 0)
+        self.re_template_container_layout.setSpacing(4)
+        self.re_template_container_layout.setObjectName("re_template_container_layout")
+        self.part_layout = QtWidgets.QHBoxLayout()
+        self.part_layout.setObjectName("part_layout")
+        self.title_radio = QtWidgets.QRadioButton(parent=self.re_template_container)
+        self.title_radio.setObjectName("title_radio")
+        self.part_layout.addWidget(self.title_radio)
+        self.description_radio = QtWidgets.QRadioButton(parent=self.re_template_container)
+        self.description_radio.setObjectName("description_radio")
+        self.part_layout.addWidget(self.description_radio)
+        self.re_template_container_layout.addLayout(self.part_layout)
+        self.transaction_type_combobox = QtWidgets.QComboBox(parent=self.re_template_container)
+        self.transaction_type_combobox.setObjectName("transaction_type_combobox")
+        self.re_template_container_layout.addWidget(self.transaction_type_combobox)
+        self.categories_combobox = QtWidgets.QComboBox(parent=self.re_template_container)
+        self.categories_combobox.setObjectName("categories_combobox")
+        self.re_template_container_layout.addWidget(self.categories_combobox)
+        self.value_plain_text = QtWidgets.QPlainTextEdit(parent=self.re_template_container)
+        self.value_plain_text.setObjectName("value_plain_text")
+        self.re_template_container_layout.addWidget(self.value_plain_text)
+        self.verticalLayout_5.addLayout(self.re_template_container_layout)
+        self.verticalLayout_2.addWidget(self.re_template_container)
         self.create_new_btn = QtWidgets.QPushButton(parent=self.fields_container)
         self.create_new_btn.setObjectName("create_new_btn")
         self.verticalLayout_2.addWidget(self.create_new_btn)
@@ -148,10 +181,6 @@ class Ui_Dialog_Settings(object):
         self.tableView.setObjectName("tableView")
         self.verticalLayout.addWidget(self.tableView)
         self.verticalLayout_3.addLayout(self.verticalLayout)
-        self.buttonBox = QtWidgets.QDialogButtonBox(parent=Dialog_Settings)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.StandardButton.Cancel)
-        self.buttonBox.setObjectName("buttonBox")
-        self.verticalLayout_3.addWidget(self.buttonBox)
 
         self.retranslateUi(Dialog_Settings)
         QtCore.QMetaObject.connectSlotsByName(Dialog_Settings)
@@ -161,7 +190,10 @@ class Ui_Dialog_Settings(object):
         Dialog_Settings.setWindowTitle(_translate("Dialog_Settings", "Dialog"))
         self.proxy_radio.setText(_translate("Dialog_Settings", "Proxy"))
         self.udd_radio.setText(_translate("Dialog_Settings", "User dir"))
+        self.re_template_radio.setText(_translate("Dialog_Settings", "RE Template"))
         self.udd_label.setText(_translate("Dialog_Settings", "value"))
         self.udd_is_selected_checkbox.setText(_translate("Dialog_Settings", "Is selected"))
         self.proxy_label.setText(_translate("Dialog_Settings", "value"))
+        self.title_radio.setText(_translate("Dialog_Settings", "Title"))
+        self.description_radio.setText(_translate("Dialog_Settings", "Description"))
         self.create_new_btn.setText(_translate("Dialog_Settings", "Save"))
