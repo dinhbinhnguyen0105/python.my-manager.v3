@@ -109,9 +109,11 @@ class RobotTaskType:
 
 
 class BrowserWorkerSignals(QObject):
-    failed_signal = pyqtSignal(RobotTaskType, str)
-    error_signal = pyqtSignal(RobotTaskType, str)
-    succeeded_signal = pyqtSignal(RobotTaskType, str, str)
-    proxy_unavailable_signal = pyqtSignal(RobotTaskType, str)
-    proxy_not_ready_signal = pyqtSignal(RobotTaskType, str)
-    progress_signal = pyqtSignal(RobotTaskType, str, int, int)
+    progress_signal = pyqtSignal(
+        RobotTaskType, str, int, int
+    )  # task, message, current_progress, total_progress
+    failed_signal = pyqtSignal(RobotTaskType, str)  # task, message
+    error_signal = pyqtSignal(RobotTaskType, str)  # task, message
+    succeeded_signal = pyqtSignal(RobotTaskType, str, str)  # task, message, raw_proxy
+    proxy_unavailable_signal = pyqtSignal(RobotTaskType, str)  # task, raw_proxy
+    proxy_not_ready_signal = pyqtSignal(RobotTaskType, str)  # task, raw_proxy

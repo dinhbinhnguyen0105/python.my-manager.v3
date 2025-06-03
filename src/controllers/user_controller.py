@@ -159,6 +159,15 @@ class UserController(BaseController):
 
             self._current_check_live_process.add_tasks(tasks)
 
+    def handle_launch_browser(
+        self,
+        record_ids: List[int],
+        udd_container: str,
+        raw_proxies: List[str],
+        is_mobile: bool,
+    ):
+        pass
+
     @pyqtSlot(int, str, bool)
     def _on_check_live_task_succeeded(self, record_id: int, uid: str, is_live: bool):
         print(f"{record_id} - {uid} : {is_live}")
