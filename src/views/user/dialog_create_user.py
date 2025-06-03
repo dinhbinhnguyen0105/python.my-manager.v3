@@ -1,5 +1,4 @@
 # src/views/user/dialog_create_user.py
-from datetime import datetime
 from typing import Dict
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QDialog

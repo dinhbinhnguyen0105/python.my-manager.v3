@@ -1,13 +1,10 @@
 # src/views/user/page_user.py
-from typing import List, Any, Optional
+from typing import Optional
 from PyQt6.QtWidgets import QWidget, QMenu
 from PyQt6.QtCore import (
     Qt,
-    pyqtSignal,
     QPoint,
     QSortFilterProxyModel,
-    QModelIndex,
-    QVariant,
     pyqtSlot,
 )
 from PyQt6.QtGui import QAction
@@ -16,6 +13,7 @@ from src.my_types import UserType
 from src.controllers.user_controller import UserController
 from src.ui.page_user_ui import Ui_PageUser
 from src.views.user.dialog_create_user import DialogCreateUser
+from src.views.user.dialog_update_user import DialogUpdateUser
 
 
 class MultiFieldFilterProxyModel(QSortFilterProxyModel):
@@ -210,8 +208,15 @@ class UserPage(QWidget, Ui_PageUser):
 
     @pyqtSlot(int)
     def on_update_product(self, record_id: int):
-        pass
+        user_data = self._user_controller.read_user(record_id)
+        self.update_user_dialog = DialogUpdateUser(user_data)
+        self.update_user_dialog.user_data_signal.connect(self.handle_update_user)
+        self.update_user_dialog.show()
 
     @pyqtSlot(int)
     def handle_delete_product(self, record_id: int):
         pass
+
+    @pyqtSlot(UserType)
+    def handle_update_user(self, user_data: UserType):
+        self._user_controller.update_user(user_data.id, user_data=user_data)
