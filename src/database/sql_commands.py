@@ -100,6 +100,7 @@ CREATE TABLE IF NOT EXISTS {constants.TABLE_REAL_ESTATE_TEMPLATE} (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     transaction_type TEXT,
     category TEXT,
+    is_default INT,
     part TEXT,
     value TEXT,
     created_at TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now')),

@@ -311,6 +311,46 @@ class RealEstateTemplateController(BaseController):
             )
             return ""
 
+    def get_default(self, part: str, transaction_type: str, category: str) -> str:
+        try:
+            template = self.service.get_default(part, transaction_type, category)
+            if template:
+                self.success_signal.emit(
+                    f"Successfully fetched default template for part='{part}', transaction_type='{transaction_type}', category='{category}'."
+                )
+                self.data_changed_signal.emit()
+            else:
+                self.warning_signal.emit(
+                    f"No template found for part='{part}', transaction_type='{transaction_type}', category='{category}'."
+                )
+            return template
+        except Exception as e:
+            print(f"[{self.__class__.__name__}.get_default] Error: {e}")
+            self.error_signal.emit(
+                f"Error occurred while fetching default template: {e}"
+            )
+            return ""
+
+    def set_default_template(self, record_id: int) -> bool:
+        try:
+            result = self.service.set_default_template(record_id)
+            if result:
+                self.success_signal.emit(
+                    f"Successfully set default template for record ID {record_id}."
+                )
+                self.data_changed_signal.emit()
+            else:
+                self.warning_signal.emit(
+                    f"Failed to set default template for record ID {record_id}."
+                )
+            return result
+        except Exception as e:
+            print(f"[{self.__class__.__name__}.set_default_template] Error: {e}")
+            self.error_signal.emit(
+                f"Error occurred while setting default template: {e}"
+            )
+            return False
+
 
 class MiscProductController(BaseController):
     def __init__(self, service: MiscProductService, parent=None):

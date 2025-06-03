@@ -4,14 +4,16 @@ import glob
 import os
 import shutil
 from typing import Optional, List
-from src.services.base_service import BaseService
+from PyQt6.QtSql import QSqlQuery
+
+from src.services.base_service import BaseService, transaction
 from src.models.product_model import (
     RealEstateProductModel,
     RealEstateTemplateModel,
     MiscProductModel,
 )
 from src.my_types import RealEstateProductType, RealEstateTemplateType, MiscProductType
-from src.my_constants import RE_TRANSACTION
+from src.my_constants import RE_TRANSACTION, TABLE_REAL_ESTATE_TEMPLATE
 
 
 class RealEstateProductService(BaseService):
@@ -117,17 +119,17 @@ class RealEstateProductService(BaseService):
             str: The newly generated unique product identifier.
         """
         try:
-            if not transaction_type in RE_TRANSACTION.keys():
+            if not transaction_type in RE_TRANSACTION.values():
                 raise KeyError()
             else:
                 while True:
                     uuid_str = str(uuid.uuid4())
                     pid = uuid_str.replace("-", "")[:8]
-                    if transaction_type == "sell":
+                    if transaction_type == "bán":
                         pid = "S." + pid
-                    elif transaction_type == "rent":
+                    elif transaction_type == "cho thuê":
                         pid = "R." + pid
-                    elif transaction_type == "assignment":
+                    elif transaction_type == "sang nhượng":
                         pid = "A." + pid
                     pid = "RE." + pid
                     if not self.find_by_pid(pid):
@@ -227,18 +229,174 @@ class RealEstateTemplateService(BaseService):
         return super().import_data(payload)
 
     def get_random(self, part: str, transaction_type: str, category: str) -> str:
-        query = """
-            SELECT value FROM real_estate_template
+        """
+        Retrieves a random template value based on part, transaction_type, and category.
+        """
+        if not self._db.isOpen():
+            print(f"[{self.__class__.__name__}.get_random] Database is not open.")
+            return ""
+
+        query_obj = QSqlQuery(self._db)  # Khởi tạo QSqlQuery với đối tượng QSqlDatabase
+        query = f"""
+            SELECT value FROM {TABLE_REAL_ESTATE_TEMPLATE}
             WHERE (? = '' OR part = ?)
             AND (? = '' OR transaction_type = ?)
             AND (? = '' OR category = ?)
             ORDER BY RANDOM() LIMIT 1
         """
-        params = (part, part, transaction_type, transaction_type, category, category)
-        cursor = self.model.db.connection.cursor()
-        cursor.execute(query, params)
-        row = cursor.fetchone()
-        return row[0] if row else ""
+        query_obj.prepare(query)  # Chuẩn bị truy vấn
+
+        # Binding các tham số
+        query_obj.addBindValue(part)
+        query_obj.addBindValue(part)
+        query_obj.addBindValue(transaction_type)
+        query_obj.addBindValue(transaction_type)
+        query_obj.addBindValue(category)
+        query_obj.addBindValue(category)
+
+        if not query_obj.exec():  # Thực thi truy vấn
+            print(
+                f"[{self.__class__.__name__}.get_random] Query failed: {query_obj.lastError().text()}"
+            )
+            return ""
+
+        if query_obj.next():  # Di chuyển con trỏ đến hàng đầu tiên (nếu có)
+            return query_obj.value(0)  # Lấy giá trị của cột đầu tiên (value)
+        return ""  # Trả về chuỗi rỗng nếu không tìm thấy
+
+    def get_default(self, part: str, transaction_type: str, category: str) -> str:
+        """
+        Retrieves the default template value (is_default = 1) for a given
+        part, transaction_type, and category.
+        """
+        if not self._db.isOpen():
+            print(f"[{self.__class__.__name__}.get_default] Database is not open.")
+            return ""
+
+        query_obj = QSqlQuery(self._db)  # Khởi tạo QSqlQuery với đối tượng QSqlDatabase
+        query = f"""
+            SELECT value from {TABLE_REAL_ESTATE_TEMPLATE}
+            WHERE (? = '' OR part = ?)
+            AND (? = '' OR transaction_type = ?)
+            AND (? = '' OR category = ?)
+            AND is_default = 1
+        """
+        query_obj.prepare(query)  # Chuẩn bị truy vấn
+
+        # Binding các tham số
+        query_obj.addBindValue(part)
+        query_obj.addBindValue(part)
+        query_obj.addBindValue(transaction_type)
+        query_obj.addBindValue(transaction_type)
+        query_obj.addBindValue(category)
+        query_obj.addBindValue(category)
+
+        if not query_obj.exec():  # Thực thi truy vấn
+            print(
+                f"[{self.__class__.__name__}.get_default] Query failed: {query_obj.lastError().text()}"
+            )
+            return ""
+
+        if query_obj.next():  # Di chuyển con trỏ đến hàng đầu tiên (nếu có)
+            return query_obj.value(0)  # Lấy giá trị của cột đầu tiên (value)
+        return ""  # Trả về chuỗi rỗng nếu không tìm thấy
+
+    def set_default_template(self, record_id: int) -> bool:
+        """
+        Sets a specific RealEstateTemplate record as the default template and
+        unsets others matching its part, transaction_type, and category.
+
+        Args:
+            record_id (int): The ID of the record to be set as the new default.
+
+        Returns:
+            bool: True if the operation was successful, False otherwise.
+        """
+        if not self._db.isOpen():
+            print(
+                f"[{self.__class__.__name__}.set_default_template] Database is not open."
+            )
+            return False
+
+        try:
+            with transaction(
+                self._db
+            ) as db_conn:  # Use the QSqlDatabase object directly
+                query = QSqlQuery(db_conn)  # Create QSqlQuery with the connection
+
+                # 1. Get information (part, transaction_type, category) of the target record
+                select_target_query = f"""
+                    SELECT part, transaction_type, category
+                    FROM {TABLE_REAL_ESTATE_TEMPLATE}
+                    WHERE id = ?
+                """
+                query.prepare(select_target_query)
+                query.addBindValue(record_id)
+
+                if not query.exec():
+                    print(
+                        f"[{self.__class__.__name__}.set_default_template] Failed to fetch target record: {query.lastError().text()}"
+                    )
+                    raise RuntimeError("Failed to fetch target record.")
+
+                if not query.next():  # Move to the first (and only) result
+                    print(
+                        f"[{self.__class__.__name__}.set_default_template] Record with ID {record_id} not found."
+                    )
+                    return False
+
+                part = query.value("part")
+                transaction_type = query.value("transaction_type")
+                category = query.value("category")
+
+                # 2. Unset (is_default = 0) all other records with matching part, transaction_type, category
+                update_others_query = f"""
+                    UPDATE {TABLE_REAL_ESTATE_TEMPLATE}
+                    SET is_default = 0, updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now')
+                    WHERE part = ?
+                    AND transaction_type = ?
+                    AND category = ?
+                    AND id != ?
+                """
+                query.prepare(update_others_query)
+                query.addBindValue(part)
+                query.addBindValue(transaction_type)
+                query.addBindValue(category)
+                query.addBindValue(record_id)
+
+                if not query.exec():
+                    print(
+                        f"[{self.__class__.__name__}.set_default_template] Failed to unset other defaults: {query.lastError().text()}"
+                    )
+                    raise RuntimeError("Failed to unset other defaults.")
+
+                # 3. Set the target record (record_id) to is_default = 1
+                update_target_query = f"""
+                    UPDATE {TABLE_REAL_ESTATE_TEMPLATE}
+                    SET is_default = 1, updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now')
+                    WHERE id = ?
+                """
+                query.prepare(update_target_query)
+                query.addBindValue(record_id)
+
+                if not query.exec():
+                    print(
+                        f"[{self.__class__.__name__}.set_default_template] Failed to set target as default: {query.lastError().text()}"
+                    )
+                    raise RuntimeError("Failed to set target as default.")
+
+                # Re-select the model to refresh the view (optional, but good practice if model is connected to a view)
+                self.model.select()
+            return True  # Transaction committed successfully
+
+        except Exception as e:
+            # The 'transaction' context manager already handles rollback and prints
+            # so we just need to catch, print a specific message, and return False.
+            print(
+                f"[{self.__class__.__name__}.set_default_template] Operation failed: {e}"
+            )
+            self.model.select()  # Refresh model to show original state if transaction failed
+            return False
 
 
 class MiscProductService(BaseService):

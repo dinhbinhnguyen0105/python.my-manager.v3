@@ -24,6 +24,7 @@ class DialogSettings(QDialog, Ui_Dialog_Settings):
     delete_udd_signal = pyqtSignal(int)
     delete_re_template_signal = pyqtSignal(int)
     set_udd_selected_signal = pyqtSignal(int)
+    re_template_set_default_signal = pyqtSignal(int)
 
     def __init__(
         self,
@@ -71,11 +72,16 @@ class DialogSettings(QDialog, Ui_Dialog_Settings):
 
     def show_context_menu(self, pos: QPoint):
         global_pos = self.tableView.mapToGlobal(pos)
+
         menu = QMenu(self.tableView)
         if type(self.tableView.model()).__name__ == "SettingUserDataDirModel":
             selected_action = QAction("Select", self)
             selected_action.triggered.connect(self.on_set_selected)
             menu.addAction(selected_action)
+        elif type(self.tableView.model()).__name__ == "RealEstateTemplateModel":
+            set_default_action = QAction("Set to default", self)
+            set_default_action.triggered.connect(self._on_set_to_default)
+            menu.addAction(set_default_action)
 
         delete_action = QAction("Delete", self)
         delete_action.triggered.connect(self.on_deleted_clicked)
@@ -151,6 +157,7 @@ class DialogSettings(QDialog, Ui_Dialog_Settings):
                     transaction_type=self.transaction_type_combobox.currentText().lower(),
                     category=self.categories_combobox.currentText().lower(),
                     part=part,
+                    is_default=0,
                     value=self.value_plain_text.toPlainText(),
                     created_at=None,
                     updated_at=None,
@@ -176,6 +183,12 @@ class DialogSettings(QDialog, Ui_Dialog_Settings):
     def on_set_selected(self):
         record_id = self.get_selected_ids()[0]
         self.set_udd_selected_signal.emit(record_id)
+        pass
+
+    @pyqtSlot()
+    def _on_set_to_default(self):
+        record_id = self.get_selected_ids()[0]
+        self.re_template_set_default_signal.emit(record_id)
         pass
 
 

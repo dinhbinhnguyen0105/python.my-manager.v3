@@ -1,5 +1,5 @@
 # src/models/product_model.py
-from PyQt6.QtSql import QSqlDatabase
+from PyQt6.QtSql import QSqlDatabase, QSqlTableModel
 
 from src.my_constants import (
     CONNECTION_DB_PRODUCT,
@@ -64,6 +64,7 @@ class RealEstateTemplateModel(BaseModel):
                 f"Warning: Database connection '{CONNECTION_DB_PRODUCT}' is not valid or not open."
             )
         super().__init__(TABLE_REAL_ESTATE_TEMPLATE, db, parent)
+        self.setEditStrategy(QSqlTableModel.EditStrategy.OnFieldChange)
 
     def find_row_by_tid(self, tid: str) -> int:
         tid_col_index = self.fieldIndex("tid")

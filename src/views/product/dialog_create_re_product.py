@@ -9,7 +9,7 @@ from src.ui.dialog_re_product_ui import Ui_Dialog_REProduct
 
 from src.my_constants import (
     RE_TRANSACTION,
-    RE_status,
+    RE_STATUS,
     RE_CATEGORY,
     RE_PROVINCE,
     RE_DISTRICT,
@@ -53,7 +53,7 @@ class DialogCreateREProduct(QDialog, Ui_Dialog_REProduct):
             )
 
             transaction_option.setStyleSheet("padding: 0 24px;")
-            transaction_option.setProperty("value", transaction_type)
+            transaction_option.setProperty("value", RE_TRANSACTION[transaction_type])
             transaction_option.clicked.connect(
                 lambda _, opt=transaction_option: self.on_transaction_option_clicked(
                     opt.property("value")
@@ -69,8 +69,8 @@ class DialogCreateREProduct(QDialog, Ui_Dialog_REProduct):
         for _key in RE_CATEGORY.keys():
             self.categories_combobox.addItem(RE_CATEGORY[_key].capitalize(), _key)
         self.status_combobox.clear()
-        for _key in RE_status:
-            self.status_combobox.addItem(RE_status[_key].capitalize(), _key)
+        for _key in RE_STATUS:
+            self.status_combobox.addItem(RE_STATUS[_key].capitalize(), _key)
         self.wards_combobox.clear()
         for _key in RE_WARD:
             self.wards_combobox.addItem(RE_WARD[_key].capitalize(), _key)

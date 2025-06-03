@@ -149,6 +149,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.handle_delete_re_template
         )
         dialog_settings.set_udd_selected_signal.connect(self.handle_set_udd_selected)
+        dialog_settings.re_template_set_default_signal.connect(
+            self.handle_set_to_default
+        )
 
         dialog_settings.exec()
 
@@ -181,3 +184,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._setting_user_data_dir_controller.set_selected_user_data_dir(
             record_id=record_id
         )
+
+    @pyqtSlot(int)
+    def handle_set_to_default(self, record_id: int):
+        self._real_estate_template_controller.set_default_template(record_id)

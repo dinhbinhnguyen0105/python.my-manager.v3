@@ -1,16 +1,13 @@
 # src/views/product/product.py
 import os, sys
-from typing import List, Any, Optional
+from typing import List, Optional
 from PyQt6.QtGui import QAction, QPixmap, QMouseEvent
 from PyQt6.QtWidgets import QWidget, QMenu, QMessageBox
 from PyQt6.QtCore import (
     Qt,
     pyqtSlot,
-    pyqtSignal,
     QPoint,
     QSortFilterProxyModel,
-    QModelIndex,
-    QVariant,
     QItemSelection,
 )
 from src.ui.page_re_product_ui import Ui_PageREProduct
@@ -18,23 +15,17 @@ from src.controllers.product_controller import (
     RealEstateProductController,
     RealEstateTemplateController,
 )
-from src.services.product_service import (
-    RealEstateProductService,
-    RealEstateTemplateService,
-)
 from src.models.product_model import (
     RealEstateProductModel,
     RealEstateTemplateModel,
 )
-
-from src.models.setting_model import SettingUserDataDirModel
-from src.services.setting_service import SettingUserDataDirModel
 from src.controllers.setting_controller import SettingUserDataDirController
 
 from src.views.product.dialog_create_re_product import DialogCreateREProduct
 from src.views.product.dialog_update_re_product import DialogUpdateREProduct
 
 from src.my_types import RealEstateProductType
+from src.utils.re_template import replace_template, init_footer_content
 
 
 class MultiFieldFilterProxyModel(QSortFilterProxyModel):
@@ -98,6 +89,12 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
     def init_events(self):
         self.action_create_btn.clicked.connect(self.on_create_product)
         self.details_container_w.setHidden(True)
+        self.action_default_btn.clicked.connect(
+            lambda: self.set_product_details("default")
+        )
+        self.action_random_btn.clicked.connect(
+            lambda: self.set_product_details("random")
+        )
 
     def get_selected_ids(self):
         selected_indexes = self.products_table.selectionModel().selectedRows()
@@ -291,17 +288,37 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
         )
         self.details_container_w.setHidden(False)
         self.image_label.mousePressEvent = self.on_image_clicked
+        self.set_product_details("default")
+
+    @pyqtSlot(str)
+    def set_product_details(self, _type: str):
         self.display_image(self.current_image_paths)
-
-        # TODO get data as RealEstateProductType  connect to template => display to detail
-
-    def set_product_details(self):
-        self.image_label
-        self.detail_text
-        self.action_templates_btn
-        self.action_default_btn
-        self.action_random_btn
-        # self.
+        if _type == "default":
+            title_template: str = self._template_controller.get_default(
+                "title",
+                self.current_product.transaction_type,
+                self.current_product.category,
+            )
+            description_template: str = self._template_controller.get_default(
+                "description",
+                self.current_product.transaction_type,
+                self.current_product.category,
+            )
+        elif _type == "random":
+            title_template: str = self._template_controller.get_random(
+                "title",
+                self.current_product.transaction_type,
+                self.current_product.category,
+            )
+            description_template: str = self._template_controller.get_random(
+                "description",
+                self.current_product.transaction_type,
+                self.current_product.category,
+            )
+        title = replace_template(self.current_product, title_template)
+        description = replace_template(self.current_product, description_template)
+        footer = init_footer_content(self.current_product)
+        self.detail_text.setPlainText(f"{title.upper()} \n\n {description} \n{footer}")
 
     def display_image(self, image_paths: List[str]):
         if not len(image_paths):
@@ -317,10 +334,6 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
             )
         else:
             self.image_label.setText("Failed to load image.")
-
-    def display_template(self, product_data: RealEstateProductType):
-        # self._template_controller.
-        pass
 
     @pyqtSlot(QMouseEvent)
     def on_image_clicked(self, ev: QMouseEvent):

@@ -18,7 +18,7 @@ TABLE_REAL_ESTATE_TEMPLATE = "real_estate_template"
 
 
 RE_TRANSACTION = {"sell": "bán", "rent": "cho thuê", "assignment": "sang nhượng"}
-RE_status = {"1": "khả dụng", "0": "không khả dụng"}
+RE_STATUS = {"1": "khả dụng", "0": "không khả dụng"}
 RE_CATEGORY = {
     "house": "nhà phố",
     "shop_house": "nhà mặt tiền",
@@ -70,6 +70,12 @@ RE_FURNITURE = {
     "basic": "nội thất cơ bản",
     "full": "đầy đủ nội thất",
 }
+RE_UNIT = {
+    RE_TRANSACTION["sell"]: "tỷ",
+    RE_TRANSACTION["rent"]: "triệu",
+    RE_TRANSACTION["assignment"]: "triệu",
+}
+
 
 ICONS = [
     "🌼",

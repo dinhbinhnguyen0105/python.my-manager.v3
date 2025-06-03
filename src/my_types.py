@@ -80,6 +80,7 @@ class RealEstateTemplateType:
     id: Optional[int]
     transaction_type: Optional[str]
     category: Optional[str]
+    is_default: Optional[int]
     part: Optional[str]
     value: Optional[str]
     created_at: Optional[str]
