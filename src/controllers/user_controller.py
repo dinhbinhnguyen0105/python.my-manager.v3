@@ -91,7 +91,7 @@ class UserController(BaseController):
             return True
         except Exception as e:
             print(f"[{self.__class__.__name__}.handle_read_user] Error: {e}")
-            self.operation_error_signal.emit(
+            self.error_signal.emit(
                 "Error occurred while create user. Check logs for details."
             )
             return False
@@ -166,14 +166,14 @@ class UserController(BaseController):
 
     @pyqtSlot(int, str, str)
     def _on_check_live_task_failed(self, record_id: int, uid: str, error_message: str):
-        # self.operation_error_signal.emit(
+        # self.error_signal.emit(
         #     f"Error occurred while check live user {uid} (id: {record_id}). Check logs for details."
         # )
         print(f"'{uid}': {error_message}")
 
     @pyqtSlot()
     def check_live_all_tasks_finished(self):
-        self.operation_success_signal.emit("User active status check completed.")
+        self.success_signal.emit("User active status check completed.")
 
 
 class UserListedProductController(BaseController):
@@ -239,9 +239,7 @@ class UserListedProductController(BaseController):
             return True
         except Exception as e:
             print(f"[{self.__class__.__name__}.delete_listed_product] Error: {e}")
-            self.operation_error_signal.emit(
-                "Error occurred while deleting listed product."
-            )
+            self.error_signal.emit("Error occurred while deleting listed product.")
             return False
 
     def delete_multiple_listed_products(self, record_ids: list) -> bool:
@@ -254,7 +252,7 @@ class UserListedProductController(BaseController):
             print(
                 f"[{self.__class__.__name__}.delete_multiple_listed_products] Error: {e}"
             )
-            self.operation_error_signal.emit(
+            self.error_signal.emit(
                 "Error occurred while deleting multiple listed products."
             )
             return False

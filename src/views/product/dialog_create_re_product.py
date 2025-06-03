@@ -43,7 +43,7 @@ class DialogCreateREProduct(QDialog, Ui_Dialog_REProduct):
 
         self.init_options()
         self.init_validate_input()
-        self.init_events()
+        self.setup_events()
         self._setupImageDrop()
 
     def init_options(self):
@@ -99,10 +99,10 @@ class DialogCreateREProduct(QDialog, Ui_Dialog_REProduct):
         self.price_input.setValidator(validator)
         self.structure_input.setValidator(validator)
 
-    def init_events(self):
+    def setup_events(self):
         pass
 
-    def init_ui(self):
+    def setup_ui(self):
         pass
 
     def _setupImageDrop(self):

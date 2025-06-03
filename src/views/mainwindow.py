@@ -60,11 +60,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
         self.user_page = UserPage(
             user_controller=self._user_controller,
+            setting_udd_controller=self._setting_user_data_dir_controller,
+            setting_proxy_controller=self._setting_proxy_controller,
             parent=self,
         )
 
-        self.init_ui()
-        self.init_events()
+        self.setup_ui()
+        self.setup_events()
 
         self.set_status_bar_message()
 
@@ -96,13 +98,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 lambda message: self.status_bar.showMessage(f"Info: {message}.", 1000)
             )
 
-    def init_ui(self):
+    def setup_ui(self):
         self.content_container.addWidget(self.real_estate_product_page)
         self.content_container.addWidget(self.user_page)
 
         self.content_container.setCurrentWidget(self.user_page)
 
-    def init_events(self):
+    def setup_events(self):
         self.sidebar_re_btn.clicked.connect(
             lambda: self.on_sidebar_btn_clicked("real_estate_product")
         )

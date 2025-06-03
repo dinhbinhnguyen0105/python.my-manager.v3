@@ -94,9 +94,7 @@ class RealEstateProductController(BaseController):
             return True
         except Exception as e:
             print(f"[{self.__class__.__name__}.delete_product] Error: {e}")
-            self.operation_error_signal.emit(
-                "Error occurred while deleting real estate product."
-            )
+            self.error_signal.emit("Error occurred while deleting real estate product.")
             return False
 
     def delete_multiple_products(self, record_ids: List[int]) -> bool:
@@ -109,7 +107,7 @@ class RealEstateProductController(BaseController):
             return True
         except Exception as e:
             print(f"[{self.__class__.__name__}.delete_multiple_products] Error: {e}")
-            self.operation_error_signal.emit(
+            self.error_signal.emit(
                 "Error occurred while deleting multiple real estate products."
             )
             return False
@@ -258,7 +256,7 @@ class RealEstateTemplateController(BaseController):
             return True
         except Exception as e:
             print(f"[{self.__class__.__name__}.delete_template] Error: {e}")
-            self.operation_error_signal.emit(
+            self.error_signal.emit(
                 "Error occurred while deleting real estate template."
             )
             return False
@@ -273,7 +271,7 @@ class RealEstateTemplateController(BaseController):
             return True
         except Exception as e:
             print(f"[{self.__class__.__name__}.delete_multiple_templates] Error: {e}")
-            self.operation_error_signal.emit(
+            self.error_signal.emit(
                 "Error occurred while deleting multiple real estate templates."
             )
             return False
@@ -422,9 +420,7 @@ class MiscProductController(BaseController):
             return True
         except Exception as e:
             print(f"[{self.__class__.__name__}.delete_product] Error: {e}")
-            self.operation_error_signal.emit(
-                "Error occurred while deleting misc product."
-            )
+            self.error_signal.emit("Error occurred while deleting misc product.")
             return False
 
     def delete_multiple_products(self, record_ids: List[int]) -> bool:
@@ -435,7 +431,7 @@ class MiscProductController(BaseController):
             return True
         except Exception as e:
             print(f"[{self.__class__.__name__}.delete_multiple_products] Error: {e}")
-            self.operation_error_signal.emit(
+            self.error_signal.emit(
                 "Error occurred while deleting multiple misc products."
             )
             return False

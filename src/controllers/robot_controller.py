@@ -90,7 +90,7 @@ class RobotController(BaseController):
 
     @pyqtSlot()
     def on_tasks_finished(self):
-        self.operation_success_signal.emit("All tasks finished successfully.")
+        self.success_signal.emit("All tasks finished successfully.")
 
     def _get_udd_container(self):
         udd_selected = self.udd_service.get_selected()

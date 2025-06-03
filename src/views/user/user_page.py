@@ -11,6 +11,10 @@ from PyQt6.QtGui import QAction
 
 from src.my_types import UserType
 from src.controllers.user_controller import UserController
+from src.controllers.setting_controller import (
+    SettingUserDataDirController,
+    SettingProxyController,
+)
 from src.ui.page_user_ui import Ui_PageUser
 from src.views.user.dialog_create_user import DialogCreateUser
 from src.views.user.dialog_update_user import DialogUpdateUser
@@ -42,6 +46,8 @@ class UserPage(QWidget, Ui_PageUser):
     def __init__(
         self,
         user_controller: UserController,
+        setting_udd_controller: SettingUserDataDirController,
+        setting_proxy_controller: SettingProxyController,
         parent=None,
     ):
         super(UserPage, self).__init__(parent)
@@ -50,17 +56,19 @@ class UserPage(QWidget, Ui_PageUser):
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         self._user_controller = user_controller
+        self._setting_udd_controller = setting_udd_controller
+        self._setting_proxy_controller = setting_proxy_controller
         self.base_user_model = user_controller.service.model
         self.proxy_model = MultiFieldFilterProxyModel()
         self.proxy_model.setSourceModel(self.base_user_model)
 
-        self.init_ui()
-        self.init_events()
+        self.setup_ui()
+        self.setup_events()
 
-    def init_ui(self):
+    def setup_ui(self):
         self.set_user_table()
 
-    def init_events(self):
+    def setup_events(self):
         self.action_create_btn.clicked.connect(self.on_create_user)
         self.set_filters()
         pass
@@ -71,9 +79,9 @@ class UserPage(QWidget, Ui_PageUser):
         self.users_table.setSelectionBehavior(
             self.users_table.SelectionBehavior.SelectRows
         )
-        self.users_table.setSelectionMode(
-            self.users_table.SelectionMode.SingleSelection
-        )
+        # self.users_table.setSelectionMode(
+        #     self.users_table.SelectionMode.SingleSelection
+        # )
         self.users_table.setEditTriggers(self.users_table.EditTrigger.NoEditTriggers)
 
         # self.users_table.selectionModel().selectionChanged.connect(
@@ -85,7 +93,7 @@ class UserPage(QWidget, Ui_PageUser):
             )
             if column_name in [
                 "id",
-                # "status",
+                "status",
                 "mobile_ua",
                 "desktop_ua",
             ]:
@@ -143,6 +151,7 @@ class UserPage(QWidget, Ui_PageUser):
         launch_as_desktop_action = QAction("Launch as desktop", self)
         launch_as_mobile_action = QAction("Launch as mobile", self)
         check_action = QAction("Check live", self)
+        check_action.triggered.connect(self.on_check_live)
         update_action.triggered.connect(
             lambda _, record_id=id_value: self.on_update_product(record_id)
         )
@@ -180,6 +189,24 @@ class UserPage(QWidget, Ui_PageUser):
                 lambda text, col=column: self.proxy_model.set_filter(col, text)
             )
 
+    def get_selected_ids(self):
+        selected_indexes = self.users_table.selectionModel().selectedRows()
+        ids = []
+        for proxy_index in selected_indexes:
+            # Chuyển sang index của source model
+            source_index = self.proxy_model.mapToSource(proxy_index)
+            source_model = self.proxy_model.sourceModel()
+            # Tìm cột id
+            id_col = (
+                source_model.fieldIndex("id")
+                if hasattr(source_model, "fieldIndex")
+                else 0
+            )
+            id_index = source_model.index(source_index.row(), id_col)
+            id_value = source_model.data(id_index, Qt.ItemDataRole.DisplayRole)
+            ids.append(id_value)
+        return sorted(ids)
+
     @pyqtSlot()
     def on_create_user(self):
         current_time = self._user_controller.handle_new_time()
@@ -211,12 +238,38 @@ class UserPage(QWidget, Ui_PageUser):
         user_data = self._user_controller.read_user(record_id)
         self.update_user_dialog = DialogUpdateUser(user_data)
         self.update_user_dialog.user_data_signal.connect(self.handle_update_user)
+        self.update_user_dialog.new_mobile_ua_signal.connect(self.handle_new_mobile_ua)
+        self.update_user_dialog.new_desktop_ua_signal.connect(
+            self.handle_new_desktop_ua
+        )
         self.update_user_dialog.show()
 
     @pyqtSlot(int)
     def handle_delete_product(self, record_id: int):
-        pass
+        udd_container = self._setting_udd_controller.get_selected_user_data_dir()
+        self._user_controller.delete_user(
+            udd_container=udd_container, record_id=record_id
+        )
 
     @pyqtSlot(UserType)
     def handle_update_user(self, user_data: UserType):
         self._user_controller.update_user(user_data.id, user_data=user_data)
+
+    @pyqtSlot()
+    def handle_new_mobile_ua(self):
+        if hasattr(self, "update_user_dialog"):
+            self.update_user_dialog.mobile_ua_input.setText(
+                self._user_controller.handle_new_mobile_ua()
+            )
+
+    @pyqtSlot()
+    def handle_new_desktop_ua(self):
+        if hasattr(self, "update_user_dialog"):
+            self.update_user_dialog.desktop_ua_input.setText(
+                self._user_controller.handle_new_desktop_ua()
+            )
+
+    @pyqtSlot()
+    def on_check_live(self):
+        selected_ids = self.get_selected_ids()
+        self._user_controller.handle_check_users(selected_ids=selected_ids)

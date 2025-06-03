@@ -47,14 +47,14 @@ class DialogSettings(QDialog, Ui_Dialog_Settings):
         self.udd_container.setHidden(True)
         self.proxy_container.setHidden(True)
         self.re_template_container.setHidden(True)
-        self.init_events()
-        self.init_ui()
+        self.setup_events()
+        self.setup_ui()
 
-    def init_ui(self):
+    def setup_ui(self):
         self.set_table_ui()
         self.set_re_template_comboboxes()
 
-    def init_events(self):
+    def setup_events(self):
         self.udd_radio.clicked.connect(lambda: self.on_setting_option_clicked("udd"))
         self.proxy_radio.clicked.connect(
             lambda: self.on_setting_option_clicked("proxy")

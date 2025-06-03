@@ -11,6 +11,8 @@ from src.ui.dialog_user_ui import Ui_Dialog_User
 
 class DialogUpdateUser(QDialog, Ui_Dialog_User):
     user_data_signal = pyqtSignal(UserType)
+    new_mobile_ua_signal = pyqtSignal()
+    new_desktop_ua_signal = pyqtSignal()
 
     def __init__(self, user_data: UserType, parent=None):
         super(DialogUpdateUser, self).__init__(parent)
@@ -25,6 +27,11 @@ class DialogUpdateUser(QDialog, Ui_Dialog_User):
         self.buttonBox.accepted.connect(self.handle_save)
 
         self.set_input_fields()
+        self.setup_events()
+
+    def setup_events(self):
+        self.mobile_ua_button.clicked.connect(self.new_mobile_ua_signal)
+        self.desktop_ua_button.clicked.connect(self.new_desktop_ua_signal)
 
     def handle_save(self):
         self.user_data_signal.emit(
@@ -69,7 +76,5 @@ class DialogUpdateUser(QDialog, Ui_Dialog_User):
         self.mobile_ua_input.setText(self._user_data.mobile_ua or "")
         self.desktop_ua_input.setText(self._user_data.desktop_ua or "")
         self.status_checkbox.setChecked(bool(self._user_data.status))
-        # self.created_at_input.setText(self._user_data.created_at or "")
-        # self.updated_at_input.setText(self._user_data.updated_at or "")
         self.created_at_container.setHidden(True)
         self.updated_at_container.setHidden(True)

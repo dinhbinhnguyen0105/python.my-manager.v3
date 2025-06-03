@@ -80,13 +80,13 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
         self.current_product: Optional[RealEstateProductType] = None
         self.current_image_paths: List[str] = []
 
-        self.init_ui()
-        self.init_events()
+        self.setup_ui()
+        self.setup_events()
 
-    def init_ui(self):
+    def setup_ui(self):
         self.set_product_table()
 
-    def init_events(self):
+    def setup_events(self):
         self.action_create_btn.clicked.connect(self.on_create_product)
         self.details_container_w.setHidden(True)
         self.action_default_btn.clicked.connect(
