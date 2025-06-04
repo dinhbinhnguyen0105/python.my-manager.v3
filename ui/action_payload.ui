@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ActionPayloadContainer</class>
+ <widget class="QWidget" name="ActionPayloadContainer">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>489</width>
+    <height>40</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">#Dialog_User{
+  font-family: &quot;Courier New&quot;;
+  background-color: #FFFFFF;
+}
+QPushButton{
+  font-family: &quot;Courier New&quot;;
+}
+QCheckBox {
+  font-family: &quot;Courier New&quot;;
+}
+QGroupBox {
+  font-family: &quot;Courier New&quot;;
+  font-size: 13px;
+  background-color: rgba(248, 249, 250, 1);
+}
+QLineEdit {
+  padding: 4px 0;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  margin-left: 8px;
+  padding-left: 4px;
+  background-color: #FFFFFF;
+  color:#212529;
+}
+QPlainTextEdit {
+	background-color: #FFFFFF;
+  color:#212529;
+}
+QLabel {
+  font-family: &quot;Courier New&quot;;
+  font-size: 13px;
+  color: rgb(90, 93, 97);
+}
+QRadioButton {
+  font-family: &quot;Courier New&quot;;
+  font-size: 13px;
+  color: #212529;
+}
+QComboBox {
+  font-family: &quot;Courier New&quot;;
+  font-size: 13px;
+  color: #212529;
+}
+QPushButton {
+  color: #212529;
+}
+
+QCheckBox{
+  color: #212529;
+}</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout_2">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QComboBox" name="action_name"/>
+     </item>
+     <item>
+      <widget class="QComboBox" name="action_payload"/>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="pid_input">
+       <property name="minimumSize">
+        <size>
+         <width>120</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">margin: 0 4px;</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="action_delete_btn">
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <property name="text">
+        <string>Delete</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
