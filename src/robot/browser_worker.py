@@ -8,77 +8,83 @@ from undetected_playwright import Tarnished
 
 from PyQt6.QtCore import QRunnable
 
-from my_types import RobotTaskType, BrowserWorkerSignals
+from src.my_types import BrowserWorkerSignals, BrowserType
 from src.robot.browser_actions import ACTION_MAP
 
 
 class BrowserWorker(QRunnable):
     def __init__(
         self,
-        task: RobotTaskType,
+        browser: BrowserType,
         raw_proxy: str,
     ):
         super().__init__()
-        self._task = task
+        self._browser = browser
         self._raw_proxy = raw_proxy
         self._signals = BrowserWorkerSignals()
         self.setAutoDelete(True)
 
     def run(self):
         proxy = self.handle_get_proxy()
-        if proxy and self._task.action_name in ACTION_MAP.keys():
+        if proxy and self._browser.action_name in ACTION_MAP.keys():
             try:
-                action_func = ACTION_MAP[self.task.action_name]
+                action_func = ACTION_MAP[self._browser.action_name]
                 with sync_playwright() as p:
                     context = p.chromium.launch_persistent_context(
-                        user_data_dir=self.task.udd,
+                        user_data_dir=self._browser.udd,
                         user_agent=(
-                            self.task.user_info.mobile_ua
-                            if self.task.is_mobile
-                            else self.task.user_info.desktop_ua
+                            self._browser.user_info.mobile_ua
+                            if self._browser.is_mobile
+                            else self._browser.user_info.desktop_ua
                         ),
-                        headless=self.task.headless,
+                        headless=self._browser.headless,
                         args=["--disable-blink-features=AutomationControlled"],
                         ignore_default_args=["--enable-automation"],
                         proxy=proxy,
                     )
                     Tarnished.apply_stealth(context)
                     page = context.new_page()
-                    if self.task.action_name == "launch_browser":
-                        action_func(page, self.task, self._signals)
+                    if self._browser.action_name == "launch_browser":
+                        action_func(page, self._browser, self._signals)
 
                 self._signals.succeeded_signal.emit(
-                    self.task,
+                    self._browser,
                     "Succeeded.",
-                    self.raw_proxy,
+                    self._raw_proxy,
                 )
             except Exception as e:
-                self._signals.error_signal.emit(self.task, str(e))
+                self._signals.error_signal.emit(self._browser, str(e))
 
     def handle_get_proxy(self):
         try:
-            res = self._get_proxy(self.raw_proxy)
+            res = self._get_proxy(self._raw_proxy)
             if int(res.get("status")) == 100:
                 proxy = res.get("data")
             elif int(res.get("status")) == 101:
                 proxy = None
-                print(f"[{self.task.user_info.uid}] Not ready proxy ({self.raw_proxy})")
+                print(
+                    f"[{self._browser.user_info.uid}] Not ready proxy ({self._raw_proxy})"
+                )
                 sleep(60)
-                self._signals.proxy_not_ready_signal.emit(self.task, self.raw_proxy)
+                self._signals.proxy_not_ready_signal.emit(
+                    self._browser, self._raw_proxy
+                )
             elif int(res.get("status")) == 102:
                 proxy = None
-                self._signals.proxy_unavailable_signal.emit(self.task, self.raw_proxy)
+                self._signals.proxy_unavailable_signal.emit(
+                    self._browser, self._raw_proxy
+                )
             return proxy
         except Exception as e:
             self._signals.error_signal.emit(
-                self.task,
+                self._browser,
                 f"An error occurred while fetching proxy: {e}",
             )
 
     def _get_proxy(self, proxy_raw: str) -> dict:
         buffer = io.BytesIO()
         curl = pycurl.Curl()
-        curl.setopt(pycurl.URL, proxy_url)
+        curl.setopt(pycurl.URL, proxy_raw)
         curl.setopt(pycurl.CONNECTTIMEOUT, 60)
         curl.setopt(pycurl.TIMEOUT, 60)
         headers = [
@@ -98,7 +104,7 @@ class BrowserWorker(QRunnable):
             body = buffer.getvalue().decode("utf-8")
             res = json.loads(body)
             data = None
-            parsed_url = urlparse(proxy_url)
+            parsed_url = urlparse(proxy_raw)
             domain = parsed_url.netloc
             if domain == "proxyxoay.shop":
                 if res.get("status") == 100 and "proxyhttp" in res:

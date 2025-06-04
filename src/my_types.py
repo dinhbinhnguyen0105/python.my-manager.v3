@@ -101,19 +101,23 @@ class MiscProductType:
 @dataclass
 class RobotTaskType:
     user_info: UserType
-    udd: str
-    headless: bool
-    is_mobile: bool
     action_name: str
     action_payload: dict
 
 
+@dataclass
+class BrowserType(RobotTaskType):
+    is_mobile: str
+    headless: bool
+    udd: str
+
+
 class BrowserWorkerSignals(QObject):
     progress_signal = pyqtSignal(
-        RobotTaskType, str, int, int
+        BrowserType, str, int, int
     )  # task, message, current_progress, total_progress
-    failed_signal = pyqtSignal(RobotTaskType, str)  # task, message
-    error_signal = pyqtSignal(RobotTaskType, str)  # task, message
-    succeeded_signal = pyqtSignal(RobotTaskType, str, str)  # task, message, raw_proxy
-    proxy_unavailable_signal = pyqtSignal(RobotTaskType, str)  # task, raw_proxy
-    proxy_not_ready_signal = pyqtSignal(RobotTaskType, str)  # task, raw_proxy
+    failed_signal = pyqtSignal(BrowserType, str)  # task, message
+    error_signal = pyqtSignal(BrowserType, str)  # task, message
+    succeeded_signal = pyqtSignal(BrowserType, str, str)  # task, message, raw_proxy
+    proxy_unavailable_signal = pyqtSignal(BrowserType, str)  # task, raw_proxy
+    proxy_not_ready_signal = pyqtSignal(BrowserType, str)  # task, raw_proxy

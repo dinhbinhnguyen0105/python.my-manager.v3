@@ -1,6 +1,6 @@
 # src/views/user/page_user.py
 from typing import Optional
-from PyQt6.QtWidgets import QWidget, QMenu
+from PyQt6.QtWidgets import QWidget, QMenu, QMessageBox
 from PyQt6.QtCore import (
     Qt,
     QPoint,
@@ -146,18 +146,25 @@ class UserPage(QWidget, Ui_PageUser):
                 )
             )
 
-        update_action = QAction("Update", self)
-        delete_action = QAction("Delete", self)
         launch_as_desktop_action = QAction("Launch as desktop", self)
+        launch_as_desktop_action.triggered.connect(
+            lambda: self.handle_launch_browser(is_mobile=False)
+        )
         launch_as_mobile_action = QAction("Launch as mobile", self)
+        launch_as_mobile_action.triggered.connect(
+            lambda: self.handle_launch_browser(is_mobile=True)
+        )
         check_action = QAction("Check live", self)
         check_action.triggered.connect(self.on_check_live)
+        update_action = QAction("Update", self)
         update_action.triggered.connect(
             lambda _, record_id=id_value: self.on_update_product(record_id)
         )
+        delete_action = QAction("Delete", self)
         delete_action.triggered.connect(
             lambda _, record_id=id_value: self.handle_delete_product(record_id)
         )
+
         menu.addAction(launch_as_desktop_action)
         menu.addAction(launch_as_mobile_action)
         menu.addAction(check_action)
@@ -247,9 +254,17 @@ class UserPage(QWidget, Ui_PageUser):
     @pyqtSlot(int)
     def handle_delete_product(self, record_id: int):
         udd_container = self._setting_udd_controller.get_selected_user_data_dir()
-        self._user_controller.delete_user(
-            udd_container=udd_container, record_id=record_id
+        reply = QMessageBox.question(
+            self,
+            "Confirm Delete",
+            "Are you sure you want to delete this user?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.Yes,
         )
+        if reply == QMessageBox.StandardButton.Yes:
+            self._user_controller.delete_user(
+                udd_container=udd_container, record_id=record_id
+            )
 
     @pyqtSlot(UserType)
     def handle_update_user(self, user_data: UserType):
@@ -273,3 +288,17 @@ class UserPage(QWidget, Ui_PageUser):
     def on_check_live(self):
         selected_ids = self.get_selected_ids()
         self._user_controller.handle_check_users(selected_ids=selected_ids)
+
+    @pyqtSlot(bool)
+    def handle_launch_browser(self, is_mobile):
+        record_ids = self.get_selected_ids()
+        udd_container = self._setting_udd_controller.get_selected_user_data_dir()
+        proxies_data = self._setting_proxy_controller.read_all_proxies()
+        raw_proxies = [proxy_data.value for proxy_data in proxies_data]
+        self._user_controller.handle_launch_browser(
+            record_ids=record_ids,
+            udd_container=udd_container,
+            raw_proxies=raw_proxies,
+            is_mobile=is_mobile,
+            url="",
+        )
