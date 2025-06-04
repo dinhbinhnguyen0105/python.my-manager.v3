@@ -1,6 +1,7 @@
 # src/views/mainwindow.py
 from PyQt6.QtCore import Qt, pyqtSlot
-from PyQt6.QtWidgets import QMainWindow
+from PyQt6.QtWidgets import QMainWindow, QLabel
+from PyQt6.QtCore import QTimer
 
 from src.my_types import (
     SettingProxyType,
@@ -81,21 +82,41 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._setting_proxy_controller,
             self._setting_user_data_dir_controller,
         ]:
+            # controller.success_signal.connect(
+            #     lambda message: self.status_bar.showMessage(
+            #         f"Success: {message}.", 1000
+            #     )
+            # )
+            # controller.error_signal.connect(
+            #     lambda message: self.status_bar.showMessage(f"Error: {message}.", 1000)
+            # )
+            # controller.warning_signal.connect(
+            #     lambda message: self.status_bar.showMessage(
+            #         f"Warning: {message}.", 1000
+            #     )
+            # )
+            # controller.info_signal.connect(
+            #     lambda message: self.status_bar.showMessage(f"Info: {message}.", 1000)
+            # )
             controller.success_signal.connect(
-                lambda message: self.status_bar.showMessage(
-                    f"Success: {message}.", 1000
+                lambda message: self.set_status_bar(
+                    message=f"Success: {message}", color="#28a745", time_out=1_000
                 )
             )
             controller.error_signal.connect(
-                lambda message: self.status_bar.showMessage(f"Error: {message}.", 1000)
+                lambda message: self.set_status_bar(
+                    message=f"Error: {message}", color="#dc3545", time_out=3_000
+                )
             )
             controller.warning_signal.connect(
-                lambda message: self.status_bar.showMessage(
-                    f"Warning: {message}.", 1000
+                lambda message: self.set_status_bar(
+                    message=f"Warning: {message}", color="#ffc107", time_out=2_000
                 )
             )
             controller.info_signal.connect(
-                lambda message: self.status_bar.showMessage(f"Info: {message}.", 1000)
+                lambda message: self.set_status_bar(
+                    message=f"Info: {message}", color="#", time_out=1_000
+                )
             )
 
     def setup_ui(self):
@@ -190,3 +211,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     @pyqtSlot(int)
     def handle_set_to_default(self, record_id: int):
         self._real_estate_template_controller.set_default_template(record_id)
+
+    @pyqtSlot(str, str, int)
+    def set_status_bar(self, message: str, color: str, time_out: int):
+        label = QLabel(message)
+        label.setStyleSheet(f"color: {color};")
+        self.status_bar.addWidget(label)
+        QTimer.singleShot(time_out, lambda: self.status_bar.removeWidget(label))

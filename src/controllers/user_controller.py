@@ -10,7 +10,7 @@ from src.services.user_service import UserService, UserListedProductService
 # from src.services.setting_service import SettingProxyService, SettingUserDataDirService
 
 from src.services.check_live import CheckLive
-from src.robot.browser_manager import BrowserMananger
+from src.robot.browser_manager import BrowserManager
 from src.my_types import (
     UserType,
     UserListedProductType,
@@ -24,16 +24,12 @@ class UserController(BaseController):
     def __init__(
         self,
         user_service: UserService,
-        # setting_udd_service: SettingUserDataDirService,
-        # setting_proxy_service: SettingProxyService,
         parent=None,
     ):
         super().__init__(service=user_service, parent=parent)
         self._user_service = user_service
-        # self._setting_udd_service = setting_udd_service
-        # self._setting_proxy_service = setting_proxy_service
         self._current_check_live_process: Optional[CheckLive] = None
-        self._current_browser_progress: Optional[BrowserMananger] = None
+        self._current_browser_progress: Optional[BrowserManager] = None
 
     def create_user(self, user_data: UserType):
         try:
@@ -215,16 +211,23 @@ class UserController(BaseController):
             print(
                 f"[{self.__class__.__name__}.handle_launch_browser] Starting new launch browser tasks."
             )
-            self._current_browser_progress = BrowserMananger(self)
+            self._current_browser_progress = BrowserManager(self)
             self._current_browser_progress.set_max_worker(len(browsers))
-            self._current_browser_progress.succeeded_signal.connect(
-                self._on_browser_succeed
+            # self._current_browser_progress.succeeded_signal.connect(
+            #     self._on_browser_succeed
+            # )
+            # self._current_browser_progress.failed_signal.connect(
+            #     self._on_browser_failed
+            # )
+            # self._current_browser_progress.finished.connect(self._on_browsers_finished)
+            self._current_browser_progress.succeeded_signal.connect(self.success_signal)
+            self._current_browser_progress.error_signal.connect(self.error_signal)
+            self._current_browser_progress.warning_signal.connect(self.warning_signal)
+            self._current_browser_progress.failed_signal.connect(self.warning_signal)
+            self._current_browser_progress.progress_signal.connect(
+                self.on_launch_progress
             )
-            self._current_browser_progress.failed_signal.connect(
-                self._on_browser_failed
-            )
-            self._current_browser_progress.finished.connect(self._on_browsers_finished)
-
+            self._current_browser_progress.finished.connect(self.on_finished)
             self._current_browser_progress.add_browsers(browsers, raw_proxies)
 
     @pyqtSlot(int, str, bool)
@@ -243,17 +246,15 @@ class UserController(BaseController):
     def check_live_all_tasks_finished(self):
         self.success_signal.emit("User active status check completed.")
 
-    @pyqtSlot(BrowserType)
-    def _on_browser_succeed(self, browser: BrowserType):
-        pass
-
-    @pyqtSlot(BrowserType)
-    def _on_browser_failed(self, browser: BrowserType):
-        pass
+    @pyqtSlot(str, int, int)
+    def on_launch_progress(
+        self, message: str, current_progress: int, total_progress: int
+    ):
+        self.success_signal.emit(f"{message}")
 
     @pyqtSlot()
-    def _on_browsers_finished(self):
-        pass
+    def on_finished(self):
+        print("Finished from controller!")
 
 
 class UserListedProductController(BaseController):

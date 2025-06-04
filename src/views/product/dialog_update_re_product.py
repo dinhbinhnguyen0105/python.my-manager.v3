@@ -1,7 +1,7 @@
 # src/views/product/dialog_update_re_product.py
 from typing import List
 from PyQt6.QtCore import Qt, pyqtSlot, pyqtSignal
-from PyQt6.QtWidgets import QDialog, QRadioButton, QMessageBox
+from PyQt6.QtWidgets import QDialog, QMessageBox, QLineEdit
 from PyQt6.QtGui import QDoubleValidator, QPixmap
 
 from src.my_types import RealEstateProductType
@@ -41,6 +41,7 @@ class DialogUpdateREProduct(QDialog, Ui_Dialog_REProduct):
         self.init_options()
         self._display_image(image_paths)
         self.init_data()
+        self.init_validate_input()
 
     def init_options(self):
         self.transaction_container_w.setHidden(True)
@@ -79,6 +80,15 @@ class DialogUpdateREProduct(QDialog, Ui_Dialog_REProduct):
         self.area_input.setValidator(validator)
         self.price_input.setValidator(validator)
         self.structure_input.setValidator(validator)
+        self.area_input.textChanged.connect(
+            lambda text: self._replace_dot_with_comma(self.area_input, text)
+        )
+        self.price_input.textChanged.connect(
+            lambda text: self._replace_dot_with_comma(self.price_input, text)
+        )
+        self.structure_input.textChanged.connect(
+            lambda text: self._replace_dot_with_comma(self.structure_input, text)
+        )
 
     def init_data(self):
         # Set giá trị cho các input từ self.product_data
@@ -163,6 +173,16 @@ class DialogUpdateREProduct(QDialog, Ui_Dialog_REProduct):
             )
         else:
             self.image_input.setText("Failed to load image.")
+
+    @pyqtSlot(QLineEdit, str)
+    def _replace_dot_with_comma(self, line_edit: QLineEdit, text: str):
+        if "." in text:
+            cursor_pos = line_edit.cursorPosition()
+            new_text = text.replace(".", ",")
+            line_edit.blockSignals(True)
+            line_edit.setText(new_text)
+            line_edit.setCursorPosition(cursor_pos)
+            line_edit.blockSignals(False)
 
     @pyqtSlot()
     def on_accepted(self):

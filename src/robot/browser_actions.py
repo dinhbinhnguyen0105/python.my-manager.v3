@@ -9,7 +9,7 @@ def do_launch_browser(page: Page, task: RobotTaskType, signals: BrowserWorkerSig
         page.goto(task.action_payload.get("url", ""))
         page.wait_for_event("close", timeout=0)
         signals.progress_signal.emit(task, "Closed!", 1, 1)
-        # signals.succeeded_signal.emit()
+        # signals.succeeded_signal.emit(task, "Succeeded)
     except Exception as e:
         signals.error_signal.emit(task, str(e))
 

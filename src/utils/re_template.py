@@ -13,7 +13,14 @@ def replace_template(product_data: RealEstateProductType, template: str) -> str:
         if field_value is None:
             field_value = ""
         placeholder = f"<{field_name}>"
-        result = result.replace(placeholder, str(field_value))
+        if field_name in [
+            "street",
+            "district",
+            "ward",
+            "province",
+        ]:
+            result = result.replace(placeholder, str(field_value).title())
+        result = result.replace(placeholder, str(field_value).capitalize())
 
     if "<unit>" in result:
         result = result.replace("<unit>", RE_UNIT[product_data.transaction_type])

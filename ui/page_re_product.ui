@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>PageRE</class>
- <widget class="QWidget" name="PageRE">
+ <class>PageREProduct</class>
+ <widget class="QWidget" name="PageREProduct">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -265,7 +265,7 @@ padding-left: 4px;</string>
                 </widget>
                </item>
                <item row="0" column="1">
-                <widget class="QWidget" name="options_container_w" native="true">
+                <widget class="QWidget" name="transaction_container_w" native="true">
                  <property name="styleSheet">
                   <string notr="true">padding</string>
                  </property>
@@ -288,7 +288,7 @@ padding-left: 4px;</string>
                   <item>
                    <layout class="QVBoxLayout" name="verticalLayout_14">
                     <item>
-                     <widget class="QLabel" name="options_label">
+                     <widget class="QLabel" name="transaction_label">
                       <property name="font">
                        <font>
                         <family>Courier New</family>
@@ -304,7 +304,7 @@ padding-left: 4px;</string>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QComboBox" name="options_combobox">
+                     <widget class="QComboBox" name="transaction_combobox">
                       <item>
                        <property name="text">
                         <string>Tất cả</string>

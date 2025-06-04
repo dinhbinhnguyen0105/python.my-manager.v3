@@ -17,11 +17,12 @@ class BrowserWorker(QRunnable):
         self,
         browser: BrowserType,
         raw_proxy: str,
+        signals: BrowserWorkerSignals,
     ):
         super().__init__()
         self._browser = browser
         self._raw_proxy = raw_proxy
-        self._signals = BrowserWorkerSignals()
+        self._signals = signals
         self.setAutoDelete(True)
 
     def run(self):
@@ -30,7 +31,8 @@ class BrowserWorker(QRunnable):
             try:
                 action_func = ACTION_MAP[self._browser.action_name]
                 with sync_playwright() as p:
-                    context = p.chromium.launch_persistent_context(
+                    # Default context kwargs
+                    context_kwargs = dict(
                         user_data_dir=self._browser.udd,
                         user_agent=(
                             self._browser.user_info.mobile_ua
@@ -42,6 +44,13 @@ class BrowserWorker(QRunnable):
                         ignore_default_args=["--enable-automation"],
                         proxy=proxy,
                     )
+                    if self._browser.is_mobile:
+                        context_kwargs["viewport"] = {"width": 390, "height": 844}
+                        context_kwargs["screen"] = {"width": 390, "height": 844}
+                        context_kwargs["is_mobile"] = True
+                        context_kwargs["device_scale_factor"] = 3
+                        context_kwargs["has_touch"] = True
+                    context = p.chromium.launch_persistent_context(**context_kwargs)
                     Tarnished.apply_stealth(context)
                     page = context.new_page()
                     if self._browser.action_name == "launch_browser":
@@ -49,7 +58,7 @@ class BrowserWorker(QRunnable):
 
                 self._signals.succeeded_signal.emit(
                     self._browser,
-                    "Succeeded.",
+                    "Succeeded",
                     self._raw_proxy,
                 )
             except Exception as e:
@@ -62,10 +71,10 @@ class BrowserWorker(QRunnable):
                 proxy = res.get("data")
             elif int(res.get("status")) == 101:
                 proxy = None
-                print(
-                    f"[{self._browser.user_info.uid}] Not ready proxy ({self._raw_proxy})"
-                )
+                msg = f"[{self._browser.user_info.uid}] Not ready proxy ({self._raw_proxy})"
+                self._signals.failed_signal.emit(self._browser, msg)
                 sleep(60)
+                print(msg)
                 self._signals.proxy_not_ready_signal.emit(
                     self._browser, self._raw_proxy
                 )

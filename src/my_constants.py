@@ -57,7 +57,7 @@ RE_BUILDING_LINE = {
     "small_road": "đường xe máy",
 }
 RE_LEGAL = {
-    "none": "giấy tờ tay",
+    "none": "mua bán vi bằng",
     "snnc": "sổ nông nghiệp chung",
     "snnpq": "sổ nông nghiệp phân quyền",
     "snnr": "sổ nông nghiệp riêng",

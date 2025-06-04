@@ -10,7 +10,6 @@ from PyQt6.QtCore import (
     QSortFilterProxyModel,
     QItemSelection,
 )
-from src.ui.page_re_product_ui import Ui_PageREProduct
 from src.controllers.product_controller import (
     RealEstateProductController,
     RealEstateTemplateController,
@@ -23,9 +22,18 @@ from src.controllers.setting_controller import SettingUserDataDirController
 
 from src.views.product.dialog_create_re_product import DialogCreateREProduct
 from src.views.product.dialog_update_re_product import DialogUpdateREProduct
+from src.ui.page_re_product_ui import Ui_PageREProduct
 
 from src.my_types import RealEstateProductType
 from src.utils.re_template import replace_template, init_footer_content
+from src.my_constants import (
+    RE_WARD,
+    RE_TRANSACTION,
+    RE_CATEGORY,
+    RE_BUILDING_LINE,
+    RE_FURNITURE,
+    RE_LEGAL,
+)
 
 
 class MultiFieldFilterProxyModel(QSortFilterProxyModel):
@@ -82,9 +90,11 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
 
         self.setup_ui()
         self.setup_events()
+        self.set_filters()
 
     def setup_ui(self):
         self.set_product_table()
+        self.set_comboboxes()
 
     def setup_events(self):
         self.action_create_btn.clicked.connect(self.on_create_product)
@@ -95,6 +105,63 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
         self.action_random_btn.clicked.connect(
             lambda: self.set_product_details("random")
         )
+
+    def set_comboboxes(self):
+        self.wards_combobox.clear()
+        self.wards_combobox.addItem("Tất cả", "")
+        for key, value in RE_WARD.items():
+            self.wards_combobox.addItem(value.capitalize(), key)
+        self.transaction_combobox.clear()
+        self.transaction_combobox.addItem("Tất cả", "")
+        for key, value in RE_TRANSACTION.items():
+            self.transaction_combobox.addItem(value.capitalize(), key)
+        self.categories_combobox.clear()
+        self.categories_combobox.addItem("Tất cả", "")
+        for key, value in RE_CATEGORY.items():
+            self.categories_combobox.addItem(value.capitalize(), key)
+        self.building_line_s_combobox.clear()
+        self.building_line_s_combobox.addItem("Tất cả", "")
+        for key, value in RE_BUILDING_LINE.items():
+            self.building_line_s_combobox.addItem(value.capitalize(), key)
+        self.furniture_s_combobox.clear()
+        self.furniture_s_combobox.addItem("Tất cả", "")
+        for key, value in RE_FURNITURE.items():
+            self.furniture_s_combobox.addItem(value.capitalize(), key)
+        self.legal_s_combobox.clear()
+        self.legal_s_combobox.addItem("Tất cả", "")
+        for key, value in RE_LEGAL.items():
+            self.legal_s_combobox.addItem(value.capitalize(), key)
+
+    def set_filters(self):
+        model = self.base_product_model
+        filter_widgets = [
+            (self.pid_input, model.fieldIndex("pid")),
+            (self.street_input, model.fieldIndex("street")),
+            (self.area_input, model.fieldIndex("area")),
+            (self.price_input, model.fieldIndex("price")),
+            (self.structure_input, model.fieldIndex("structure")),
+            (self.function_input, model.fieldIndex("function")),
+            (self.categories_combobox, model.fieldIndex("category")),
+            (self.building_line_s_combobox, model.fieldIndex("building_line")),
+            (self.furniture_s_combobox, model.fieldIndex("furniture")),
+            (self.legal_s_combobox, model.fieldIndex("legal")),
+            (self.transaction_combobox, model.fieldIndex("transaction_type")),
+            (self.wards_combobox, model.fieldIndex("ward")),
+        ]
+
+        for widget, column in filter_widgets:
+            if hasattr(widget, "textChanged"):
+                widget.textChanged.connect(
+                    lambda text, col=column: self.proxy_product_model.set_filter(
+                        col, text
+                    )
+                )
+            elif hasattr(widget, "currentTextChanged"):
+                widget.currentTextChanged.connect(
+                    lambda text, col=column: self.proxy_product_model.set_filter(
+                        col, "" if text == "Tất cả" or text == "" else text
+                    )
+                )
 
     def get_selected_ids(self):
         selected_indexes = self.products_table.selectionModel().selectedRows()

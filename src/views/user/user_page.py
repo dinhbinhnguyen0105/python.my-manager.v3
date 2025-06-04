@@ -79,14 +79,7 @@ class UserPage(QWidget, Ui_PageUser):
         self.users_table.setSelectionBehavior(
             self.users_table.SelectionBehavior.SelectRows
         )
-        # self.users_table.setSelectionMode(
-        #     self.users_table.SelectionMode.SingleSelection
-        # )
         self.users_table.setEditTriggers(self.users_table.EditTrigger.NoEditTriggers)
-
-        # self.users_table.selectionModel().selectionChanged.connect(
-        #     self.on_selection_changed
-        # )
         for i in range(self.base_user_model.columnCount()):
             column_name = self.base_user_model.headerData(
                 i, Qt.Orientation.Horizontal, Qt.ItemDataRole.DisplayRole

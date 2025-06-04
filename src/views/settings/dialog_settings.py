@@ -134,6 +134,7 @@ class DialogSettings(QDialog, Ui_Dialog_Settings):
                     updated_at=None,
                 )
             )
+            self.udd_input.clear()
         elif "proxy" == self.current_setting_option:
             self.new_proxy_data_signal.emit(
                 SettingProxyType(
@@ -143,6 +144,7 @@ class DialogSettings(QDialog, Ui_Dialog_Settings):
                     updated_at=None,
                 )
             )
+            self.proxy_input.clear()
         elif "re_template" == self.current_setting_option:
             part = None
             if self.title_radio.isChecked():
@@ -163,6 +165,7 @@ class DialogSettings(QDialog, Ui_Dialog_Settings):
                     updated_at=None,
                 )
             )
+            self.value_plain_text.clear()
         else:
             return
 
