@@ -4,7 +4,6 @@ from PyQt6.QtWidgets import QWidget, QMenu, QMessageBox
 from PyQt6.QtCore import (
     Qt,
     QPoint,
-    QSortFilterProxyModel,
     pyqtSlot,
 )
 from PyQt6.QtGui import QAction
@@ -18,28 +17,7 @@ from src.controllers.setting_controller import (
 from src.ui.page_user_ui import Ui_PageUser
 from src.views.user.dialog_create_user import DialogCreateUser
 from src.views.user.dialog_update_user import DialogUpdateUser
-
-
-class MultiFieldFilterProxyModel(QSortFilterProxyModel):
-    SERIAL_NUMBER_COLUMN_INDEX = 0
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.filters = {}
-
-    def set_filter(self, column, text):
-        self.filters[column] = text.lower()
-        self.invalidateFilter()
-
-    def filterAcceptsRow(self, source_row, source_parent):
-        model = self.sourceModel()
-        for column, text in self.filters.items():
-            if text:
-                index = model.index(source_row, column, source_parent)
-                data = str(model.data(index, Qt.ItemDataRole.DisplayRole)).lower()
-                if text not in data:
-                    return False
-        return True
+from src.views.utils.multi_field_model import MultiFieldFilterProxyModel
 
 
 class UserPage(QWidget, Ui_PageUser):

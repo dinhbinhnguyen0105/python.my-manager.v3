@@ -22,6 +22,7 @@ from src.controllers.setting_controller import (
 
 from src.views.product.real_estate_product_page import RealEstateProductPage
 from src.views.user.user_page import UserPage
+from src.views.robot.robot_page import RobotPage
 from src.views.settings.dialog_settings import DialogSettings
 from src.ui.mainwindow_ui import Ui_MainWindow
 
@@ -65,6 +66,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             setting_proxy_controller=self._setting_proxy_controller,
             parent=self,
         )
+        self.robot_page = RobotPage(
+            user_controller=self._user_controller,
+            setting_udd_controller=self._setting_user_data_dir_controller,
+            setting_proxy_controller=self._setting_proxy_controller,
+            parent=self,
+        )
 
         self.setup_ui()
         self.setup_events()
@@ -82,22 +89,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._setting_proxy_controller,
             self._setting_user_data_dir_controller,
         ]:
-            # controller.success_signal.connect(
-            #     lambda message: self.status_bar.showMessage(
-            #         f"Success: {message}.", 1000
-            #     )
-            # )
-            # controller.error_signal.connect(
-            #     lambda message: self.status_bar.showMessage(f"Error: {message}.", 1000)
-            # )
-            # controller.warning_signal.connect(
-            #     lambda message: self.status_bar.showMessage(
-            #         f"Warning: {message}.", 1000
-            #     )
-            # )
-            # controller.info_signal.connect(
-            #     lambda message: self.status_bar.showMessage(f"Info: {message}.", 1000)
-            # )
             controller.success_signal.connect(
                 lambda message: self.set_status_bar(
                     message=f"Success: {message}", color="#28a745", time_out=1_000
@@ -122,8 +113,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def setup_ui(self):
         self.content_container.addWidget(self.real_estate_product_page)
         self.content_container.addWidget(self.user_page)
+        self.content_container.addWidget(self.robot_page)
 
-        self.content_container.setCurrentWidget(self.user_page)
+        self.content_container.setCurrentWidget(self.robot_page)
 
     def setup_events(self):
         self.sidebar_re_btn.clicked.connect(
@@ -148,8 +140,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #     self.content_container.setCurrentWidget()
         elif page_name == "user":
             self.content_container.setCurrentWidget(self.user_page)
-        # elif page_name == "robot":
-        #     self.content_container.setCurrentWidget()
+        elif page_name == "robot":
+            self.content_container.setCurrentWidget(self.robot_page)
 
     @pyqtSlot()
     def on_robot_settings_clicked(self):

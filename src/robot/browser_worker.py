@@ -31,7 +31,6 @@ class BrowserWorker(QRunnable):
             try:
                 action_func = ACTION_MAP[self._browser.action_name]
                 with sync_playwright() as p:
-                    # Default context kwargs
                     context_kwargs = dict(
                         user_data_dir=self._browser.udd,
                         user_agent=(
@@ -40,7 +39,10 @@ class BrowserWorker(QRunnable):
                             else self._browser.user_info.desktop_ua
                         ),
                         headless=self._browser.headless,
-                        args=["--disable-blink-features=AutomationControlled"],
+                        args=[
+                            "--disable-blink-features=AutomationControlled",
+                            f'--app-name=Chromium - {self._browser.user_info.username or "Unknown User"}',
+                        ],
                         ignore_default_args=["--enable-automation"],
                         proxy=proxy,
                     )
@@ -52,7 +54,28 @@ class BrowserWorker(QRunnable):
                         context_kwargs["has_touch"] = True
                     context = p.chromium.launch_persistent_context(**context_kwargs)
                     Tarnished.apply_stealth(context)
+                    pages = context.pages
+                    if pages:
+                        current_page = pages[0]
+                    else:
+                        current_page = context.new_page()
+                    info_html = f"""
+    <html>
+        <head><title>{self._browser.user_info.username}</title></head>
+        <body>
+            <h2>username: {self._browser.user_info.username}</h2>
+            <p>id: {self._browser.user_info.id}</p>
+            <p>uid: {self._browser.user_info.uid}</p>
+            <p>user_data_dir: {self._browser.udd}</p>
+        </body>
+    </html>
+"""
+                    current_page.set_content(info_html)
+
                     page = context.new_page()
+                    print(
+                        f"[INFO] Opened Chromium for user: {self._browser.user_info.username}"
+                    )
                     if self._browser.action_name == "launch_browser":
                         action_func(page, self._browser, self._signals)
 

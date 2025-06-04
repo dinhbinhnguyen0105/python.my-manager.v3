@@ -22,6 +22,7 @@ from src.controllers.setting_controller import SettingUserDataDirController
 
 from src.views.product.dialog_create_re_product import DialogCreateREProduct
 from src.views.product.dialog_update_re_product import DialogUpdateREProduct
+from src.views.utils.multi_field_model import MultiFieldFilterProxyModel
 from src.ui.page_re_product_ui import Ui_PageREProduct
 
 from src.my_types import RealEstateProductType
@@ -34,28 +35,6 @@ from src.my_constants import (
     RE_FURNITURE,
     RE_LEGAL,
 )
-
-
-class MultiFieldFilterProxyModel(QSortFilterProxyModel):
-    SERIAL_NUMBER_COLUMN_INDEX = 0
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.filters = {}
-
-    def set_filter(self, column, text):
-        self.filters[column] = text.lower()
-        self.invalidateFilter()
-
-    def filterAcceptsRow(self, source_row, source_parent):
-        model = self.sourceModel()
-        for column, text in self.filters.items():
-            if text:
-                index = model.index(source_row, column, source_parent)
-                data = str(model.data(index, Qt.ItemDataRole.DisplayRole)).lower()
-                if text not in data:
-                    return False
-        return True
 
 
 class RealEstateProductPage(QWidget, Ui_PageREProduct):
