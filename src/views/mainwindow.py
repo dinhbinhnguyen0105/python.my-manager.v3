@@ -68,6 +68,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
         self.robot_page = RobotPage(
             user_controller=self._user_controller,
+            re_product_controller=self._real_estate_product_controller,
+            re_template_controller=self._real_estate_template_controller,
             setting_udd_controller=self._setting_user_data_dir_controller,
             setting_proxy_controller=self._setting_proxy_controller,
             parent=self,

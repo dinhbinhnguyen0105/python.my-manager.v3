@@ -14,6 +14,7 @@ from src.models.product_model import (
 )
 from src.my_types import RealEstateProductType, RealEstateTemplateType, MiscProductType
 from src.my_constants import RE_TRANSACTION, TABLE_REAL_ESTATE_TEMPLATE
+import random
 
 
 class RealEstateProductService(BaseService):
@@ -195,6 +196,56 @@ class RealEstateProductService(BaseService):
         for ext in image_extensions:
             image_files.extend(glob.glob(os.path.join(path, ext)))
         return sorted(image_files)
+
+    def get_all_pid(self):
+        """
+        Efficiently retrieves all product IDs (pid) directly from the database using SQL.
+        Returns:
+            List[str]: List of all product IDs.
+        """
+        if not self._db.isOpen():
+            print(f"[{self.__class__.__name__}.get_all_pid] Database is not open.")
+            return []
+        query = QSqlQuery(self._db)
+        # Assuming the table name is available as self.model.tableName()
+        sql = f"SELECT pid FROM {self.model.tableName()}"
+        if not query.exec(sql):
+            print(
+                f"[{self.__class__.__name__}.get_all_pid] Query failed: {query.lastError().text()}"
+            )
+            return []
+        pids = []
+        while query.next():
+            pid = query.value(0)
+            if pid is not None:
+                pids.append(pid)
+        return pids
+
+    def get_random(self, transaction_type: str):
+        if not self._db.isOpen():
+            print(f"[{self.__class__.__name__}.get_random] Database is not open.")
+            return None
+
+        query = QSqlQuery(self._db)
+        # Giả sử cột transaction_type lưu đúng kiểu dữ liệu, có thể cần chỉnh lại tên cột nếu khác
+        sql = f"""
+            SELECT id FROM {self.model.tableName()}
+            WHERE transaction_type = ?
+            ORDER BY RANDOM() LIMIT 1
+        """
+        query.prepare(sql)
+        query.addBindValue(transaction_type)
+
+        if not query.exec():
+            print(
+                f"[{self.__class__.__name__}.get_random] Query failed: {query.lastError().text()}"
+            )
+            return None
+
+        if query.next():
+            record_id = query.value(0)
+            return self.read(record_id)
+        return None
 
 
 class RealEstateTemplateService(BaseService):

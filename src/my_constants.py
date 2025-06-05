@@ -253,14 +253,18 @@ ICONS = [
 ]
 
 
-ROBOT_ACTION_NAME_S = {
+ROBOT_ACTION_NAMES = {
     "marketplace": "niêm yết trên marketplace",
     "marketplace_and_groups": "niêm yết trên marketplace & nhóm",
-    "discussion": "đăng bài trên nhóm",
-    "interaction": "Tương tác",
+    "discussion": "đăng bài lên nhóm",
+    # "interaction": "Tương tác",
 }
 
-ROBOT_ACTION_PAYLOAD_S = {"pid"}
+ROBOT_ACTION_CONTENT_OPTIONS = {
+    "pid": "PID",
+    "random": "ngẫu nhiên pid",
+    "content": "tuỳ chọn nội dung",
+}
 
 """
 action payload {

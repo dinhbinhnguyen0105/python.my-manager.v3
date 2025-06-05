@@ -172,6 +172,42 @@ class RealEstateProductController(BaseController):
             self.error_signal.emit("Error occurred while getting images by path.")
             return []
 
+    def get_all_pid(self) -> List[str]:
+        try:
+            pids = self.service.get_all_pid()
+            if not pids:
+                self.warning_signal.emit("No Product IDs found.")
+            else:
+                self.success_signal.emit(
+                    f"Successfully retrieved {len(pids)} Product IDs."
+                )
+            return pids
+        except Exception as e:
+            print(f"[{self.__class__.__name__}.get_all_pid] Error: {e}")
+            self.error_signal.emit("Error retrieving all Product IDs.")
+            return []
+
+    def get_random(self, transaction_type: str) -> Optional[RealEstateProductType]:
+        try:
+            product = self.service.get_random(transaction_type)
+            if not product:
+                self.warning_signal.emit(
+                    f"No random product found for type: '{transaction_type}'."
+                )
+            else:
+                self.success_signal.emit(
+                    f"Successfully retrieved a random product (PID: {product.pid})."
+                )
+            return product
+        except Exception as e:
+            print(f"[{self.__class__.__name__}.get_random] Error: {e}")
+            self.error_signal.emit(
+                f"Error retrieving a random product for type: '{transaction_type}'."
+            )
+            # If an error occurs, it's safer to return None or handle the error propagation appropriately.
+            # Returning an empty list for a single product type might be misleading.
+            return None
+
 
 class RealEstateTemplateController(BaseController):
     def __init__(self, service: RealEstateTemplateService, parent=None):

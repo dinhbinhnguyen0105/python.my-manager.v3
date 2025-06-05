@@ -320,7 +320,13 @@ QPushButton {
              <widget class="QTableView" name="users_table"/>
             </item>
             <item>
-             <widget class="QTreeWidget" name="actions_tree"/>
+             <widget class="QTreeWidget" name="actions_tree">
+              <column>
+               <property name="text">
+                <string notr="true">1</string>
+               </property>
+              </column>
+             </widget>
             </item>
            </layout>
           </item>
@@ -359,7 +365,7 @@ QPushButton {
            <number>0</number>
           </property>
           <item>
-           <layout class="QVBoxLayout" name="action_payload_container_layout"/>
+           <layout class="QVBoxLayout" name="action_payload_layout"/>
           </item>
           <item>
            <widget class="QPushButton" name="action_add_btn">
@@ -402,7 +408,7 @@ QPushButton {
          </layout>
         </item>
         <item>
-         <widget class="QPlainTextEdit" name="log_message"/>
+         <widget class="QListWidget" name="log_message"/>
         </item>
        </layout>
       </widget>

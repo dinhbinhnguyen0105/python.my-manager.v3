@@ -1,11 +1,12 @@
 # src/views/robot/robot_page.py
-from typing import List, Optional
-from PyQt6.QtWidgets import QWidget
-from PyQt6.QtCore import (
-    Qt,
-    pyqtSlot,
-)
+from typing import List, Optional, Dict
+from PyQt6.QtWidgets import QWidget, QLineEdit, QCompleter, QTreeWidgetItem
+from PyQt6.QtCore import Qt, pyqtSlot, QStringListModel
 
+from src.controllers.product_controller import (
+    RealEstateProductController,
+    RealEstateTemplateController,
+)
 from src.controllers.user_controller import UserController
 from src.controllers.setting_controller import (
     SettingUserDataDirController,
@@ -13,15 +14,21 @@ from src.controllers.setting_controller import (
 )
 
 from src.views.utils.multi_field_model import MultiFieldFilterProxyModel
+from src.views.robot.action_payload import ActionPayload
 from src.ui.page_robot_ui import Ui_PageRobot
 
-from src.my_types import UserType
+from src.utils.re_template import replace_template
+
+from src.my_types import UserType, RobotTaskType, RealEstateProductType, MiscProductType
+from src.my_constants import RE_TRANSACTION
 
 
 class RobotPage(QWidget, Ui_PageRobot):
     def __init__(
         self,
         user_controller: UserController,
+        re_product_controller: RealEstateProductController,
+        re_template_controller: RealEstateTemplateController,
         setting_udd_controller: SettingUserDataDirController,
         setting_proxy_controller: SettingProxyController,
         parent=None,
@@ -32,13 +39,15 @@ class RobotPage(QWidget, Ui_PageRobot):
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         self._user_controller = user_controller
+        self._re_product_controller = re_product_controller
         self._setting_udd_controller = setting_udd_controller
         self._setting_proxy_controller = setting_proxy_controller
+        self._re_template_controller = re_template_controller
         self.base_user_model = user_controller.service.model
         self.proxy_model = MultiFieldFilterProxyModel()
         self.proxy_model.setSourceModel(self.base_user_model)
 
-        self.robot_actions: List[dict] = []
+        self.robot_actions: Dict = {}
 
         self.setup_ui()
         self.setup_events()
@@ -50,6 +59,7 @@ class RobotPage(QWidget, Ui_PageRobot):
 
     def setup_events(self):
         self.action_add_btn.clicked.connect(self.on_add_action_clicked)
+        self.action_save_btn.clicked.connect(self.on_save_action_clicked)
 
     def set_user_table(self):
         self.users_table.setModel(self.proxy_model)
@@ -139,7 +149,113 @@ class RobotPage(QWidget, Ui_PageRobot):
         # TODO set actions_tree
         pass
 
+    def set_pid_completer(self, line_edit: QLineEdit, parent: QWidget):
+        suggestions = self._re_product_controller.get_all_pid()
+        completer_model = QStringListModel()
+        completer_model.setStringList(suggestions)
+        completer = QCompleter(parent)
+        completer.setModel(completer_model)
+        completer.setFilterMode(Qt.MatchFlag.MatchContains)
+        completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        completer.setCompletionMode(QCompleter.CompletionMode.InlineCompletion)
+        line_edit.setCompleter(completer)
+
+    def fill_actions_tree(self):
+        self.actions_tree.clear()
+        for uid, actions in self.robot_actions.items():
+            if not actions:
+                continue
+            user_info: UserType = actions[0].user_info
+            user_item = QTreeWidgetItem([f"{user_info.username} | {user_info.uid}"])
+            for action in actions:
+                action_name = (
+                    action.action_name
+                    if hasattr(action, "action_name")
+                    else str(action.get("action_name", ""))
+                )
+                action_item = QTreeWidgetItem([str(action_name)])
+                user_item.addChild(action_item)
+            self.actions_tree.addTopLevelItem(user_item)
+        self.actions_tree.expandAll()
+
     @pyqtSlot()
     def on_add_action_clicked(self):
-        # TODO add action
+        self.action_payload_layout.addWidget(ActionPayload(self.set_pid_completer))
+
+    @pyqtSlot()
+    def on_save_action_clicked(self):
+        selected_users = self.get_selected_users_data()
+        re_product = self._re_product_controller.read_all_products()
+        products = [].append(re_product)
+        if not selected_users:
+            return
+        action_widgets = self.findChildren(ActionPayload)
+        if not action_widgets:
+            return
+
+        for selected_user in selected_users:
+            user_type = selected_user.type.strip().lower()
+            self.robot_actions[selected_user.uid] = []
+
+            for action_widget in action_widgets:
+                action_value = action_widget.get_values()
+                if "pid" in action_value.keys():
+                    pid = action_value["pid"]
+                    action_payload = {}
+                    product = None
+                    if not pid or not any(product.pid == pid for product in products):
+                        if user_type == "re.s":
+                            product = self._re_product_controller.get_random(
+                                RE_TRANSACTION["sell"]
+                            )
+                        elif user_type == "re.r":
+                            product = self._re_product_controller.get_random(
+                                RE_TRANSACTION["rent"]
+                            )
+                        elif user_type == "misc.":
+                            # TODO get random misc.
+                            continue
+                    if type(product) == RealEstateProductType:
+                        temp_title = self._re_template_controller.get_random(
+                            part="title",
+                            transaction_type=product.transaction_type,
+                            category=product.category,
+                        )
+                        temp_desc = self._re_template_controller.get_random(
+                            part="description",
+                            transaction_type=product.transaction_type,
+                            category=product.category,
+                        )
+                        title = replace_template(
+                            product_data=product, template=temp_title
+                        ).upper()
+                        desc = replace_template(
+                            product_data=product, template=temp_desc
+                        )
+                        image_paths = self._re_product_controller.get_images_by_path(
+                            product.image_dir
+                        )
+                        action_payload["title"] = title
+                        action_payload["description"] = desc
+                        action_payload["image_paths"] = image_paths
+                    elif type(product) == MiscProductType:
+                        # TODO template misc
+                        continue
+                elif "content" in action_value.keys():
+                    action_payload = action_value["content"]
+
+                self.robot_actions[selected_user.uid].append(
+                    RobotTaskType(
+                        user_info=selected_user,
+                        action_name=action_value.get("action_name", None),
+                        action_payload=action_payload,
+                    )
+                )
+        self.fill_actions_tree()
+
+    @pyqtSlot()
+    def on_run_action_clicked(self):
+        pass
+
+    def handle_run_robot(self):
         pass

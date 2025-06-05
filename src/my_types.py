@@ -101,8 +101,8 @@ class MiscProductType:
 @dataclass
 class RobotTaskType:
     user_info: UserType
-    action_name: str
-    action_payload: dict
+    action_name: Optional[str]
+    action_payload: Optional[dict]
 
 
 @dataclass
