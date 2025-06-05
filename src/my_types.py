@@ -1,6 +1,6 @@
 # src/my_types.py
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import Optional
 
 from PyQt6.QtCore import QObject, pyqtSignal
 

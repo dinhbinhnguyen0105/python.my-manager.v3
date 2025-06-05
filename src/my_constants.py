@@ -251,3 +251,22 @@ ICONS = [
     "️🥉",
     "️🏆",
 ]
+
+
+ROBOT_ACTION_NAME_S = {
+    "marketplace": "niêm yết trên marketplace",
+    "marketplace_and_groups": "niêm yết trên marketplace & nhóm",
+    "discussion": "đăng bài trên nhóm",
+    "interaction": "Tương tác",
+}
+
+ROBOT_ACTION_PAYLOAD_S = {"pid"}
+
+"""
+action payload {
+    marketplace: "title", "description", "images"
+    discussion: "body", Optional["images"]
+    action_playload chỉ hiển thị pid, random_pid, content
+    content sẽ chứa là các trường tương ứng với action_name 
+}
+"""
