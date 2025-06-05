@@ -7,15 +7,12 @@ from PyQt6.QtCore import pyqtSlot
 from src.controllers.base_controller import BaseController
 from src.services.user_service import UserService, UserListedProductService
 
-# from src.services.setting_service import SettingProxyService, SettingUserDataDirService
-
 from src.services.check_live import CheckLive
 from src.robot.browser_manager import BrowserManager
 from src.my_types import (
     UserType,
     UserListedProductType,
     BrowserType,
-    BrowserWorkerSignals,
 )
 
 

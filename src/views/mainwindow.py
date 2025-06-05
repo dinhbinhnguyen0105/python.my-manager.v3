@@ -19,6 +19,7 @@ from src.controllers.setting_controller import (
     SettingProxyController,
     SettingUserDataDirController,
 )
+from src.controllers.robot_controller import RobotController
 
 from src.views.product.real_estate_product_page import RealEstateProductPage
 from src.views.user.user_page import UserPage
@@ -32,6 +33,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(
         self,
         user_controller: UserController,
+        robot_controller: RobotController,
         user_listed_product_controller: UserListedProductController,
         real_estate_product_controller: RealEstateProductController,
         real_estate_template_controller: RealEstateTemplateController,
@@ -53,6 +55,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._misc_product_controller = misc_product_controller
         self._setting_proxy_controller = setting_proxy_controller
         self._setting_user_data_dir_controller = setting_user_data_dir_controller
+        self._robot_controller = robot_controller
 
         self.real_estate_product_page = RealEstateProductPage(
             product_controller=self._real_estate_product_controller,
@@ -67,11 +70,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             parent=self,
         )
         self.robot_page = RobotPage(
-            user_controller=self._user_controller,
-            re_product_controller=self._real_estate_product_controller,
-            re_template_controller=self._real_estate_template_controller,
-            setting_udd_controller=self._setting_user_data_dir_controller,
-            setting_proxy_controller=self._setting_proxy_controller,
+            robot_controller=self._robot_controller,
             parent=self,
         )
 

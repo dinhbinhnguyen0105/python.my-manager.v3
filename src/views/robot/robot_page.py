@@ -14,6 +14,7 @@ from src.controllers.setting_controller import (
     SettingUserDataDirController,
     SettingProxyController,
 )
+from src.controllers.robot_controller import RobotController
 
 from src.views.utils.multi_field_model import MultiFieldFilterProxyModel
 from src.views.robot.action_payload import ActionPayload
@@ -28,11 +29,7 @@ from src.my_constants import RE_TRANSACTION
 class RobotPage(QWidget, Ui_PageRobot):
     def __init__(
         self,
-        user_controller: UserController,
-        re_product_controller: RealEstateProductController,
-        re_template_controller: RealEstateTemplateController,
-        setting_udd_controller: SettingUserDataDirController,
-        setting_proxy_controller: SettingProxyController,
+        robot_controller: RobotController,
         parent=None,
     ):
         super().__init__(parent)
@@ -45,7 +42,8 @@ class RobotPage(QWidget, Ui_PageRobot):
         self._setting_udd_controller = setting_udd_controller
         self._setting_proxy_controller = setting_proxy_controller
         self._re_template_controller = re_template_controller
-        self.base_user_model = user_controller.service.model
+
+        self.base_user_model = robot_controller._user_service.model
         self.proxy_model = MultiFieldFilterProxyModel()
         self.proxy_model.setSourceModel(self.base_user_model)
 

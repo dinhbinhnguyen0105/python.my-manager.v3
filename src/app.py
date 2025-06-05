@@ -26,6 +26,7 @@ from src.controllers.setting_controller import (
     SettingProxyController,
     SettingUserDataDirController,
 )
+from src.controllers.robot_controller import RobotController
 
 from src.views.mainwindow import MainWindow
 
@@ -72,21 +73,17 @@ class Application:
         setting_user_data_dir_controller = SettingUserDataDirController(
             setting_user_data_dir_service
         )
-
-        # from src.my_types import SettingUserDataDirType
-
-        # setting_user_data_dir_controller.create_user_data_dir(
-        #     SettingUserDataDirType(
-        #         id=None,
-        #         value="src/repositories/user_data_dirs",
-        #         is_selected=1,
-        #         updated_at=None,
-        #         created_at=None,
-        #     )
-        # )
-
+        robot_controller = RobotController(
+            user_service=user_service,
+            misc_product_service=misc_product_service,
+            re_product_service=real_estate_product_service,
+            re_template_service=real_estate_template_service,
+            setting_proxy_service=setting_proxy_service,
+            setting_udd_service=setting_user_data_dir_service,
+        )
         self.mainWindow = MainWindow(
             user_controller=user_controller,
+            robot_controller=robot_controller,
             user_listed_product_controller=user_listed_product_controller,
             real_estate_product_controller=real_estate_product_controller,
             real_estate_template_controller=real_estate_template_controller,
