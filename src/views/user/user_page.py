@@ -6,7 +6,7 @@ from PyQt6.QtCore import (
     QPoint,
     pyqtSlot,
 )
-from PyQt6.QtGui import QAction
+from PyQt6.QtGui import QAction, QShortcut, QKeySequence
 
 from src.my_types import UserType
 from src.controllers.user_controller import UserController
@@ -49,7 +49,9 @@ class UserPage(QWidget, Ui_PageUser):
     def setup_events(self):
         self.action_create_btn.clicked.connect(self.on_create_user)
         self.set_filters()
-        pass
+        # Đăng ký phím tắt Ctrl+N để tạo user mới
+        shortcut = QShortcut(QKeySequence("Ctrl+N"), self)
+        shortcut.activated.connect(self.on_create_user)
 
     def set_user_table(self):
         self.users_table.setModel(self.proxy_model)

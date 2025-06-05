@@ -1,13 +1,12 @@
 # src/views/product/product.py
 import os, sys
 from typing import List, Optional
-from PyQt6.QtGui import QAction, QPixmap, QMouseEvent
+from PyQt6.QtGui import QAction, QPixmap, QMouseEvent, QShortcut, QKeySequence
 from PyQt6.QtWidgets import QWidget, QMenu, QMessageBox
 from PyQt6.QtCore import (
     Qt,
     pyqtSlot,
     QPoint,
-    QSortFilterProxyModel,
     QItemSelection,
 )
 from src.controllers.product_controller import (
@@ -84,6 +83,8 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
         self.action_random_btn.clicked.connect(
             lambda: self.set_product_details("random")
         )
+        shortcut = QShortcut(QKeySequence("Ctrl+N"), self)
+        shortcut.activated.connect(self.on_create_product)
 
     def set_comboboxes(self):
         self.wards_combobox.clear()

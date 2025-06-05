@@ -107,7 +107,7 @@ class RobotTaskType:
 
 @dataclass
 class BrowserType(RobotTaskType):
-    is_mobile: str
+    is_mobile: bool
     headless: bool
     udd: str
 

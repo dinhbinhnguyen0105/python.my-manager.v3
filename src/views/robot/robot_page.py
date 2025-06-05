@@ -1,7 +1,9 @@
 # src/views/robot/robot_page.py
+import os
 from typing import List, Optional, Dict
 from PyQt6.QtWidgets import QWidget, QLineEdit, QCompleter, QTreeWidgetItem
 from PyQt6.QtCore import Qt, pyqtSlot, QStringListModel
+from PyQt6.QtGui import QShortcut, QKeySequence
 
 from src.controllers.product_controller import (
     RealEstateProductController,
@@ -19,7 +21,7 @@ from src.ui.page_robot_ui import Ui_PageRobot
 
 from src.utils.re_template import replace_template
 
-from src.my_types import UserType, RobotTaskType, RealEstateProductType, MiscProductType
+from src.my_types import UserType, BrowserType, RealEstateProductType, MiscProductType
 from src.my_constants import RE_TRANSACTION
 
 
@@ -60,6 +62,13 @@ class RobotPage(QWidget, Ui_PageRobot):
     def setup_events(self):
         self.action_add_btn.clicked.connect(self.on_add_action_clicked)
         self.action_save_btn.clicked.connect(self.on_save_action_clicked)
+        self.action_run_btn.clicked.connect(self.on_run_action_clicked)
+        shortcut_new_action = QShortcut(QKeySequence("Ctrl+N"), self)
+        shortcut_new_action.activated.connect(self.on_add_action_clicked)
+        shortcut_save_action = QShortcut(QKeySequence("Ctrl+S"), self)
+        shortcut_save_action.activated.connect(self.on_save_action_clicked)
+        shortcut_run_action = QShortcut(QKeySequence("Ctrl+Return"), self)
+        shortcut_run_action.activated.connect(self.on_run_action_clicked)
 
     def set_user_table(self):
         self.users_table.setModel(self.proxy_model)
@@ -74,11 +83,6 @@ class RobotPage(QWidget, Ui_PageRobot):
             )
             if column_name not in ["uid", "username", "note", "type", "user_group"]:
                 self.users_table.setColumnHidden(i, True)
-
-    def set_action_tree(self):
-        # TODO set actions_tree
-        self.actions_tree.clear()
-        pass
 
     def get_selected_ids(self):
         selected_indexes = self.users_table.selectionModel().selectedRows()
@@ -178,6 +182,9 @@ class RobotPage(QWidget, Ui_PageRobot):
             self.actions_tree.addTopLevelItem(user_item)
         self.actions_tree.expandAll()
 
+    def init_browser_task(self):
+        pass
+
     @pyqtSlot()
     def on_add_action_clicked(self):
         self.action_payload_layout.addWidget(ActionPayload(self.set_pid_completer))
@@ -191,6 +198,10 @@ class RobotPage(QWidget, Ui_PageRobot):
             return
         action_widgets = self.findChildren(ActionPayload)
         if not action_widgets:
+            for selected_user in selected_users:
+                if selected_user.uid in self.robot_actions.keys():
+                    del self.robot_actions[selected_user.uid]
+            self.fill_actions_tree()
             return
 
         for selected_user in selected_users:
@@ -245,17 +256,64 @@ class RobotPage(QWidget, Ui_PageRobot):
                     action_payload = action_value["content"]
 
                 self.robot_actions[selected_user.uid].append(
-                    RobotTaskType(
+                    BrowserType(
                         user_info=selected_user,
                         action_name=action_value.get("action_name", None),
                         action_payload=action_payload,
+                        is_mobile=False,
+                        headless=False,
+                        udd=os.path.join(
+                            self._setting_udd_controller.get_selected_user_data_dir(),
+                            str(selected_user.id),
+                        ),
                     )
                 )
         self.fill_actions_tree()
 
     @pyqtSlot()
     def on_run_action_clicked(self):
-        pass
+        tasks: List[Optional[BrowserType]] = []
+        sorted_uids = sorted(self.robot_actions.keys())
+        num_uids = len(sorted_uids)
+        max_len = 0
+        if self.robot_actions:
+            max_len = max(len(actions) for actions in self.robot_actions.values())
+        last_uid_contributed: Optional[str] = None
+
+        for i in range(max_len):
+            current_column_items_with_uids: List[tuple[Optional[BrowserType], str]] = []
+            for uid in sorted_uids:
+                if i < len(self.robot_actions[uid]):
+                    current_column_items_with_uids.append(
+                        (self.robot_actions[uid][i], uid)
+                    )
+                else:
+                    current_column_items_with_uids.append((None, uid))
+
+            for task_obj, current_uid in current_column_items_with_uids:
+                if task_obj is not None:
+                    if last_uid_contributed is not None:
+                        idx_of_last_uid = sorted_uids.index(last_uid_contributed)
+                        idx_of_current_uid = sorted_uids.index(current_uid)
+                        has_gap_of_skipped_uids = False
+                        check_idx = (idx_of_last_uid + 1) % num_uids
+                        while check_idx != idx_of_current_uid:
+                            if current_column_items_with_uids[check_idx][0] is None:
+                                has_gap_of_skipped_uids = True
+                                break
+                            check_idx = (check_idx + 1) % num_uids
+                        if has_gap_of_skipped_uids:
+                            tasks.append(None)
+                    tasks.append(task_obj)
+                    last_uid_contributed = current_uid
+
+        # --- Phần in kết quả để kiểm tra ---
+        for task in tasks:
+            if task:
+                print(f"Action: {task.action_name}, User UID: {task.user_info.uid}")
+            else:
+                print("--- Empty Slot (None) ---")
+        print("\nFinal tasks list length:", len(tasks))
 
     def handle_run_robot(self):
         pass
