@@ -37,11 +37,14 @@ class RobotPage(QWidget, Ui_PageRobot):
         self.setWindowTitle("User")
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
-        self._user_controller = user_controller
-        self._re_product_controller = re_product_controller
-        self._setting_udd_controller = setting_udd_controller
-        self._setting_proxy_controller = setting_proxy_controller
-        self._re_template_controller = re_template_controller
+        # self._re_product_controller = re_product_controller
+        # self._setting_udd_controller = setting_udd_controller
+        # self._setting_proxy_controller = setting_proxy_controller
+        # self._re_template_controller = re_template_controller
+
+        # TODO chuyển logic sang robot controller
+
+        self._robot_controller = robot_controller
 
         self.base_user_model = robot_controller._user_service.model
         self.proxy_model = MultiFieldFilterProxyModel()
@@ -152,7 +155,8 @@ class RobotPage(QWidget, Ui_PageRobot):
         pass
 
     def set_pid_completer(self, line_edit: QLineEdit, parent: QWidget):
-        suggestions = self._re_product_controller.get_all_pid()
+        suggestions = self._robot_controller._re_product_service.get_all_pid()
+
         completer_model = QStringListModel()
         completer_model.setStringList(suggestions)
         completer = QCompleter(parent)
