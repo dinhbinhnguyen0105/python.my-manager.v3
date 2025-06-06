@@ -13,6 +13,19 @@ def do_launch_browser(page: Page, task: RobotTaskType, signals: BrowserWorkerSig
         signals.error_signal.emit(task, str(e))
 
 
+def do_marketplace(
+    page: Page, task: RobotTaskType, settings: dict, signals: BrowserWorkerSignals
+):
+    try:
+
+        signals.progress_signal.emit(task, "Closed!", 1, 1)
+    except Exception as e:
+        signals.error_signal.emit(task, str(e))
+
+
 ACTION_MAP = {
     "launch_browser": do_launch_browser,
+    "marketplace": do_marketplace,
+    # "marketplace_and_groups": do_marketplace_and_groups,
+    # "discussion": do_discussion,
 }

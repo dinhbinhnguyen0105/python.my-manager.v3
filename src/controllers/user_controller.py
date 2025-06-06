@@ -210,13 +210,6 @@ class UserController(BaseController):
             )
             self._current_browser_progress = BrowserManager(self)
             self._current_browser_progress.set_max_worker(len(browsers))
-            # self._current_browser_progress.succeeded_signal.connect(
-            #     self._on_browser_succeed
-            # )
-            # self._current_browser_progress.failed_signal.connect(
-            #     self._on_browser_failed
-            # )
-            # self._current_browser_progress.finished.connect(self._on_browsers_finished)
             self._current_browser_progress.succeeded_signal.connect(self.success_signal)
             self._current_browser_progress.error_signal.connect(self.error_signal)
             self._current_browser_progress.warning_signal.connect(self.warning_signal)

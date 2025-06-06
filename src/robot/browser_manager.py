@@ -23,7 +23,7 @@ class BrowserManager(QObject):
         self._in_progress: Dict[str, dict] = {}
         self._total_browser_num: int = 0
         self.signals = BrowserWorkerSignals()
-
+        self.settings = {}
         self.signals.progress_signal.connect(self._on_progress)
         self.signals.failed_signal.connect(self._on_failed)
         self.signals.error_signal.connect(self._on_error)
@@ -35,6 +35,9 @@ class BrowserManager(QObject):
 
     def set_max_worker(self, max_worker: int):
         self._max_worker_num = max_worker
+
+    def set_settings(self, settings: dict):
+        self.settings = settings
 
     @pyqtSlot(list, list)
     def add_browsers(self, list_browser: List[BrowserType], list_raw_proxy: List[str]):
@@ -70,7 +73,12 @@ class BrowserManager(QObject):
         ):
             browser = self._pending_browsers.popleft()
             raw_proxy = self._pending_raw_proxies.popleft()
-            worker = BrowserWorker(browser, raw_proxy, self.signals)
+            worker = BrowserWorker(
+                browser,
+                raw_proxy,
+                self.signals,
+                self.settings,
+            )
             available_threads -= 1
             self._in_progress[browser.user_info.uid] = {
                 "browser": browser,

@@ -10,6 +10,7 @@ from PyQt6.QtCore import QRunnable
 
 from src.my_types import BrowserWorkerSignals, BrowserType
 from src.robot.browser_actions import ACTION_MAP
+from my_constants import ROBOT_ACTION_NAMES
 
 
 class BrowserWorker(QRunnable):
@@ -18,11 +19,14 @@ class BrowserWorker(QRunnable):
         browser: BrowserType,
         raw_proxy: str,
         signals: BrowserWorkerSignals,
+        settings: Optional[dict] = {},
     ):
         super().__init__()
         self._browser = browser
         self._raw_proxy = raw_proxy
         self._signals = signals
+        self._settings = settings
+
         self.setAutoDelete(True)
 
     def run(self):
@@ -78,6 +82,9 @@ class BrowserWorker(QRunnable):
                     )
                     if self._browser.action_name == "launch_browser":
                         action_func(page, self._browser, self._signals)
+
+                    elif self._browser.action_name in ROBOT_ACTION_NAMES.keys():
+                        action_func(page, self._browser, self._settings, self._signals)
 
                 self._signals.succeeded_signal.emit(
                     self._browser,

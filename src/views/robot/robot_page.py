@@ -1,29 +1,17 @@
 # src/views/robot/robot_page.py
-import os
 from typing import List, Optional, Dict
 from PyQt6.QtWidgets import QWidget, QLineEdit, QCompleter, QTreeWidgetItem
 from PyQt6.QtCore import Qt, pyqtSlot, QStringListModel
 from PyQt6.QtGui import QShortcut, QKeySequence
 
-from src.controllers.product_controller import (
-    RealEstateProductController,
-    RealEstateTemplateController,
-)
-from src.controllers.user_controller import UserController
-from src.controllers.setting_controller import (
-    SettingUserDataDirController,
-    SettingProxyController,
-)
 from src.controllers.robot_controller import RobotController
 
 from src.views.utils.multi_field_model import MultiFieldFilterProxyModel
 from src.views.robot.action_payload import ActionPayload
+from src.views.robot.dialog_run_bot import DialogRobotRun
 from src.ui.page_robot_ui import Ui_PageRobot
 
-from src.utils.re_template import replace_template
-
-from src.my_types import UserType, BrowserType, RealEstateProductType, MiscProductType
-from src.my_constants import RE_TRANSACTION
+from src.my_types import UserType
 
 
 class RobotPage(QWidget, Ui_PageRobot):
@@ -36,21 +24,13 @@ class RobotPage(QWidget, Ui_PageRobot):
         self.setupUi(self)
         self.setWindowTitle("User")
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
-
-        # self._re_product_controller = re_product_controller
-        # self._setting_udd_controller = setting_udd_controller
-        # self._setting_proxy_controller = setting_proxy_controller
-        # self._re_template_controller = re_template_controller
-
-        # TODO chuyển logic sang robot controller
-
         self._robot_controller = robot_controller
 
         self.base_user_model = robot_controller._user_service.model
         self.proxy_model = MultiFieldFilterProxyModel()
         self.proxy_model.setSourceModel(self.base_user_model)
 
-        self.robot_actions: Dict = {}
+        self.browser_actions: Dict = {}
 
         self.setup_ui()
         self.setup_events()
@@ -168,7 +148,7 @@ class RobotPage(QWidget, Ui_PageRobot):
 
     def fill_actions_tree(self):
         self.actions_tree.clear()
-        for uid, actions in self.robot_actions.items():
+        for uid, actions in self.browser_actions.items():
             if not actions:
                 continue
             user_info: UserType = actions[0].user_info
@@ -194,128 +174,46 @@ class RobotPage(QWidget, Ui_PageRobot):
     @pyqtSlot()
     def on_save_action_clicked(self):
         selected_users = self.get_selected_users_data()
-        re_product = self._re_product_controller.read_all_products()
-        products = [].append(re_product)
         if not selected_users:
             return
         action_widgets = self.findChildren(ActionPayload)
         if not action_widgets:
             for selected_user in selected_users:
-                if selected_user.uid in self.robot_actions.keys():
-                    del self.robot_actions[selected_user.uid]
+                if selected_user.uid in self.browser_actions.keys():
+                    del self.browser_actions[selected_user.uid]
             self.fill_actions_tree()
             return
+        action_payloads = [w.get_values() for w in action_widgets]
 
-        for selected_user in selected_users:
-            user_type = selected_user.type.strip().lower()
-            self.robot_actions[selected_user.uid] = []
+        new_browser_actions = self._robot_controller.init_actions(
+            list_user_data=selected_users,
+            action_payloads=action_payloads,
+        )
 
-            for action_widget in action_widgets:
-                action_value = action_widget.get_values()
-                if "pid" in action_value.keys():
-                    pid = action_value["pid"]
-                    action_payload = {}
-                    product = None
-                    if not pid or not any(product.pid == pid for product in products):
-                        if user_type == "re.s":
-                            product = self._re_product_controller.get_random(
-                                RE_TRANSACTION["sell"]
-                            )
-                        elif user_type == "re.r":
-                            product = self._re_product_controller.get_random(
-                                RE_TRANSACTION["rent"]
-                            )
-                        elif user_type == "misc.":
-                            # TODO get random misc.
-                            continue
-                    if type(product) == RealEstateProductType:
-                        temp_title = self._re_template_controller.get_random(
-                            part="title",
-                            transaction_type=product.transaction_type,
-                            category=product.category,
-                        )
-                        temp_desc = self._re_template_controller.get_random(
-                            part="description",
-                            transaction_type=product.transaction_type,
-                            category=product.category,
-                        )
-                        title = replace_template(
-                            product_data=product, template=temp_title
-                        ).upper()
-                        desc = replace_template(
-                            product_data=product, template=temp_desc
-                        )
-                        image_paths = self._re_product_controller.get_images_by_path(
-                            product.image_dir
-                        )
-                        action_payload["title"] = title
-                        action_payload["description"] = desc
-                        action_payload["image_paths"] = image_paths
-                    elif type(product) == MiscProductType:
-                        # TODO template misc
-                        continue
-                elif "content" in action_value.keys():
-                    action_payload = action_value["content"]
+        for uid, browser_action in new_browser_actions.items():
+            self.browser_actions[uid] = browser_action
 
-                self.robot_actions[selected_user.uid].append(
-                    BrowserType(
-                        user_info=selected_user,
-                        action_name=action_value.get("action_name", None),
-                        action_payload=action_payload,
-                        is_mobile=False,
-                        headless=False,
-                        udd=os.path.join(
-                            self._setting_udd_controller.get_selected_user_data_dir(),
-                            str(selected_user.id),
-                        ),
-                    )
-                )
         self.fill_actions_tree()
 
     @pyqtSlot()
     def on_run_action_clicked(self):
-        tasks: List[Optional[BrowserType]] = []
-        sorted_uids = sorted(self.robot_actions.keys())
-        num_uids = len(sorted_uids)
-        max_len = 0
-        if self.robot_actions:
-            max_len = max(len(actions) for actions in self.robot_actions.values())
-        last_uid_contributed: Optional[str] = None
+        self.robot_run_dialog = DialogRobotRun(self)
+        self.robot_run_dialog.setting_data_signal.connect(self.handle_run_robot)
+        self.robot_run_dialog.show()
 
-        for i in range(max_len):
-            current_column_items_with_uids: List[tuple[Optional[BrowserType], str]] = []
-            for uid in sorted_uids:
-                if i < len(self.robot_actions[uid]):
-                    current_column_items_with_uids.append(
-                        (self.robot_actions[uid][i], uid)
-                    )
-                else:
-                    current_column_items_with_uids.append((None, uid))
+    @pyqtSlot(dict)
+    def handle_run_robot(self, robot_settings: dict):
+        browser_tasks = self._robot_controller.init_browser_tasks(self.browser_actions)
+        for browser_task in browser_tasks:
+            browser_task.is_mobile = robot_settings.get("is_mobile", False)
+            browser_task.headless = robot_settings.get("is_headless", False)
+        delay_time = robot_settings.get("delay_num", 3)
+        thread_num = robot_settings.get("thread_num", 1)
+        group_num = robot_settings.get("group_num", 5)
 
-            for task_obj, current_uid in current_column_items_with_uids:
-                if task_obj is not None:
-                    if last_uid_contributed is not None:
-                        idx_of_last_uid = sorted_uids.index(last_uid_contributed)
-                        idx_of_current_uid = sorted_uids.index(current_uid)
-                        has_gap_of_skipped_uids = False
-                        check_idx = (idx_of_last_uid + 1) % num_uids
-                        while check_idx != idx_of_current_uid:
-                            if current_column_items_with_uids[check_idx][0] is None:
-                                has_gap_of_skipped_uids = True
-                                break
-                            check_idx = (check_idx + 1) % num_uids
-                        if has_gap_of_skipped_uids:
-                            tasks.append(None)
-                    tasks.append(task_obj)
-                    last_uid_contributed = current_uid
-
-        # --- Phần in kết quả để kiểm tra ---
-        for task in tasks:
-            if task:
-                print(f"Action: {task.action_name}, User UID: {task.user_info.uid}")
-            else:
-                print("--- Empty Slot (None) ---")
-        print("\nFinal tasks list length:", len(tasks))
-
-    def handle_run_robot(self):
-        pass
+        self._robot_controller.handle_run_bot(
+            browser_task=browser_tasks,
+            thread_num=thread_num,
+            delay_time=delay_time,
+            group_num=group_num,
+        )
