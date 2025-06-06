@@ -1,6 +1,6 @@
 # src/my_types.py
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, List
 
 from PyQt6.QtCore import QObject, pyqtSignal
 
@@ -99,10 +99,17 @@ class MiscProductType:
 
 
 @dataclass
+class SellPayloadType:
+    title: str
+    description: str
+    image_paths: List[str]
+
+
+@dataclass
 class RobotTaskType:
     user_info: UserType
     action_name: Optional[str]
-    action_payload: Optional[dict]
+    action_payload: Optional[SellPayloadType]
 
 
 @dataclass

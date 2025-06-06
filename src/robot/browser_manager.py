@@ -105,7 +105,7 @@ class BrowserManager(QObject):
         current_progress: int,
         total_progress: int,
     ):
-        msg = f"[{browser.user_info.uid}] <{browser.action_name}>: Message: {message} ({current_progress}/{total_progress})"
+        msg = f"[{browser.user_info.uid}] <{browser.action_name}> Message: {message} ({current_progress}/{total_progress})"
         print(msg)
         self.progress_signal.emit(msg, current_progress, total_progress)
 

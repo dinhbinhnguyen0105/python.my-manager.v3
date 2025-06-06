@@ -10,7 +10,7 @@ from PyQt6.QtCore import QRunnable
 
 from src.my_types import BrowserWorkerSignals, BrowserType
 from src.robot.browser_actions import ACTION_MAP
-from my_constants import ROBOT_ACTION_NAMES
+from src.my_constants import ROBOT_ACTION_NAMES
 
 
 class BrowserWorker(QRunnable):

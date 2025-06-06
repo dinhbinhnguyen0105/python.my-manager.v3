@@ -11,7 +11,13 @@ from src.services.product_service import (
     RealEstateProductService,
     RealEstateTemplateService,
 )
-from src.my_types import UserType, BrowserType, RealEstateProductType, MiscProductType
+from src.my_types import (
+    UserType,
+    BrowserType,
+    RealEstateProductType,
+    MiscProductType,
+    SellPayloadType,
+)
 from src.my_constants import RE_TRANSACTION
 
 from src.utils.re_template import replace_template
@@ -55,7 +61,7 @@ class RobotController(BaseController):
             for action in action_payloads:
                 if "pid" in action.keys():
                     pid = action["pid"]
-                    action_payload = {}
+                    action_payload: Optional[SellPayloadType] = None
                     product = None
                     if not pid or not any(product.pid == pid for product in products):
                         if user_type == "re.s":
@@ -89,14 +95,19 @@ class RobotController(BaseController):
                         image_paths = self._re_product_service.get_images_by_path(
                             product.image_dir
                         )
-                        action_payload["title"] = title
-                        action_payload["description"] = desc
-                        action_payload["image_paths"] = image_paths
+                        action_payload = SellPayloadType(
+                            title=title, description=desc, image_paths=image_paths
+                        )
+
                     elif type(product) == MiscProductType:
                         # TODO template misc
                         continue
                 elif "content" in action.keys():
-                    action_payload = action["content"]
+                    action_payload = SellPayloadType(
+                        title=action["content"].get("title", ""),
+                        description=action["content"].get("description", ""),
+                        image_paths=action["content"].get("image_paths", []),
+                    )
 
                 browser_actions[user_data.uid].append(
                     BrowserType(
@@ -175,7 +186,7 @@ class RobotController(BaseController):
         else:
             print(f"[{self.__class__.__name__}.handle_run_bot] Starting new bot tasks.")
             self._current_browser_progress = BrowserManager(self)
-            self._current_browser_progress.set_max_worker(thread_num)
+            self._current_browser_progress.set_max_worker(int(thread_num))
             self._current_browser_progress.set_settings(
                 {
                     "delay_time": delay_time,
@@ -195,4 +206,4 @@ class RobotController(BaseController):
 
     @pyqtSlot(str, int, int)
     def on_bot_progress(self, message: str, current_progress: int, total_progress: int):
-        self.success_signal.emit(f"{message}")
+        self.info_signal.emit(f"{message}")

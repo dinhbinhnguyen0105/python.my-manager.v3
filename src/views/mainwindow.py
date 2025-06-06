@@ -89,6 +89,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._misc_product_controller,
             self._setting_proxy_controller,
             self._setting_user_data_dir_controller,
+            self._robot_controller,
         ]:
             controller.success_signal.connect(
                 lambda message: self.set_status_bar(
@@ -107,7 +108,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
             controller.info_signal.connect(
                 lambda message: self.set_status_bar(
-                    message=f"Info: {message}", color="#", time_out=1_000
+                    message=f"Info: {message}", color="#2196F3", time_out=1_000
                 )
             )
 
