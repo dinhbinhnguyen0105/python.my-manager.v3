@@ -34,6 +34,7 @@ class BrowserWorker(QRunnable):
         if proxy and self._browser.action_name in ACTION_MAP.keys():
             try:
                 action_func = ACTION_MAP[self._browser.action_name]
+                is_succeeded = False
                 with sync_playwright() as p:
                     context_kwargs = dict(
                         user_data_dir=self._browser.udd,
@@ -81,14 +82,16 @@ class BrowserWorker(QRunnable):
                         f"[INFO] Opened Chromium for user: {self._browser.user_info.username}"
                     )
                     if self._browser.action_name == "launch_browser":
-                        action_func(page, self._browser, self._signals)
-
+                        is_succeeded = action_func(page, self._browser, self._signals)
                     elif self._browser.action_name in ROBOT_ACTION_NAMES.keys():
-                        action_func(page, self._browser, self._settings, self._signals)
+                        is_succeeded = action_func(
+                            page, self._browser, self._settings, self._signals
+                        )
 
+                # sleep(float(float(self._settings["delay_time"]) * 60))
                 self._signals.succeeded_signal.emit(
                     self._browser,
-                    "Succeeded",
+                    ("Succeeded" if is_succeeded else "Failed"),
                     self._raw_proxy,
                 )
             except Exception as e:
@@ -102,9 +105,7 @@ class BrowserWorker(QRunnable):
             elif int(res.get("status")) == 101:
                 proxy = None
                 msg = f"[{self._browser.user_info.uid}] Not ready proxy ({self._raw_proxy})"
-                self._signals.failed_signal.emit(self._browser, msg)
                 sleep(60)
-                print(msg)
                 self._signals.proxy_not_ready_signal.emit(
                     self._browser, self._raw_proxy
                 )

@@ -12,11 +12,13 @@ MIN = 60_000
 def do_launch_browser(page: Page, task: RobotTaskType, signals: BrowserWorkerSignals):
     try:
         signals.progress_signal.emit(task, "Launching ...", 0, 1)
-        page.goto(task.action_payload.get("url", ""), wait_until="load", timeout=MIN)
+        # page.goto(task.action_payload.get("url", ""), timeout=MIN)
         page.wait_for_event("close", timeout=0)
         signals.progress_signal.emit(task, "Closed!", 1, 1)
+        return True
     except Exception as e:
         signals.error_signal.emit(task, str(e))
+        return False
 
 
 def do_marketplace(
@@ -26,13 +28,14 @@ def do_marketplace(
         print(settings)
         total_progress = 10
         msg = f"[{task.user_info.username}] Performing {task.action_name}"
-        signals.progress_signal.emit(task, msg, 1, total_progress)
+        signals.progress_signal.emit(task, msg, 0, total_progress)
         is_listed_on_marketplace = handle_list_on_marketplace(
             page, task, signals, total_progress
         )
-        sleep(float(float(settings["delay_time"]) * 60))
+        return is_listed_on_marketplace
     except Exception as e:
         signals.error_signal.emit(task, str(e))
+        return False
 
 
 def close_dialog(page: Page):
@@ -96,7 +99,6 @@ def handle_list_on_marketplace(
         emit_progress("Start listing on marketplace", 1)
         page.goto(
             "https://www.facebook.com/marketplace/create/item",
-            wait_until="load",
             timeout=60_000,
         )
         page_language = page.locator("html").get_attribute("lang")
@@ -105,7 +107,7 @@ def handle_list_on_marketplace(
                 f"Cannot start {task.action_name}. Please switch language to English."
             )
             signals.failed_signal.emit(task, failed_msg)
-            return
+            return False
 
         marketplace_forms = page.locator(selectors.S_MARKETPLACE_FORM)
         marketplace_form = None
@@ -114,7 +116,7 @@ def handle_list_on_marketplace(
                 break
         if not marketplace_form:
             failed_msg = f"[{task.user_info.username}] {selectors.S_MARKETPLACE_FORM} is not found or is not interactive."
-            signals.failed_signal.emit(failed_msg)
+            signals.failed_signal.emit(task, failed_msg)
             return False
 
         close_dialog(page)
@@ -218,6 +220,20 @@ def handle_list_on_marketplace(
         else:
             signals.failed_signal.emit(task, clicked_next_result["message"])
             return False
+    except Exception as e:
+        signals.error_signal.emit(task, str(e))
+        return False
+
+
+def handle_list_on_more_place(
+    page: Page,
+    task: RobotTaskType,
+    signals: BrowserWorkerSignals,
+    total_progress: int,
+):
+    try:
+
+        return True
     except Exception as e:
         signals.error_signal.emit(task, str(e))
         return False

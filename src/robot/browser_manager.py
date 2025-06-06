@@ -105,7 +105,7 @@ class BrowserManager(QObject):
         current_progress: int,
         total_progress: int,
     ):
-        msg = f"[{browser.user_info.uid}] <{browser.action_name}> Message: {message} ({current_progress}/{total_progress})"
+        msg = f"[Info][{browser.user_info.uid}]({browser.action_name}): {message} ({current_progress}/{total_progress})"
         print(msg)
         self.progress_signal.emit(msg, current_progress, total_progress)
 
@@ -115,8 +115,8 @@ class BrowserManager(QObject):
         browser: BrowserType,
         message: str,
     ):
-        # TODO handle failed browser
-        self.failed_signal.emit(message)
+        msg = f"[Failed][{browser.user_info.uid}]({browser.action_name}): {message}"
+        self.failed_signal.emit(msg)
         pass
 
     @pyqtSlot(BrowserType, str)
@@ -125,8 +125,7 @@ class BrowserManager(QObject):
         browser: BrowserType,
         message: str,
     ):
-        # TODO handle_error
-        msg = f"[{browser.user_info.uid}] Error message: {message}"
+        msg = f"[Error][{browser.user_info.uid}]({browser.action_name}): {message}"
         print(msg)
         self.error_signal.emit(msg)
 
@@ -137,7 +136,7 @@ class BrowserManager(QObject):
         message: str,
         raw_proxy: str,
     ):
-        msg = f"[{browser.user_info.uid}] {message}."
+        msg = f"[Succeeded][{browser.user_info.uid}]({browser.action_name}): {message}"
         print(msg)
         self.succeeded_signal.emit(msg)
         self._pending_raw_proxies.append(raw_proxy)
