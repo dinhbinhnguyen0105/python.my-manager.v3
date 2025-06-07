@@ -1,6 +1,6 @@
 # src/robot/browser_actions.py
-import random, traceback, sys
-from typing import Any, Callable
+import random
+from typing import Any
 from time import sleep
 from playwright.sync_api import Page, TimeoutError as PlaywrightTimeoutError, Locator
 from src.my_types import RobotTaskType, BrowserWorkerSignals

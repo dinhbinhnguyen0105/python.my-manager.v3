@@ -220,6 +220,24 @@ class UserController(BaseController):
             self._current_browser_progress.finished.connect(self.on_finished)
             self._current_browser_progress.add_browsers(browsers, raw_proxies)
 
+    def handle_import(self, payload: List[UserType]) -> bool:
+        try:
+            if not payload or not isinstance(payload, list):
+                self.warning_signal.emit("No user data to import.")
+                return False
+            result = self._user_service.import_data(payload)
+            if result:
+                self.success_signal.emit(f"Imported {result} new users.")
+                self.data_changed_signal.emit()
+                return True
+            else:
+                self.warning_signal.emit("No new users were imported.")
+                return False
+        except Exception as e:
+            print(f"[{self.__class__.__name__}.handle_import] Error: {e}")
+            self.error_signal.emit("Error occurred while importing users.")
+            return False
+
     @pyqtSlot(int, str, bool)
     def _on_check_live_task_succeeded(self, record_id: int, uid: str, is_live: bool):
         print(f"{record_id} - {uid} : {is_live}")
