@@ -1,7 +1,7 @@
 # src/robot/task_manager.py
 from typing import List, Dict
 from collections import deque
-from PyQt6.QtCore import QThreadPool, QObject, pyqtSignal, pyqtSlot
+from PyQt6.QtCore import QThreadPool, QObject, pyqtSignal, pyqtSlot, QTimer
 
 from src.robot.browser_worker import BrowserWorker
 from src.my_types import BrowserType, BrowserWorkerSignals
@@ -24,6 +24,9 @@ class BrowserManager(QObject):
         self._total_browser_num: int = 0
         self.signals = BrowserWorkerSignals()
         self.settings = {}
+        self._waiting_proxies: set[str] = set()
+        self._proxy_timer = None
+        self._no_proxy_timer = None
         self.signals.progress_signal.connect(self._on_progress)
         self.signals.failed_signal.connect(self._on_failed)
         self.signals.error_signal.connect(self._on_error)
@@ -161,9 +164,39 @@ class BrowserManager(QObject):
         browser: BrowserType,
         raw_proxy: str,
     ):
-        msg = f"[{browser.user_info.uid}] Not ready proxy ({raw_proxy})"
+        msg = f"[{browser.user_info.uid}] Could not use proxy A. ({raw_proxy})"
+        self.warning_signal.emit(msg)
         print(msg)
-        # self.warning_signal.emit(msg)
+        # Loại proxy khỏi deque nếu còn
+        try:
+            self._pending_raw_proxies.remove(raw_proxy)
+        except ValueError:
+            pass
+        self._waiting_proxies.add(raw_proxy)
         self._pending_browsers.append(browser)
-        self._pending_raw_proxies.append(raw_proxy)
-        self._try_start_browsers()
+        msg = f"[{browser.user_info.uid}] Attempting to use another proxy."
+        self.warning_signal.emit(msg)
+        # Nếu không còn proxy nào, đợi 60s rồi thử lại
+        if not self._pending_raw_proxies:
+            if self._no_proxy_timer is None:
+                self._no_proxy_timer = QTimer(self)
+                self._no_proxy_timer.setSingleShot(True)
+                self._no_proxy_timer.timeout.connect(self._try_start_browsers)
+            self._no_proxy_timer.start(60000)
+            msg = f"[{browser.user_info.uid}] No available proxies left. Waiting for 60 seconds."
+            self.warning_signal.emit(msg)
+        else:
+            self._try_start_browsers()
+
+        # Sau 60s, thêm lại proxy vào deque
+        timer = QTimer(self)
+        timer.setSingleShot(True)
+
+        def readd_proxy():
+            self._pending_raw_proxies.append(raw_proxy)
+            self._waiting_proxies.discard(raw_proxy)
+            self._try_start_browsers()
+            timer.deleteLater()
+
+        timer.timeout.connect(readd_proxy)
+        timer.start(60000)

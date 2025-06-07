@@ -159,7 +159,7 @@ class UserPage(QWidget, Ui_PageUser):
                 self.email_password_input,
                 self.base_user_model.fieldIndex("email_password"),
             ),
-            (self.group_input, self.base_user_model.fieldIndex("group")),
+            (self.group_input, self.base_user_model.fieldIndex("user_group")),
             (self.two_fa_input, self.base_user_model.fieldIndex("two_fa")),
             (self.username_input, self.base_user_model.fieldIndex("username")),
             (self.password_input, self.base_user_model.fieldIndex("password")),

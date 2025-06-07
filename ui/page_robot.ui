@@ -99,7 +99,7 @@ QPushButton {
            <number>4</number>
           </property>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_7">
+           <layout class="QHBoxLayout" name="filter_container_layout">
             <property name="spacing">
              <number>4</number>
             </property>
@@ -116,7 +116,7 @@ QPushButton {
              <number>0</number>
             </property>
             <item>
-             <widget class="QGroupBox" name="username_container_2">
+             <widget class="QGroupBox" name="username_container">
               <property name="title">
                <string/>
               </property>
@@ -137,12 +137,12 @@ QPushButton {
                 <number>2</number>
                </property>
                <item>
-                <layout class="QVBoxLayout" name="verticalLayout_22">
+                <layout class="QVBoxLayout" name="username_input_container_layout">
                  <property name="spacing">
                   <number>0</number>
                  </property>
                  <item>
-                  <widget class="QLabel" name="username_label_2">
+                  <widget class="QLabel" name="username_label">
                    <property name="styleSheet">
                     <string notr="true">font-size: 10px</string>
                    </property>
@@ -152,7 +152,7 @@ QPushButton {
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLineEdit" name="username_input_2"/>
+                  <widget class="QLineEdit" name="username_input"/>
                  </item>
                 </layout>
                </item>
@@ -160,7 +160,7 @@ QPushButton {
              </widget>
             </item>
             <item>
-             <widget class="QGroupBox" name="group_container_2">
+             <widget class="QGroupBox" name="group_container">
               <property name="title">
                <string/>
               </property>
@@ -181,12 +181,12 @@ QPushButton {
                 <number>2</number>
                </property>
                <item>
-                <layout class="QVBoxLayout" name="verticalLayout_24">
+                <layout class="QVBoxLayout" name="group_input_container_layout">
                  <property name="spacing">
                   <number>0</number>
                  </property>
                  <item>
-                  <widget class="QLabel" name="group_label_2">
+                  <widget class="QLabel" name="group_label">
                    <property name="styleSheet">
                     <string notr="true">font-size: 10px</string>
                    </property>
@@ -196,7 +196,7 @@ QPushButton {
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLineEdit" name="group_input_2"/>
+                  <widget class="QLineEdit" name="group_input"/>
                  </item>
                 </layout>
                </item>
@@ -204,7 +204,7 @@ QPushButton {
              </widget>
             </item>
             <item>
-             <widget class="QGroupBox" name="note_container_2">
+             <widget class="QGroupBox" name="note_container">
               <property name="title">
                <string/>
               </property>
@@ -225,12 +225,12 @@ QPushButton {
                 <number>2</number>
                </property>
                <item>
-                <layout class="QVBoxLayout" name="verticalLayout_26">
+                <layout class="QVBoxLayout" name="note_input_container_layout">
                  <property name="spacing">
                   <number>0</number>
                  </property>
                  <item>
-                  <widget class="QLabel" name="note_label_2">
+                  <widget class="QLabel" name="note_label">
                    <property name="styleSheet">
                     <string notr="true">font-size: 10px</string>
                    </property>
@@ -240,7 +240,7 @@ QPushButton {
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLineEdit" name="note_input_2"/>
+                  <widget class="QLineEdit" name="note_input"/>
                  </item>
                 </layout>
                </item>
@@ -248,7 +248,7 @@ QPushButton {
              </widget>
             </item>
             <item>
-             <widget class="QGroupBox" name="type_container_2">
+             <widget class="QGroupBox" name="type_container">
               <property name="title">
                <string/>
               </property>
@@ -269,12 +269,12 @@ QPushButton {
                 <number>2</number>
                </property>
                <item>
-                <layout class="QVBoxLayout" name="verticalLayout_28">
+                <layout class="QVBoxLayout" name="type_input_container_layout">
                  <property name="spacing">
                   <number>0</number>
                  </property>
                  <item>
-                  <widget class="QLabel" name="type_label_2">
+                  <widget class="QLabel" name="type_label">
                    <property name="styleSheet">
                     <string notr="true">font-size: 10px</string>
                    </property>
@@ -284,7 +284,7 @@ QPushButton {
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLineEdit" name="type_input_2"/>
+                  <widget class="QLineEdit" name="type_input"/>
                  </item>
                 </layout>
                </item>
@@ -388,7 +388,7 @@ QPushButton {
            </spacer>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_9">
+           <layout class="QHBoxLayout" name="action_button_layout">
             <item>
              <widget class="QPushButton" name="action_save_btn">
               <property name="text">
@@ -406,9 +406,6 @@ QPushButton {
            </layout>
           </item>
          </layout>
-        </item>
-        <item>
-         <widget class="QListWidget" name="log_message"/>
         </item>
        </layout>
       </widget>

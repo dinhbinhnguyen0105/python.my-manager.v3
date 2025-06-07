@@ -147,6 +147,7 @@ class CheckLive(QObject):
         if record_id is not None:
             self._succeeded[record_id] = is_live
             self.task_succeeded.emit(record_id, uid, is_live)
+        self._try_start_tasks()
 
     @pyqtSlot(str, str)
     def _on_error(self, uid: str, error_msg: str):

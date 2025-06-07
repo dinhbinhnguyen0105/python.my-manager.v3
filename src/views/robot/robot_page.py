@@ -39,9 +39,9 @@ class RobotPage(QWidget, Ui_PageRobot):
         self.set_user_table()
         self.set_action_tree()
         self.actions_container.setMaximumWidth(480)
-        self.log_message.setHidden(True)
 
     def setup_events(self):
+        self.set_filters()
         self.action_add_btn.clicked.connect(self.on_add_action_clicked)
         self.action_save_btn.clicked.connect(self.on_save_action_clicked)
         self.action_run_btn.clicked.connect(self.on_run_action_clicked)
@@ -167,6 +167,19 @@ class RobotPage(QWidget, Ui_PageRobot):
 
     def init_browser_task(self):
         pass
+
+    def set_filters(self):
+        filter_widgets = [
+            (self.note_input, self.base_user_model.fieldIndex("note")),
+            (self.type_input, self.base_user_model.fieldIndex("type")),
+            (self.group_input, self.base_user_model.fieldIndex("user_group")),
+            (self.username_input, self.base_user_model.fieldIndex("username")),
+        ]
+
+        for widget, column in filter_widgets:
+            widget.textChanged.connect(
+                lambda text, col=column: self.proxy_model.set_filter(col, text)
+            )
 
     @pyqtSlot()
     def on_add_action_clicked(self):

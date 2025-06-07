@@ -142,7 +142,6 @@ class UserController(BaseController):
             # TODO emit message
             return True
         tasks = list(zip(selected_ids, list_uid))
-
         if (
             self._current_check_live_process
             and not self._current_check_live_process._check_if_done()

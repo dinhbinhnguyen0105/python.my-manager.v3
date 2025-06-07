@@ -105,7 +105,7 @@ class BrowserWorker(QRunnable):
             elif int(res.get("status")) == 101:
                 proxy = None
                 msg = f"[{self._browser.user_info.uid}] Not ready proxy ({self._raw_proxy})"
-                sleep(60)
+                # sleep(60)
                 self._signals.proxy_not_ready_signal.emit(
                     self._browser, self._raw_proxy
                 )
