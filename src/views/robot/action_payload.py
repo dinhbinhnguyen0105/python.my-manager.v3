@@ -69,7 +69,7 @@ class ActionPayload(QWidget, Ui_ActionPayloadContainer):
             QUrl(),
             image_filter,
             "",
-            QFileDialog.Option.DontUseNativeDialog,
+            # QFileDialog.Option.DontUseNativeDialog,
         )
         self.image_paths = [url.toLocalFile() for url in images_paths]
         if len(self.image_paths):

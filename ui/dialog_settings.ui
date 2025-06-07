@@ -319,11 +319,38 @@ QCheckBox{
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="create_new_btn">
-            <property name="text">
-             <string>Save</string>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <property name="leftMargin">
+             <number>36</number>
             </property>
-           </widget>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>36</number>
+            </property>
+            <item>
+             <widget class="QPushButton" name="create_new_btn">
+              <property name="text">
+               <string>Save</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="action_import_btn">
+              <property name="text">
+               <string>Import</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="action_export_btn">
+              <property name="text">
+               <string>Export</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>

@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file '/Users/ndb/Dev/python/python.my-manager.v3/ui/user.ui'
+# Form implementation generated from reading ui file '/Volumes/KINGSTON/Dev/python/python.my-manager.v3/user.ui'
 #
 # Created by: PyQt6 UI code generator 6.9.0
 #
@@ -264,9 +264,12 @@ class Ui_User(object):
         self.action_create_btn = QtWidgets.QPushButton(parent=User)
         self.action_create_btn.setObjectName("action_create_btn")
         self.horizontalLayout.addWidget(self.action_create_btn)
-        self.action_setting_btn = QtWidgets.QPushButton(parent=User)
-        self.action_setting_btn.setObjectName("action_setting_btn")
-        self.horizontalLayout.addWidget(self.action_setting_btn)
+        self.action_import_btn = QtWidgets.QPushButton(parent=User)
+        self.action_import_btn.setObjectName("action_import_btn")
+        self.horizontalLayout.addWidget(self.action_import_btn)
+        self.action_export_btn = QtWidgets.QPushButton(parent=User)
+        self.action_export_btn.setObjectName("action_export_btn")
+        self.horizontalLayout.addWidget(self.action_export_btn)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
         self.verticalLayout_21.addLayout(self.horizontalLayout)
@@ -287,8 +290,7 @@ class Ui_User(object):
         User.setTabOrder(self.note_input, self.type_input)
         User.setTabOrder(self.type_input, self.group_input)
         User.setTabOrder(self.group_input, self.action_create_btn)
-        User.setTabOrder(self.action_create_btn, self.action_setting_btn)
-        User.setTabOrder(self.action_setting_btn, self.users_table)
+        User.setTabOrder(self.action_create_btn, self.users_table)
 
     def retranslateUi(self, User):
         _translate = QtCore.QCoreApplication.translate
@@ -304,4 +306,5 @@ class Ui_User(object):
         self.type_label.setText(_translate("User", "Type"))
         self.group_label.setText(_translate("User", "Group"))
         self.action_create_btn.setText(_translate("User", "Create new"))
-        self.action_setting_btn.setText(_translate("User", "Settings"))
+        self.action_import_btn.setText(_translate("User", "Import"))
+        self.action_export_btn.setText(_translate("User", "Export"))

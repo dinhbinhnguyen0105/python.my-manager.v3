@@ -2,12 +2,13 @@
 import os, sys
 from typing import List, Optional
 from PyQt6.QtGui import QAction, QPixmap, QMouseEvent, QShortcut, QKeySequence
-from PyQt6.QtWidgets import QWidget, QMenu, QMessageBox
+from PyQt6.QtWidgets import QWidget, QMenu, QMessageBox, QFileDialog
 from PyQt6.QtCore import (
     Qt,
     pyqtSlot,
     QPoint,
     QItemSelection,
+    QUrl,
 )
 from src.controllers.product_controller import (
     RealEstateProductController,
@@ -26,6 +27,7 @@ from src.ui.page_re_product_ui import Ui_PageREProduct
 
 from src.my_types import RealEstateProductType
 from src.utils.re_template import replace_template, init_footer_content
+from src.views.utils.file_dialogs import dialog_open_file, dialog_save_file
 from src.my_constants import (
     RE_WARD,
     RE_TRANSACTION,
@@ -85,6 +87,8 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
         )
         shortcut = QShortcut(QKeySequence("Ctrl+N"), self)
         shortcut.activated.connect(self.on_create_product)
+        self.action_export_btn.clicked.connect(self.on_export_clicked)
+        self.action_import_btn.clicked.connect(self.on_import_clicked)
 
     def set_comboboxes(self):
         self.wards_combobox.clear()
@@ -395,3 +399,11 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
                 os.startfile(folder_path)
             else:
                 os.system(f'xdg-open "{folder_path}"')
+
+    @pyqtSlot()
+    def on_export_clicked(self):
+        file_path = dialog_open_file(self)
+
+    @pyqtSlot()
+    def on_import_clicked(self):
+        file_path = dialog_save_file(self)

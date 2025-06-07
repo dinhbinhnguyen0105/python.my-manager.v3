@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file '/Volumes/KINGSTON/Dev/python/python.my-manager.v2/ui/page_user.ui'
+# Form implementation generated from reading ui file '/Volumes/KINGSTON/Dev/python/python.my-manager.v3/ui/page_user.ui'
 #
 # Created by: PyQt6 UI code generator 6.9.0
 #
@@ -264,9 +264,12 @@ class Ui_PageUser(object):
         self.action_create_btn = QtWidgets.QPushButton(parent=PageUser)
         self.action_create_btn.setObjectName("action_create_btn")
         self.horizontalLayout.addWidget(self.action_create_btn)
-        self.action_setting_btn = QtWidgets.QPushButton(parent=PageUser)
-        self.action_setting_btn.setObjectName("action_setting_btn")
-        self.horizontalLayout.addWidget(self.action_setting_btn)
+        self.action_import_btn = QtWidgets.QPushButton(parent=PageUser)
+        self.action_import_btn.setObjectName("action_import_btn")
+        self.horizontalLayout.addWidget(self.action_import_btn)
+        self.action_export_btn = QtWidgets.QPushButton(parent=PageUser)
+        self.action_export_btn.setObjectName("action_export_btn")
+        self.horizontalLayout.addWidget(self.action_export_btn)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
         self.verticalLayout_21.addLayout(self.horizontalLayout)
@@ -287,8 +290,7 @@ class Ui_PageUser(object):
         PageUser.setTabOrder(self.note_input, self.type_input)
         PageUser.setTabOrder(self.type_input, self.group_input)
         PageUser.setTabOrder(self.group_input, self.action_create_btn)
-        PageUser.setTabOrder(self.action_create_btn, self.action_setting_btn)
-        PageUser.setTabOrder(self.action_setting_btn, self.users_table)
+        PageUser.setTabOrder(self.action_create_btn, self.users_table)
 
     def retranslateUi(self, PageUser):
         _translate = QtCore.QCoreApplication.translate
@@ -304,4 +306,5 @@ class Ui_PageUser(object):
         self.type_label.setText(_translate("PageUser", "Type"))
         self.group_label.setText(_translate("PageUser", "Group"))
         self.action_create_btn.setText(_translate("PageUser", "Create new"))
-        self.action_setting_btn.setText(_translate("PageUser", "Settings"))
+        self.action_import_btn.setText(_translate("PageUser", "Import"))
+        self.action_export_btn.setText(_translate("PageUser", "Export"))

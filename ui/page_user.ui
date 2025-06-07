@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>User</class>
- <widget class="QWidget" name="User">
+ <class>PageUser</class>
+ <widget class="QWidget" name="PageUser">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -549,9 +549,16 @@ QCheckBox{
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="action_setting_btn">
+        <widget class="QPushButton" name="action_import_btn">
          <property name="text">
-          <string>Settings</string>
+          <string>Import</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="action_export_btn">
+         <property name="text">
+          <string>Export</string>
          </property>
         </widget>
        </item>
@@ -589,7 +596,6 @@ QCheckBox{
   <tabstop>type_input</tabstop>
   <tabstop>group_input</tabstop>
   <tabstop>action_create_btn</tabstop>
-  <tabstop>action_setting_btn</tabstop>
   <tabstop>users_table</tabstop>
  </tabstops>
  <resources/>

@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file '/Volumes/KINGSTON/Dev/python/python.my-manager.v3/ui/page_re_product.ui'
+# Form implementation generated from reading ui file '/Volumes/KINGSTON/Dev/python/python.my-manager.v3/page_re_product.ui'
 #
 # Created by: PyQt6 UI code generator 6.9.0
 #
@@ -387,14 +387,6 @@ class Ui_PageREProduct(object):
         self.action_create_btn = QtWidgets.QPushButton(parent=self.actions_container_w)
         self.action_create_btn.setObjectName("action_create_btn")
         self.horizontalLayout.addWidget(self.action_create_btn)
-        self.action_upload_btn = QtWidgets.QPushButton(parent=self.actions_container_w)
-        self.action_upload_btn.setObjectName("action_upload_btn")
-        self.horizontalLayout.addWidget(self.action_upload_btn)
-        self.action_download_btn = QtWidgets.QPushButton(
-            parent=self.actions_container_w
-        )
-        self.action_download_btn.setObjectName("action_download_btn")
-        self.horizontalLayout.addWidget(self.action_download_btn)
         self.action_import_btn = QtWidgets.QPushButton(parent=self.actions_container_w)
         self.action_import_btn.setObjectName("action_import_btn")
         self.horizontalLayout.addWidget(self.action_import_btn)
@@ -500,8 +492,6 @@ class Ui_PageREProduct(object):
         self.price_label.setText(_translate("PageREProduct", "Giá"))
         self.structure_label.setText(_translate("PageREProduct", "Kết cấu"))
         self.action_create_btn.setText(_translate("PageREProduct", "Create new"))
-        self.action_upload_btn.setText(_translate("PageREProduct", "Upload"))
-        self.action_download_btn.setText(_translate("PageREProduct", "Download"))
         self.action_import_btn.setText(_translate("PageREProduct", "Import"))
         self.action_export_btn.setText(_translate("PageREProduct", "Export"))
         self.image_label.setText(_translate("PageREProduct", "Images"))
