@@ -2636,7 +2636,7 @@
         "category": "nhà phố",
         "is_default": 0,
         "part": "description",
-        "value": "ID: <pid>\nBán nhà phố khu vực <ward>, <district>.\n- Diện tích: <area>m²\n- Giá: <price><unit>\n- Pháp lý: <legal>.\n- Mô tả: <description>\nLiên hệ: 0375.155.525 - Đ. Bình",
+        "value": "ID: <pid>\nBán nhà phố vực <ward>, <district>.\n- Diện tích: <area>m²\n- Giá: <price><unit>\n- Pháp lý: <legal>.\n- Mô tả: <description>\nLiên hệ: 0375.155.525 - Đ. Bình",
         "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
     },
@@ -3466,7 +3466,7 @@
         "category": "biệt thự",
         "is_default": 0,
         "part": "description",
-        "value": "ID: <pid>\nBán biệt thự khu an ninh <province>, <price><unit>.\n- Diện tích: <area>m².\n- Pháp lý: <legal>.\n- Chi tiết: <description>\nLiên hệ: 0375.155.525 - Đ. Bình",
+        "value": "ID: <pid>\nBán biệt thự an ninh <province>, <price><unit>.\n- Diện tích: <area>m².\n- Pháp lý: <legal>.\n- Chi tiết: <description>\nLiên hệ: 0375.155.525 - Đ. Bình",
         "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
     },
@@ -4026,7 +4026,7 @@
         "category": "kho/bãi",
         "is_default": 0,
         "part": "description",
-        "value": "ID: <pid>\nBán kho/bãi khu an ninh <province>, <price><unit>.\n- Diện tích: <area>m².\n- Pháp lý: <legal>.\n- Chi tiết: <description>\nLiên hệ: 0375.155.525 - Đ. Bình",
+        "value": "ID: <pid>\nBán kho/bãi an ninh <province>, <price><unit>.\n- Diện tích: <area>m².\n- Pháp lý: <legal>.\n- Chi tiết: <description>\nLiên hệ: 0375.155.525 - Đ. Bình",
         "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
     },
@@ -4276,7 +4276,7 @@
         "category": "mặt bằng kinh doanh",
         "is_default": 0,
         "part": "description",
-        "value": "ID: <pid>\nBán MBKD khu an ninh <province>, <price><unit>.\n- Diện tích: <area>m².\n- Pháp lý: <legal>.\n- Chi tiết: <description>\nLiên hệ: 0375.155.525 - Đ. Bình",
+        "value": "ID: <pid>\nBán MBKD an ninh <province>, <price><unit>.\n- Diện tích: <area>m².\n- Pháp lý: <legal>.\n- Chi tiết: <description>\nLiên hệ: 0375.155.525 - Đ. Bình",
         "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
     },
@@ -4566,7 +4566,7 @@
         "category": "khách sạn",
         "is_default": 0,
         "part": "description",
-        "value": "ID: <pid>\nBán khách sạn khu an ninh <province>, <price><unit>.\n- Diện tích: <area>m².\n- Pháp lý: <legal>.\n- Chi tiết: <description>\nLiên hệ: 0375.155.525 - Đ. Bình",
+        "value": "ID: <pid>\nBán khách sạn an ninh <province>, <price><unit>.\n- Diện tích: <area>m².\n- Pháp lý: <legal>.\n- Chi tiết: <description>\nLiên hệ: 0375.155.525 - Đ. Bình",
         "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
     },
@@ -4866,7 +4866,7 @@
         "category": "homestay",
         "is_default": 0,
         "part": "description",
-        "value": "ID: <pid>\nBán homestay khu an ninh <province>, <price><unit>.\n- Diện tích: <area>m².\n- Pháp lý: <legal>.\n- Chi tiết: <description>\nLiên hệ: 0375.155.525 - Đ. Bình",
+        "value": "ID: <pid>\nBán homestay an ninh <province>, <price><unit>.\n- Diện tích: <area>m².\n- Pháp lý: <legal>.\n- Chi tiết: <description>\nLiên hệ: 0375.155.525 - Đ. Bình",
         "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
     },
@@ -5166,7 +5166,7 @@
         "transaction_type": "cho thuê",
         "category": "nhà phố",
         "part": "title",
-        "value": "[Nhà phố cho thuê <price><unit>]Cho thuê nhà phố khu dân cư an ninh <province>, <price> <unit> <icon>",
+        "value": "[Nhà phố cho thuê <price><unit>]Cho thuê nhà phố dân cư an ninh <province>, <price> <unit> <icon>",
         "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
     },
@@ -6126,7 +6126,7 @@
     "transaction_type": "cho thuê",
     "category": "biệt thự",
     "part": "title",
-    "value": "[Cho thuê biệt thự giá <price> <unit>] Khu <district> <icon>",
+    "value": "[Cho thuê biệt thự giá <price> <unit>] <district> <icon>",
     "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
 },
@@ -6296,7 +6296,7 @@
     "transaction_type": "cho thuê",
     "category": "kho/bãi",
     "part": "title",
-    "value": "[Cho thuê kho/bãi giá <price> <unit>] Khu <district> <icon>",
+    "value": "[Cho thuê kho/bãi giá <price> <unit>] <district> <icon>",
     "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
 },
@@ -6446,7 +6446,7 @@
     "transaction_type": "cho thuê",
     "category": "kho/bãi",
     "part": "title",
-    "value": "[Cho thuê kho/bãi giá <price> <unit>] Khu vực <street> <icon>",
+    "value": "[Cho thuê kho/bãi giá <price> <unit>] vực <street> <icon>",
     "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
 },
@@ -6516,7 +6516,7 @@
     "transaction_type": "cho thuê",
     "category": "kho/bãi",
     "part": "title",
-    "value": "[Cho thuê kho/bãi giá <price> <unit>] Khu công nghiệp <icon>",
+    "value": "[Cho thuê kho/bãi giá <price> <unit>]<icon><icon><icon><icon>",
     "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
 },
@@ -6596,7 +6596,7 @@
         "transaction_type": "cho thuê",
         "category": "MBKD",
         "part": "title",
-        "value": "[Cho thuê MBKD giá <price> <unit>] Khu <district> <icon>",
+        "value": "[Cho thuê MBKD giá <price> <unit>] <district> <icon>",
         "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
     },
@@ -6746,7 +6746,7 @@
         "transaction_type": "cho thuê",
         "category": "MBKD",
         "part": "title",
-        "value": "[Cho thuê MBKD giá <price> <unit>] Khu vực <street> <icon>",
+        "value": "[Cho thuê MBKD giá <price> <unit>] vực <street> <icon>",
         "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
     },
@@ -6896,7 +6896,7 @@
         "transaction_type": "cho thuê",
         "category": "khách sạn",
         "part": "title",
-        "value": "[Cho thuê khách sạn giá <price> <unit>] Khu <district> <icon>",
+        "value": "[Cho thuê khách sạn giá <price> <unit>] <district> <icon>",
         "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
     },
@@ -7046,7 +7046,7 @@
         "transaction_type": "cho thuê",
         "category": "khách sạn",
         "part": "title",
-        "value": "[Cho thuê khách sạn giá <price> <unit>] Khu vực <street> <icon>",
+        "value": "[Cho thuê khách sạn giá <price> <unit>] vực <street> <icon>",
         "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
     },
@@ -7196,7 +7196,7 @@
         "transaction_type": "cho thuê",
         "category": "homestay",
         "part": "title",
-        "value": "[Cho thuê homestay giá <price> <unit>] Khu <district> <icon>",
+        "value": "[Cho thuê homestay giá <price> <unit>] <district> <icon>",
         "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
     },
@@ -7346,7 +7346,7 @@
         "transaction_type": "cho thuê",
         "category": "homestay",
         "part": "title",
-        "value": "[Cho thuê homestay giá <price> <unit>] Khu vực <street> <icon>",
+        "value": "[Cho thuê homestay giá <price> <unit>] vực <street> <icon>",
         "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
     },
@@ -7566,7 +7566,7 @@
         "transaction_type": "bán",
         "category": "nhà phố",
         "part": "title",
-        "value": "[bán nhà phố giá <price> <unit>]Bán nhà phố khu an ninh <province>, <price> <unit> <icon>",
+        "value": "[bán nhà phố giá <price> <unit>]Bán nhà phố an ninh <province>, <price> <unit> <icon>",
         "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
     },
@@ -8466,7 +8466,7 @@
         "transaction_type": "bán",
         "category": "biệt thự",
         "part": "title",
-        "value": "[bán biệt thự giá <price> <unit>]Bán biệt thự khu an ninh <province>, <price> <unit> <icon>",
+        "value": "[bán biệt thự giá <price> <unit>]Bán biệt thự an ninh <province>, <price> <unit> <icon>",
         "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
     },
@@ -8796,7 +8796,7 @@
         "transaction_type": "bán",
         "category": "đất nền",
         "part": "title",
-        "value": "[bán đất nền giá <price> <unit>]Đất nền có <furniture>, <price> <unit> <icon>",
+        "value": "[bán đất nền giá <price> <unit>]Đất nền, <price> <unit> <icon>",
         "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
     },
@@ -9026,7 +9026,7 @@
         "transaction_type": "bán",
         "category": "kho/bãi",
         "part": "title",
-        "value": "[bán kho/bãi giá <price> <unit>]Bán kho/bãi khu an ninh <province>, <price> <unit> <icon>",
+        "value": "[bán kho/bãi giá <price> <unit>]Bán kho/bãi an ninh <province>, <price> <unit> <icon>",
         "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
     },
@@ -9276,7 +9276,7 @@
         "transaction_type": "bán",
         "category": "mặt bằng kinh doanh",
         "part": "title",
-        "value": "[bán mặt bằng kinh doanh giá <price> <unit>]Bán MBKD khu an ninh <province>, <price> <unit> <icon>",
+        "value": "[bán mặt bằng kinh doanh giá <price> <unit>]Bán MBKD an ninh <province>, <price> <unit> <icon>",
         "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
     },
@@ -9566,7 +9566,7 @@
         "transaction_type": "bán",
         "category": "khách sạn",
         "part": "title",
-        "value": "[bán khách sạn giá <price> <unit>]Bán khách sạn khu an ninh <province>, <price> <unit> <icon>",
+        "value": "[bán khách sạn giá <price> <unit>]Bán khách sạn an ninh <province>, <price> <unit> <icon>",
         "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
     },
@@ -9866,7 +9866,7 @@
         "transaction_type": "bán",
         "category": "homestay",
         "part": "title",
-        "value": "[bán homestay giá <price> <unit>]Bán homestay khu an ninh <province>, <price> <unit> <icon>",
+        "value": "[bán homestay giá <price> <unit>]Bán homestay an ninh <province>, <price> <unit> <icon>",
         "created_at": "2025-06-04 19:50:07.812367",
         "updated_at": "2025-06-07 22:33:28.644642"
     },
