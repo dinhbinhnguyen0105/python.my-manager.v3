@@ -26,6 +26,7 @@ class BrowserWorker(QRunnable):
         self._raw_proxy = raw_proxy
         self._signals = signals
         self._settings = settings
+        self._settings["raw_proxy"] = self._raw_proxy
 
         self.setAutoDelete(True)
 
@@ -79,14 +80,17 @@ class BrowserWorker(QRunnable):
 
                     page = context.new_page()
                     print(
-                        f"[INFO] Opened Chromium for user: {self._browser.user_info.username}"
+                        f"[Info] Opened Chromium for user: {self._browser.user_info.username}"
                     )
                     if self._browser.action_name == "launch_browser":
-                        is_succeeded = action_func(page, self._browser, self._signals)
+                        is_succeeded = action_func(
+                            page, self._browser, self._settings, self._signals
+                        )
                     elif self._browser.action_name in ROBOT_ACTION_NAMES.keys():
                         is_succeeded = action_func(
                             page, self._browser, self._settings, self._signals
                         )
+
                 if not is_succeeded:
                     sleep(60)
                 self._signals.succeeded_signal.emit(

@@ -6,13 +6,20 @@ from playwright.sync_api import Page, TimeoutError as PlaywrightTimeoutError, Lo
 from src.my_types import RobotTaskType, BrowserWorkerSignals
 from src.robot import selector_constants as selectors
 
-MIN = 60_000
+MIN = MIN
 
 
-def do_launch_browser(page: Page, task: RobotTaskType, signals: BrowserWorkerSignals):
+def do_launch_browser(
+    page: Page, task: RobotTaskType, settings: dict, signals: BrowserWorkerSignals
+):
     try:
         signals.progress_signal.emit(task, "Launching ...", 0, 1)
-        # page.goto(task.action_payload.get("url", ""), timeout=MIN)
+        try:
+            page.goto(task.action_payload.get("url", ""), timeout=MIN)
+        except TimeoutError:
+            if settings.get("raw_proxy"):
+                signals.proxy_not_ready_signal.emit(task, settings.get("raw_proxy"))
+            return False
         page.wait_for_event("close", timeout=0)
         signals.progress_signal.emit(task, "Closed!", 1, 1)
         return True
@@ -28,6 +35,15 @@ def do_marketplace(
         total_progress = 12
         msg = f"[{task.user_info.username}] Performing {task.action_name}"
         signals.progress_signal.emit(task, msg, 0, total_progress)
+        try:
+            page.goto(
+                "https://www.facebook.com/marketplace/create/item",
+                timeout=MIN,
+            )
+        except TimeoutError:
+            if settings.get("raw_proxy"):
+                signals.proxy_not_ready_signal.emit(task, settings.get("raw_proxy"))
+            return False
         is_listed_on_marketplace = handle_list_on_marketplace(
             page, task, signals, total_progress
         )
@@ -102,10 +118,6 @@ def handle_list_on_marketplace(
 
     try:
         emit_progress("Start listing on marketplace", 1)
-        page.goto(
-            "https://www.facebook.com/marketplace/create/item",
-            timeout=60_000,
-        )
         page_language = page.locator("html").get_attribute("lang")
         if page_language != "en":
             failed_msg = (

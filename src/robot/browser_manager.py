@@ -164,7 +164,7 @@ class BrowserManager(QObject):
         browser: BrowserType,
         raw_proxy: str,
     ):
-        msg = f"[{browser.user_info.uid}] Could not use proxy A. ({raw_proxy})"
+        msg = f"[{browser.user_info.uid}] Could not use proxy ({raw_proxy})"
         self.warning_signal.emit(msg)
         print(msg)
         # Loại proxy khỏi deque nếu còn
@@ -182,8 +182,8 @@ class BrowserManager(QObject):
                 self._no_proxy_timer = QTimer(self)
                 self._no_proxy_timer.setSingleShot(True)
                 self._no_proxy_timer.timeout.connect(self._try_start_browsers)
-            self._no_proxy_timer.start(60000)
-            msg = f"[{browser.user_info.uid}] No available proxies left. Waiting for 60 seconds."
+            self._no_proxy_timer.start(10_000)
+            msg = f"[{browser.user_info.uid}] No available proxies left. Waiting for 10 seconds."
             self.warning_signal.emit(msg)
         else:
             self._try_start_browsers()
@@ -199,4 +199,4 @@ class BrowserManager(QObject):
             timer.deleteLater()
 
         timer.timeout.connect(readd_proxy)
-        timer.start(60000)
+        timer.start(10_000)
