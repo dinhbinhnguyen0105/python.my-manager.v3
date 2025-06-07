@@ -6,7 +6,7 @@ from playwright.sync_api import Page, TimeoutError as PlaywrightTimeoutError, Lo
 from src.my_types import RobotTaskType, BrowserWorkerSignals
 from src.robot import selector_constants as selectors
 
-MIN = MIN
+MIN = 60_000
 
 
 def do_launch_browser(
