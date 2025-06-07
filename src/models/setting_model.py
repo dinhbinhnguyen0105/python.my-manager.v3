@@ -15,7 +15,7 @@ class SettingProxyModel(BaseModel):
             warning_msg = f"Warning: Database connection '{CONNECTION_DB_SETTING}' is not valid or not open."
             print(warning_msg)
         super().__init__(TABLE_SETTING_PROXY, db, parent)
-        self.setEditStrategy(QSqlTableModel.EditStrategy.OnFieldChange)
+        # self.setEditStrategy(QSqlTableModel.EditStrategy.OnFieldChange)
 
 
 class SettingUserDataDirModel(BaseModel):
@@ -25,4 +25,4 @@ class SettingUserDataDirModel(BaseModel):
             warning_msg = f"Warning: Database connection '{CONNECTION_DB_SETTING}' is not valid or not open."
             print(warning_msg)
         super().__init__(TABLE_SETTING_USER_DATA_DIR, db, parent)
-        self.setEditStrategy(QSqlTableModel.EditStrategy.OnFieldChange)
+        # self.setEditStrategy(QSqlTableModel.EditStrategy.OnFieldChange)

@@ -72,8 +72,8 @@ RE_FURNITURE = {
 }
 RE_UNIT = {
     RE_TRANSACTION["sell"]: "tỷ",
-    RE_TRANSACTION["rent"]: "triệu",
-    RE_TRANSACTION["assignment"]: "triệu",
+    RE_TRANSACTION["rent"]: "triệu/tháng",
+    RE_TRANSACTION["assignment"]: "triệu/tháng",
 }
 
 

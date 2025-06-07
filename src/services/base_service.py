@@ -1,46 +1,65 @@
 # src/services/base_service.py
 
+import sys
 from datetime import datetime
 from typing import List, Any, Dict, Optional, Type
 from contextlib import contextmanager
-from PyQt6.QtCore import Qt
-from PyQt6.QtSql import QSqlDatabase, QSqlRecord
+from PyQt6.QtCore import Qt, QVariant
+from PyQt6.QtSql import QSqlDatabase, QSqlRecord, QSqlTableModel
 from dataclasses import fields
 from src.models.base_model import BaseModel
 
 
 @contextmanager
 def transaction(db: QSqlDatabase):
+    """
+    Context manager for managing database transactions.
+    Ensures rollback on error or failed commit.
+    """
+    # Attempt to start the transaction
     if not db.transaction():
         error_msg = (
             f"[{transaction.__name__}] Failed to start transaction. Error: {db.lastError().text()}"
             if db.isOpen()
-            else f"[{transaction.__name__}] db not open"
+            else f"[{transaction.__name__}] Database is not open."
         )
-        print(error_msg)
+        print(f"ERROR: {error_msg}")  # Keep print for critical error
         raise RuntimeError(error_msg)
     try:
-        yield db
+        yield db  # Yield control to the 'with' block
+        # Attempt to commit the transaction
         if not db.commit():
             error_msg = (
                 f"[{transaction.__name__}] Failed to commit transaction. Error: { db.lastError().text()}"
                 if db.isOpen()
-                else f"[{transaction.__name__}] db not open"
+                else f"[{transaction.__name__}] Database not open."
             )
-            if db.isOpen() and db.transaction():
-                db.rollback()
+            print(f"ERROR: {error_msg}")  # Keep print for critical error
+            if (
+                db.isOpen() and db.transaction()
+            ):  # Check if transaction is still active before rollback
+                db.rollback()  # Attempt to roll back if commit fails
                 print(
-                    f"[{transaction.__name__}] Attempted rollback after commit failure."
-                )
+                    f"WARNING: [{transaction.__name__}] Attempted rollback after commit failure."
+                )  # Keep print
             raise RuntimeError(error_msg)
+        # print(f"INFO: [{transaction.__name__}] Transaction committed successfully.") # Removed print for clean
     except Exception as e:
-        print(f"[{transaction.__name__}] Exception during transaction: {e}")
-        if db.isOpen() and db.transaction():
+        print(
+            f"ERROR: [{transaction.__name__}] Exception during transaction block: {e}"
+        )  # Keep print
+        if (
+            db.isOpen() and db.transaction()
+        ):  # Check if transaction is still active before rollback
             if db.rollback():
-                print(f"[{transaction.__name__}] Transaction rolled back.")
+                print(
+                    f"INFO: [{transaction.__name__}] Transaction rolled back due to exception."
+                )  # Keep print
             else:
-                error_msg = f"[{transaction.__name__}] Failed to rollback transaction. Error: {db.lastError().text()}"
-                print(error_msg)
+                print(
+                    f"WARNING: [{transaction.__name__}] Failed to rollback transaction due to exception. Error: {db.lastError().text()}"
+                )  # Keep print
+        raise  # Re-raise the exception to be caught by the calling function (e.g., import_data)
 
 
 class BaseService:
@@ -363,52 +382,135 @@ class BaseService:
             return False
 
     def import_data(self, payload: List[Any]) -> bool:
-        """Imports multiple records from a list of DATA_TYPE payloads using the model
+        """
+        Imports multiple records from a list of DATA_TYPE payloads using the model
         within a transaction.
         Returns True on success (all imported), False on failure (rollback).
-        Automatically sets created_at and updated_at if they are None in payload
-        and exist as columns."""
+        Automatically sets created_at and updated_at if they exist as columns.
+        """
         if self.DATA_TYPE is None:
-            info_msg = f"[{self.__class__.__name__}.import_data] DATA_TYPE is not set. Cannot import. => return False"
-            print(info_msg)
+            print(
+                f"WARNING: [{self.__class__.__name__}.import_data] DATA_TYPE chưa được đặt. Không thể nhập."
+            )
             return False
-        if not all(isinstance(item, self.DATA_TYPE) for item in payload):
-            info_msg = f"[{self.__class__.__name__}.import_data] Invalid payload list type. Expected list of {self.DATA_TYPE.__name__}. => return False"
-            print(info_msg)
+        if not isinstance(payload, list) or not all(
+            isinstance(item, self.DATA_TYPE) for item in payload
+        ):
+            print(
+                f"ERROR: [{self.__class__.__name__}.import_data] Kiểu danh sách payload không hợp lệ. Mong đợi danh sách của {self.DATA_TYPE.__name__}."
+            )
             return False
         if not payload:
-            info_msg = f"[{self.__class__.__name__}.import_data] Empty payload list."
-            print(info_msg)
-            return False
+            print(
+                f"INFO: [{self.__class__.__name__}.import_data] Danh sách payload trống được cung cấp, không có dữ liệu để nhập."
+            )
+            return True  # Đã hoàn thành thành công (không làm gì) cho payload trống
         if not self._db.isOpen():
-            info_msg = f"[{self.__class__.__name__}.import_data] Database is not open."
-            print(info_msg)
+            print(
+                f"ERROR: [{self.__class__.__name__}.import_data] Kết nối cơ sở dữ liệu không mở."
+            )
             return False
         try:
+            # --- SỬA LỖI QUAN TRỌNG: Đồng bộ hóa QSqlTableModel trước khi chèn hàng loạt ---
+            # Gọi select() ở đây đảm bảo bộ nhớ đệm nội bộ của model được đồng bộ
+            # với trạng thái thực tế của cơ sở dữ liệu, có thể ngăn insertRow bị lỗi
+            # một cách khó hiểu sau vài lần chèn, hoặc nếu có các thay đổi/lỗi chưa được commit.
+            self.model.select()
+
+            # --- Gỡ lỗi bổ sung / Xác thực ---
+            # if not self.model.insertRow():
+            #     error_msg = f"[{self.__class__.__name__}.import_data] QSqlTableModel không thể chèn hàng. Kiểm tra quyền của bảng hoặc trạng thái model. Lỗi cuối cùng: {self.model.lastError().text()}"
+            #     print(f"ERROR: {error_msg}")
+            #     return False
+
             with transaction(self._db):
-                for record_instance in payload:
-                    if hasattr(record_instance, "updated_at"):
-                        record_instance.updated_at = str(datetime.now())
-                    row = self.model.rowCount()
-                    if row < 0:
-                        error_msg = f"[{self.__class__.__name__}.import_data] Failed to insert row into model buffer. Error: {self.model.lastError().text()}"
+                for i, record_instance in enumerate(payload):
+                    # Chuẩn bị dữ liệu để chèn (xử lý ID và dấu thời gian)
+                    # Đối với bản ghi mới, ID nên là None cho các cột tự động tăng
+                    if hasattr(record_instance, "id"):
+                        record_instance.id = None
+
+                    # Xử lý dấu thời gian (created_at và updated_at) nếu chúng tồn tại trong dataclass
+                    current_time_str = str(
+                        datetime.now()
+                    )  # Lấy dấu thời gian hiện tại dưới dạng chuỗi
+
+                    if (
+                        hasattr(record_instance, "created_at")
+                        and self.model.record().indexOf("created_at") != -1
+                    ):
+                        # Chỉ đặt created_at nếu nó hiện là None (đối với bản ghi mới)
+                        if record_instance.created_at is None:
+                            record_instance.created_at = current_time_str
+                    if (
+                        hasattr(record_instance, "updated_at")
+                        and self.model.record().indexOf("updated_at") != -1
+                    ):
+                        # Luôn cập nhật updated_at khi nhập
+                        record_instance.updated_at = current_time_str
+
+                    # Chèn một hàng trống mới vào bộ nhớ đệm của model
+                    # rowCount() cung cấp chỉ mục nơi một hàng mới sẽ được thêm vào.
+                    row_index_for_new_item = self.model.rowCount()
+
+                    print(
+                        f"DEBUG: [{self.__class__.__name__}.import_data] Item {i+1}: Đang cố gắng chèn hàng tại chỉ mục {row_index_for_new_item}..."
+                    )  # Thêm debug
+
+                    if not self.model.insertRow(row_index_for_new_item):
+                        error_text = self.model.lastError().text()
+                        error_msg = (
+                            f"[{self.__class__.__name__}.import_data] Thất bại khi chèn hàng {row_index_for_new_item} "
+                            f"vào bộ nhớ đệm của model cho item {i+1} (PID: {getattr(record_instance, 'pid', 'N/A')}). "
+                            f"Lỗi Model: {error_text if error_text else 'Không có thông báo lỗi cụ thể từ model.'}"
+                        )
+                        print(f"ERROR: {error_msg}")
                         raise RuntimeError(error_msg)
-                    if not self.model.insertRow(row):
-                        error_msg = f"[{self.__class__.__name__}.import_data] Failed to insert row into model buffer. Error: {self.model.lastError().text()}"
-                        raise RuntimeError(error_msg)
-                    self._fill_row_from_payload(row, record_instance)
+
+                    # Điền hàng vừa chèn vào bộ nhớ đệm của model bằng dữ liệu từ payload
+                    self._fill_row_from_payload(row_index_for_new_item, record_instance)
+                    print(
+                        f"DEBUG: [{self.__class__.__name__}.import_data] Item {i+1}: Hàng {row_index_for_new_item} đã được điền thành công trong bộ nhớ đệm."
+                    )  # Thêm debug
+
+                # --- Gửi tất cả các thay đổi đã đệm vào cơ sở dữ liệu sau khi tất cả các hàng được chèn ---
+                print(
+                    f"DEBUG: [{self.__class__.__name__}.import_data] Đang cố gắng submit tất cả {len(payload)} hàng đã đệm..."
+                )  # Thêm debug
                 if not self.model.submitAll():
-                    error_msg = f"[{self.__class__.__name__}.import_data] Failed to submit insertions. Error: {self.model.lastError().text()}"
+                    error_text = self.model.lastError().text()
+                    error_msg = (
+                        f"[{self.__class__.__name__}.import_data] Thất bại khi submit tất cả {len(payload)} "
+                        f"các lần chèn vào cơ sở dữ liệu. Lỗi Cơ sở dữ liệu: {error_text if error_text else 'Không có thông báo lỗi cụ thể từ model.'}"
+                    )
+                    print(f"ERROR: {error_msg}")
                     raise RuntimeError(error_msg)
+
+            # Nếu giao dịch thành công, làm mới model để hiển thị dữ liệu mới được thêm từ DB
             self.model.select()
-            return True
-        except Exception as e:
-            exception_msg = (
-                f"[{self.__class__.__name__}.import_data] Transaction failed: {e}"
+            print(
+                f"INFO: [{self.__class__.__name__}.import_data] Đã nhập thành công {len(payload)} bản ghi."
             )
-            print(exception_msg)
-            self.model.revertAll()
-            self.model.select()
+            return True
+
+        except (
+            RuntimeError
+        ) as e:  # Bắt RuntimeError cụ thể từ các lần raise rõ ràng của chúng ta
+            print(
+                f"ERROR: [{self.__class__.__name__}.import_data] Giao dịch nhập thất bại: {e}"
+            )
+            self.model.revertAll()  # Hoàn tác mọi thay đổi đang chờ xử lý trong bộ nhớ đệm của model
+            self.model.select()  # Làm mới model từ DB để xóa mọi trạng thái lỗi
+            return False
+        except (
+            Exception
+        ) as e:  # Bắt bất kỳ ngoại lệ không mong đợi nào khác trong quá trình nhập
+            print(
+                f"CRITICAL ERROR: [{self.__class__.__name__}.import_data] Đã xảy ra lỗi không mong đợi: {e}",
+                file=sys.stderr,
+            )  # In ra stderr
+            self.model.revertAll()  # Hoàn tác mọi thay đổi đang chờ xử lý
+            self.model.select()  # Làm mới model
             return False
 
     def _find_by_model_index(self, find_method_name: str, value: Any) -> Optional[Any]:

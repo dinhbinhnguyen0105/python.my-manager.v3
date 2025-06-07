@@ -1,0 +1,56 @@
+"Tạo 1 mẫu cho `part = \"title\"` và 1 mẫu cho `part = \"description\"` cho bài đăng bất động sản.
+
+- `transaction_type` lần lượt là \"bán\", \"cho thuê\".
+
+- `category` lần lượt là \"nhà phố\", \"nhà mặt tiền\", \"căn hộ/chung cư\", \"biệt thự\", \"đất nền\", \"kho/bãi\", \"MBKD\", \"khách sạn\", \"homestay\".
+
+Các mẫu phải tuân thủ các quy tắc sau:
+
+Đối với `category = \"căn hộ/chung cư\"`, `category = \"kho/bãi\",  `category = \"mặt bằng kinh doanh\"`:
+- **Không được chứa trường `<structure>`**.
+
+Đối với `category = \"kho/bãi\",  `category = \"mặt bằng kinh doanh\"`:
+- **Không được chứa trường `<function>`, <furniture>**.
+
+
+Đối với `transaction_type = \"cho thuê\"`:
+- **Không được chứa trường `legal`**.
+- **Bỏ qua category = \"đất nền\"
+
+
+Đối với `part = \"title\"`:
+
+- Chuỗi `value` phải **dưới 100 ký tự**.
+- Chuỗi `value` phải bắt đầu bằng \"[<transaction_type> <category> giá <price> <unit>]\"
+
+- **Không được chứa trường `description`**.
+
+- Trường `price` phải **luôn đi cùng trường `unit`** (ví dụ: `<price> <unit>`).
+
+
+
+Đối với `part = \"description\"`:
+
+- Phải **luôn có trường `pid`**.
+
+- Phải **luôn thêm \"Liên hệ: 0375.155.525 - ĐB\"** ở cuối chuỗi `value`.
+
+
+
+Chỉ được sử dụng các trường sau làm placeholder (keyword) trong các chuỗi `value`:
+
+`pid`, `province`, `district`, `ward`, `street`, `category`, `area`, `price`, `legal`, `structure`, `function`, `building_line`, `furniture`, `description`, `unit`, `icon`.
+
+
+
+**Không thêm bất kỳ thông tin cụ thể nào** không được đại diện trực tiếp bởi các trường trên (ví dụ: không ghi \"có gara\", \"đường xe hơi\", \"nhà mặt tiền\", \"phòng ngủ\" trừ khi bạn có trường `n_bedroom` hoặc `n_garage` cho phép)."
+**Yêu cầu kết quả là dữ liệu dang .json. với mỗi item {
+        "id": null,
+        "is_default": 0,
+        "transaction_type": \"transaction_type"\,
+        "category": \"category"\,
+        "part": "description", hoặc "part": "title",
+        "value": \"transaction_type"\,
+        "created_at": "thời gian hiện tại (2025-06-07 22:33:28.644642)",
+        "updated_at": "thời gian hiện tại (2025-06-07 22:33:28.644642)",
+    }**
