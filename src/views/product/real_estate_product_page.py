@@ -2,13 +2,12 @@
 import os, sys
 from typing import List, Optional
 from PyQt6.QtGui import QAction, QPixmap, QMouseEvent, QShortcut, QKeySequence
-from PyQt6.QtWidgets import QWidget, QMenu, QMessageBox, QFileDialog
+from PyQt6.QtWidgets import QWidget, QMenu, QMessageBox
 from PyQt6.QtCore import (
     Qt,
     pyqtSlot,
     QPoint,
     QItemSelection,
-    QUrl,
 )
 from src.controllers.product_controller import (
     RealEstateProductController,
@@ -374,6 +373,7 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
     def display_image(self, image_paths: List[str]):
         if not len(image_paths):
             self.image_label.setText("Failed to load image.")
+            return
         pixmap = QPixmap(image_paths[0])
         if not pixmap.isNull():
             self.image_label.setPixmap(
@@ -402,8 +402,18 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
 
     @pyqtSlot()
     def on_export_clicked(self):
-        file_path = dialog_open_file(self)
+        file_path = dialog_save_file(self)
+        is_exported = self._product_controller.export_to_file(file_path=file_path)
+        if is_exported:
+            QMessageBox.about(self, "Exported file", f"Export to {file_path}")
+        else:
+            QMessageBox.critical(self, "Error", "Failed to export data")
 
     @pyqtSlot()
     def on_import_clicked(self):
-        file_path = dialog_save_file(self)
+        file_path = dialog_open_file(self)
+        is_imported = self._product_controller.import_products(file_path)
+        if is_imported:
+            QMessageBox.about(self, "Imported file", f"Import to {file_path}")
+        else:
+            QMessageBox.critical(self, "Error", "Failed to import data")

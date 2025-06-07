@@ -1,6 +1,6 @@
 # src/views/robot/robot_page.py
 from typing import List, Optional, Dict
-from PyQt6.QtWidgets import QWidget, QLineEdit, QCompleter, QTreeWidgetItem
+from PyQt6.QtWidgets import QWidget, QLineEdit, QCompleter, QTreeWidgetItem, QMessageBox
 from PyQt6.QtCore import Qt, pyqtSlot, QStringListModel
 from PyQt6.QtGui import QShortcut, QKeySequence
 
@@ -38,6 +38,7 @@ class RobotPage(QWidget, Ui_PageRobot):
     def setup_ui(self):
         self.set_user_table()
         self.set_action_tree()
+        self.actions_container.setMaximumWidth(480)
         self.log_message.setHidden(True)
 
     def setup_events(self):

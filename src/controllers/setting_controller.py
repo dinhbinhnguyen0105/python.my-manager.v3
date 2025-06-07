@@ -91,16 +91,8 @@ class SettingProxyController(BaseController):
             )
             return False
 
-    def import_proxies(self, proxies: List[SettingProxyType]):
-        try:
-            self.service.import_data(proxies)
-            self.success_signal.emit("Successfully imported proxy settings.")
-            self.data_changed_signal.emit()
-            return True
-        except Exception as e:
-            print(f"[{self.__class__.__name__}.import_proxies] Error: {e}")
-            self.error_signal.emit("Error occurred while importing proxy settings.")
-            return False
+    def import_products(self, file_path):
+        return super().import_products(file_path, SettingProxyType)
 
 
 class SettingUserDataDirController(BaseController):
@@ -210,19 +202,6 @@ class SettingUserDataDirController(BaseController):
             )
             return False
 
-    def import_user_data_dirs(self, data_dirs: List[SettingUserDataDirType]):
-        try:
-            self.service.import_data(data_dirs)
-            self.success_signal.emit("Successfully imported user data dir settings.")
-            self.data_changed_signal.emit()
-            return True
-        except Exception as e:
-            print(f"[{self.__class__.__name__}.import_user_data_dirs] Error: {e}")
-            self.error_signal.emit(
-                "Error occurred while importing user data dir settings."
-            )
-            return False
-
     def get_selected_user_data_dir(self):
         try:
             udd = None
@@ -270,3 +249,6 @@ class SettingUserDataDirController(BaseController):
                 f"An error occurred while setting user data directory for record ID {record_id}. Error: {e}"
             )
             return False
+
+    def import_products(self, file_path):
+        return super().import_products(file_path, SettingUserDataDirType)

@@ -112,19 +112,6 @@ class RealEstateProductController(BaseController):
             )
             return False
 
-    def import_products(self, products: List[RealEstateProductType]):
-        try:
-            self.service.import_data(products)
-            self.success_signal.emit("Successfully imported real estate products.")
-            self.data_changed_signal.emit()
-            return True
-        except Exception as e:
-            print(f"[{self.__class__.__name__}.import_products] Error: {e}")
-            self.error_signal.emit(
-                "Error occurred while importing real estate products."
-            )
-            return False
-
     def toggle_status(self, product_id: int) -> bool:
         try:
             result = self.service.toggle_status(product_id)
@@ -207,6 +194,9 @@ class RealEstateProductController(BaseController):
             # If an error occurs, it's safer to return None or handle the error propagation appropriately.
             # Returning an empty list for a single product type might be misleading.
             return None
+
+    def import_products(self, file_path):
+        return super().import_products(file_path, RealEstateProductType)
 
 
 class RealEstateTemplateController(BaseController):
@@ -384,6 +374,9 @@ class RealEstateTemplateController(BaseController):
                 f"Error occurred while setting default template: {e}"
             )
             return False
+
+    def import_products(self, file_path):
+        return super().import_products(file_path, RealEstateTemplateType)
 
 
 class MiscProductController(BaseController):

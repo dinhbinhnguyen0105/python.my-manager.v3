@@ -18,6 +18,7 @@ from src.ui.page_user_ui import Ui_PageUser
 from src.views.user.dialog_create_user import DialogCreateUser
 from src.views.user.dialog_update_user import DialogUpdateUser
 from src.views.utils.multi_field_model import MultiFieldFilterProxyModel
+from src.views.utils.file_dialogs import dialog_open_file, dialog_save_file
 
 
 class UserPage(QWidget, Ui_PageUser):
@@ -47,11 +48,12 @@ class UserPage(QWidget, Ui_PageUser):
         self.set_user_table()
 
     def setup_events(self):
-        self.action_create_btn.clicked.connect(self.on_create_user)
         self.set_filters()
-        # Đăng ký phím tắt Ctrl+N để tạo user mới
+        self.action_create_btn.clicked.connect(self.on_create_user)
         shortcut = QShortcut(QKeySequence("Ctrl+N"), self)
         shortcut.activated.connect(self.on_create_user)
+        self.action_import_btn.clicked.connect(self.on_import_clicked)
+        self.action_export_btn.clicked.connect(self.on_export_clicked)
 
     def set_user_table(self):
         self.users_table.setModel(self.proxy_model)
@@ -275,3 +277,21 @@ class UserPage(QWidget, Ui_PageUser):
             is_mobile=is_mobile,
             url="",
         )
+
+    @pyqtSlot()
+    def on_export_clicked(self):
+        file_path = dialog_save_file(self)
+        is_exported = self._user_controller.export_to_file(file_path=file_path)
+        if is_exported:
+            QMessageBox.about(self, "Exported file", f"Export to {file_path}")
+        else:
+            QMessageBox.critical(self, "Error", "Failed to export data")
+
+    @pyqtSlot()
+    def on_import_clicked(self):
+        file_path = dialog_open_file(self)
+        is_imported = self._user_controller.import_products(file_path)
+        if is_imported:
+            QMessageBox.about(self, "Imported file", f"Import to {file_path}")
+        else:
+            QMessageBox.critical(self, "Error", "Failed to import data")

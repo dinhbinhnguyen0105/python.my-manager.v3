@@ -1,6 +1,6 @@
 # src/views/mainwindow.py
 from PyQt6.QtCore import Qt, pyqtSlot
-from PyQt6.QtWidgets import QMainWindow, QLabel
+from PyQt6.QtWidgets import QMainWindow, QLabel, QMessageBox
 from PyQt6.QtCore import QTimer
 
 from src.my_types import (
@@ -26,6 +26,7 @@ from src.views.user.user_page import UserPage
 from src.views.robot.robot_page import RobotPage
 from src.views.settings.dialog_settings import DialogSettings
 from src.ui.mainwindow_ui import Ui_MainWindow
+from src.views.utils.file_dialogs import dialog_open_file, dialog_save_file
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -117,7 +118,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.content_container.addWidget(self.user_page)
         self.content_container.addWidget(self.robot_page)
 
-        self.content_container.setCurrentWidget(self.robot_page)
+        self.content_container.setCurrentWidget(self.user_page)
 
     def setup_events(self):
         self.sidebar_re_btn.clicked.connect(
@@ -169,7 +170,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog_settings.re_template_set_default_signal.connect(
             self.handle_set_to_default
         )
-
+        dialog_settings.export_signal.connect(self.on_export_clicked)
+        dialog_settings.import_signal.connect(self.on_import_clicked)
         dialog_settings.exec()
 
     @pyqtSlot(SettingProxyType)
@@ -205,6 +207,42 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     @pyqtSlot(int)
     def handle_set_to_default(self, record_id: int):
         self._real_estate_template_controller.set_default_template(record_id)
+
+    @pyqtSlot(str)
+    def on_export_clicked(self, setting_option: str):
+        file_path = dialog_save_file(self)
+        current_controller = None
+        if "udd" == setting_option:
+            current_controller = self._setting_user_data_dir_controller
+        elif "proxy" == setting_option:
+            current_controller = self._setting_proxy_controller
+        elif "re_template" == setting_option:
+            current_controller = self._real_estate_template_controller
+        else:
+            return
+        is_exported = current_controller.export_to_file(file_path=file_path)
+        if is_exported:
+            QMessageBox.about(self, "Exported file", f"Export to {file_path}")
+        else:
+            QMessageBox.critical(self, "Error", "Failed to export data")
+
+    @pyqtSlot(str)
+    def on_import_clicked(self, setting_option: str):
+        file_path = dialog_open_file(self)
+        current_controller = None
+        if "udd" == setting_option:
+            current_controller = self._setting_user_data_dir_controller
+        elif "proxy" == setting_option:
+            current_controller = self._setting_proxy_controller
+        elif "re_template" == setting_option:
+            current_controller = self._real_estate_template_controller
+        else:
+            return
+        is_imported = current_controller.import_products(file_path)
+        if is_imported:
+            QMessageBox.about(self, "Imported file", f"Import to {file_path}")
+        else:
+            QMessageBox.critical(self, "Error", "Failed to import data")
 
     @pyqtSlot(str, str, int)
     def set_status_bar(self, message: str, color: str, time_out: int):

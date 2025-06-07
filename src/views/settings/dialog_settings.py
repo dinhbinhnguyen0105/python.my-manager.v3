@@ -1,5 +1,5 @@
 # src/views/settings/dialog_settings.py
-from typing import List
+from typing import Union
 from PyQt6.QtCore import Qt, pyqtSlot, pyqtSignal, QPoint
 from PyQt6.QtWidgets import QDialog, QMenu
 from PyQt6.QtGui import QAction
@@ -25,6 +25,8 @@ class DialogSettings(QDialog, Ui_Dialog_Settings):
     delete_re_template_signal = pyqtSignal(int)
     set_udd_selected_signal = pyqtSignal(int)
     re_template_set_default_signal = pyqtSignal(int)
+    import_signal = pyqtSignal(str)
+    export_signal = pyqtSignal(str)
 
     def __init__(
         self,
@@ -63,6 +65,12 @@ class DialogSettings(QDialog, Ui_Dialog_Settings):
             lambda: self.on_setting_option_clicked("re_template")
         )
         self.create_new_btn.clicked.connect(self.on_save_clicked)
+        self.action_import_btn.clicked.connect(
+            lambda: self.import_signal.emit(self.current_setting_option)
+        )
+        self.action_export_btn.clicked.connect(
+            lambda: self.export_signal.emit(self.current_setting_option)
+        )
 
     def set_table_ui(self):
         self.tableView.setSortingEnabled(True)
