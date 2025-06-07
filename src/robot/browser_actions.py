@@ -25,13 +25,18 @@ def do_marketplace(
     page: Page, task: RobotTaskType, settings: dict, signals: BrowserWorkerSignals
 ):
     try:
-        print(settings)
-        total_progress = 10
+        total_progress = 12
         msg = f"[{task.user_info.username}] Performing {task.action_name}"
         signals.progress_signal.emit(task, msg, 0, total_progress)
         is_listed_on_marketplace = handle_list_on_marketplace(
             page, task, signals, total_progress
         )
+        if is_listed_on_marketplace:
+            is_listed_on_more_place = handle_list_on_more_place(
+                page, task, signals, total_progress
+            )
+            sleep(60)
+            return is_listed_on_more_place
         return is_listed_on_marketplace
     except Exception as e:
         signals.error_signal.emit(task, str(e))
@@ -63,18 +68,18 @@ def click_button(page: Page, btn_selector: Any, timeout: int) -> bool:
             locator.first.click(timeout=current_timeout)
             return {
                 "status": True,
-                "message": "✔️ Clicked the Next button successfully.",
+                "message": "✔️ Clicked button successfully.",
             }
 
         except PlaywrightTimeoutError:
             return {
                 "status": False,
-                "message": f"❌ Could not click the Next button within {current_timeout/1000}s.",
+                "message": f"❌ Could not click button within {current_timeout/1000}s.",
             }
         except Exception as e:
             return {
                 "status": False,
-                "message": f"❌ Unexpected error when clicking the Next button: {e}",
+                "message": f"❌ Unexpected error when clicking button: {e}",
             }
 
     clicked_result = try_click_btn(btn_locator, timeout)
@@ -232,8 +237,44 @@ def handle_list_on_more_place(
     total_progress: int,
 ):
     try:
+        msg = f"[{task.user_info.username}] Start list on more place"
+        signals.progress_signal.emit(task, msg, 11, total_progress)
 
-        return True
+        page_language = page.locator("html").get_attribute("lang")
+        if page_language != "en":
+            failed_msg = (
+                f"Cannot start {task.action_name}. Please switch language to English."
+            )
+            signals.failed_signal.emit(task, failed_msg)
+            return False
+
+        marketplace_forms = page.locator(selectors.S_MARKETPLACE_FORM)
+        marketplace_form = None
+        for marketplace_form in marketplace_forms.all():
+            if marketplace_form.is_visible() and marketplace_form.is_enabled():
+                break
+        if not marketplace_form:
+            failed_msg = f"[{task.user_info.username}] {selectors.S_MARKETPLACE_FORM} is not found or is not interactive."
+            signals.failed_signal.emit(task, failed_msg)
+            return False
+
+        checkbox_locators = marketplace_form.locator(selectors.S_CHECK_BOX)
+        for checkbox_locator in checkbox_locators.all():
+            if checkbox_locator.is_visible() and checkbox_locator.is_enabled():
+                sleep(random.uniform(0.2, 0.8))
+                checkbox_locator.scroll_into_view_if_needed()
+                sleep(random.uniform(0.2, 0.8))
+                checkbox_locator.click()
+
+        clicked_publish_result = click_button(page, selectors.S_PUBLISH_BUTTON, MIN)
+        if clicked_publish_result["status"]:
+            signals.progress_signal.emit(
+                task, clicked_publish_result["message"], 12, total_progress
+            )
+            return True
+        else:
+            signals.failed_signal.emit(task, clicked_publish_result["message"])
+            return False
     except Exception as e:
         signals.error_signal.emit(task, str(e))
         return False

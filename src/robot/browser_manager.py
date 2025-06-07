@@ -39,7 +39,6 @@ class BrowserManager(QObject):
     def set_settings(self, settings: dict):
         self.settings = settings
 
-    @pyqtSlot(list, list)
     def add_browsers(self, list_browser: List[BrowserType], list_raw_proxy: List[str]):
         existing_uid = set(
             browser.user_info.uid for browser in self._pending_browsers
