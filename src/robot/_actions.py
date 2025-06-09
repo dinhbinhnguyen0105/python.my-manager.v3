@@ -92,8 +92,6 @@ def do_discussion(
             try:
                 tablist_locator.first.wait_for(state="attached", timeout=5_000)
             except:
-                # print(tablist_locator.first.wait_for(state="attached", timeout=5_000))
-                # page.wait_for_event("close", timeout=0)
                 continue
             tab_locators = tablist_locator.first.locator(selectors.S_TABLIST_TAB)
             is_discussion = False
@@ -101,8 +99,6 @@ def do_discussion(
                 is_discussion = True
                 tab_url = tab_locator.get_attribute("href", timeout=5_000)
                 if not tab_url:
-                    # print('tab_locator.get_attribute("href", timeout=5_000)')
-                    # page.wait_for_event("close", timeout=0)
                     continue
                 tab_url = tab_url[:-1] if tab_url.endswith("/") else tab_url
                 if tab_url.endswith == "buy_sell_discussion":
@@ -181,12 +177,9 @@ def do_discussion(
                     selectors.S_POST_BUTTON
                 )
 
-                # ?not true?
                 dialog_container_locator.locator(
                     f"{selectors.S_POST_BUTTON}[aria-disabled]"
                 ).wait_for(state="detached", timeout=30_000)
-
-                # :not([aria-disabled])
                 post_btn_locators.first.click()
                 dialog_container_locator.wait_for(state="detached", timeout=MIN)
                 random_sleep(1, 3)

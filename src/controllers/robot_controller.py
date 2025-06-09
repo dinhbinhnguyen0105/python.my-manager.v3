@@ -80,7 +80,6 @@ class RobotController(BaseController):
                         elif "misc." in user_type.lower():
                             # TODO get random misc.
                             raise RuntimeError("Invalid logic for misc")
-
                     if type(product) == RealEstateProductType:
                         temp_title = self._re_template_service.get_random(
                             part="title",
