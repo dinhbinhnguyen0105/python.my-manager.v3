@@ -20,6 +20,10 @@ def do_launch_browser(
             if settings.get("raw_proxy"):
                 signals.proxy_not_ready_signal.emit(task, settings.get("raw_proxy"))
             return False
+        except Exception as e:
+            if "ERR_ABORTED" in str(e):
+                pass
+
         page.wait_for_event("close", timeout=0)
         signals.progress_signal.emit(task, "Closed!", 1, 1)
         return True
@@ -45,11 +49,11 @@ def do_marketplace(
                 signals.proxy_not_ready_signal.emit(task, settings.get("raw_proxy"))
             return False
         is_listed_on_marketplace = handle_list_on_marketplace(
-            page, task, signals, total_progress
+            page, task, signals, settings, total_progress
         )
         if is_listed_on_marketplace:
             is_listed_on_more_place = handle_list_on_more_place(
-                page, task, signals, total_progress
+                page, task, signals, settings, total_progress
             )
             sleep(60)
             return is_listed_on_more_place
@@ -110,6 +114,7 @@ def handle_list_on_marketplace(
     page: Page,
     task: RobotTaskType,
     signals: BrowserWorkerSignals,
+    settings: dict,
     total_progress: int,
 ) -> bool:
     def emit_progress(msg: str, current_progress: int):
@@ -117,13 +122,13 @@ def handle_list_on_marketplace(
         signals.progress_signal.emit(task, msg, current_progress, total_progress)
 
     try:
-        emit_progress("Start listing on marketplace", 1)
+        emit_progress(" ✔️Start listing on marketplace", 1)
         page_language = page.locator("html").get_attribute("lang")
         if page_language != "en":
             failed_msg = (
                 f"Cannot start {task.action_name}. Please switch language to English."
             )
-            signals.failed_signal.emit(task, failed_msg)
+            signals.failed_signal.emit(task, failed_msg, settings.get("raw_proxy"))
             return False
 
         marketplace_forms = page.locator(selectors.S_MARKETPLACE_FORM)
@@ -133,7 +138,7 @@ def handle_list_on_marketplace(
                 break
         if not marketplace_form:
             failed_msg = f"[{task.user_info.username}] {selectors.S_MARKETPLACE_FORM} is not found or is not interactive."
-            signals.failed_signal.emit(task, failed_msg)
+            signals.failed_signal.emit(task, failed_msg, settings.get("raw_proxy"))
             return False
 
         close_dialog(page)
@@ -142,7 +147,7 @@ def handle_list_on_marketplace(
         expand_btn_locators.first.scroll_into_view_if_needed()
         sleep(random.uniform(0.2, 1.5))
         expand_btn_locators.first.click(timeout=MIN)
-        emit_progress("Clicked the more details button", 2)
+        emit_progress(" ✔️Clicked the more details button", 2)
 
         description_locators = marketplace_form.locator(selectors.S_TEXTAREA)
         sleep(random.uniform(0.2, 1.5))
@@ -151,7 +156,7 @@ def handle_list_on_marketplace(
         description_locators.first.fill(
             value=task.action_payload.description, timeout=MIN
         )
-        emit_progress("Filled data into the description field.", 3)
+        emit_progress(" ✔️Filled data into the description field.", 3)
 
         input_text_locators = marketplace_form.locator(selectors.S_INPUT_TEXT)
         title_locator = input_text_locators.nth(0)
@@ -162,14 +167,14 @@ def handle_list_on_marketplace(
         title_locator.scroll_into_view_if_needed()
         sleep(random.uniform(0.2, 1.5))
         title_locator.fill(value=task.action_payload.title, timeout=MIN)
-        emit_progress("Filled data into the title field.", 4)
+        emit_progress(" ✔️Filled data into the title field.", 4)
 
         sleep(random.uniform(0.2, 1.5))
         price_locator.scroll_into_view_if_needed()
         sleep(random.uniform(0.2, 1.5))
         price_locator.fill(value="0", timeout=MIN)
         sleep(random.uniform(0.2, 1.5))
-        emit_progress("Filled data into the price field.", 5)
+        emit_progress(" ✔️Filled data into the price field.", 5)
 
         location_locator.scroll_into_view_if_needed()
         sleep(random.uniform(0.2, 1.5))
@@ -187,7 +192,7 @@ def handle_list_on_marketplace(
         location_option_locators.first.scroll_into_view_if_needed()
         sleep(random.uniform(0.2, 1.5))
         location_option_locators.first.click(timeout=MIN)
-        emit_progress("Filled data into the location field.", 6)
+        emit_progress(" ✔️Filled data into the location field.", 6)
 
         combobox_locators = page.locator(selectors.S_LABEL_COMBOBOX_LISTBOX)
         category_locator = combobox_locators.nth(0)
@@ -208,7 +213,7 @@ def handle_list_on_marketplace(
         dialog_misc_button_locator.scroll_into_view_if_needed()
         dialog_misc_button_locator.click(timeout=MIN)
         dialog_locators.wait_for(state="detached")
-        emit_progress("Filled data into the category field.", 7)
+        emit_progress(" ✔️Filled data into the category field.", 7)
 
         sleep(random.uniform(0.2, 1.5))
         condition_locator.scroll_into_view_if_needed()
@@ -223,19 +228,21 @@ def handle_list_on_marketplace(
         sleep(random.uniform(0.2, 1.5))
         listbox_option_locators.first.click(timeout=MIN)
         dialog_locators.wait_for(state="detached")
-        emit_progress("Filled data into the condition field.", 8)
+        emit_progress(" ✔️Filled data into the condition field.", 8)
 
         image_input_locators = marketplace_form.locator(selectors.S_IMG_INPUT)
         sleep(random.uniform(0.2, 1.5))
         image_input_locators.first.set_input_files(task.action_payload.image_paths)
-        emit_progress("Filled data into the images field.", 9)
+        emit_progress(" ✔️Filled data into the images field.", 9)
 
         clicked_next_result = click_button(page, selectors.S_NEXT_BUTTON, MIN)
         if clicked_next_result["status"]:
             emit_progress(clicked_next_result["message"], 10)
             return True
         else:
-            signals.failed_signal.emit(task, clicked_next_result["message"])
+            signals.failed_signal.emit(
+                task, clicked_next_result["message"], settings.get("raw_proxy")
+            )
             return False
     except Exception as e:
         signals.error_signal.emit(task, str(e))
@@ -246,6 +253,7 @@ def handle_list_on_more_place(
     page: Page,
     task: RobotTaskType,
     signals: BrowserWorkerSignals,
+    settings: dict,
     total_progress: int,
 ):
     try:
@@ -257,7 +265,7 @@ def handle_list_on_more_place(
             failed_msg = (
                 f"Cannot start {task.action_name}. Please switch language to English."
             )
-            signals.failed_signal.emit(task, failed_msg)
+            signals.failed_signal.emit(task, failed_msg, settings.get("raw_proxy"))
             return False
 
         marketplace_forms = page.locator(selectors.S_MARKETPLACE_FORM)
@@ -267,7 +275,7 @@ def handle_list_on_more_place(
                 break
         if not marketplace_form:
             failed_msg = f"[{task.user_info.username}] {selectors.S_MARKETPLACE_FORM} is not found or is not interactive."
-            signals.failed_signal.emit(task, failed_msg)
+            signals.failed_signal.emit(task, failed_msg, settings.get("raw_proxy"))
             return False
 
         checkbox_locators = marketplace_form.locator(selectors.S_CHECK_BOX)
@@ -281,11 +289,16 @@ def handle_list_on_more_place(
         clicked_publish_result = click_button(page, selectors.S_PUBLISH_BUTTON, MIN)
         if clicked_publish_result["status"]:
             signals.progress_signal.emit(
-                task, clicked_publish_result["message"], 12, total_progress
+                task,
+                f"[{task.user_info.username}] {clicked_publish_result["message"]}",
+                12,
+                total_progress,
             )
             return True
         else:
-            signals.failed_signal.emit(task, clicked_publish_result["message"])
+            signals.failed_signal.emit(
+                task, clicked_publish_result["message"], settings.get("raw_proxy")
+            )
             return False
     except Exception as e:
         signals.error_signal.emit(task, str(e))

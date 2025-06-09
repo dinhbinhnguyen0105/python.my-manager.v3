@@ -18,6 +18,7 @@ class ActionPayload(QWidget, Ui_ActionPayloadContainer):
         self.image_paths = []
         self.setup_ui()
         self.setup_events()
+        self.open_images_btn.setAcceptDrops(True)  # Cho phép kéo-thả lên nút
 
     def setup_ui(self):
         for key, value in ROBOT_ACTION_NAMES.items():
@@ -32,6 +33,9 @@ class ActionPayload(QWidget, Ui_ActionPayloadContainer):
         self.options_combobox.currentIndexChanged.connect(self.on_options_changed)
         self.open_images_btn.clicked.connect(self.on_open_images_clicked)
         self.delete_btn.clicked.connect(self.on_delete_clicked)
+        # Gán lại các event handler cho drag & drop
+        self.open_images_btn.dragEnterEvent = self.open_images_btn_dragEnterEvent
+        self.open_images_btn.dropEvent = self.open_images_btn_dropEvent
 
     def get_values(self):
         results = {
@@ -80,3 +84,31 @@ class ActionPayload(QWidget, Ui_ActionPayloadContainer):
     @pyqtSlot()
     def on_delete_clicked(self):
         self.deleteLater()
+
+    # --- Drag & Drop event handlers for open_images_btn ---
+    def open_images_btn_dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            # Chỉ chấp nhận nếu có file ảnh
+            for url in event.mimeData().urls():
+                if (
+                    url.toLocalFile()
+                    .lower()
+                    .endswith((".png", ".jpg", ".jpeg", ".gif"))
+                ):
+                    event.acceptProposedAction()
+                    return
+        event.ignore()
+
+    def open_images_btn_dropEvent(self, event):
+        urls = event.mimeData().urls()
+        image_paths = []
+        for url in urls:
+            path = url.toLocalFile()
+            if path.lower().endswith((".png", ".jpg", ".jpeg", ".gif")):
+                image_paths.append(path)
+        if image_paths:
+            self.image_paths = image_paths
+            self.list_images.clear()
+            self.list_images.setVisible(True)
+            self.list_images.addItems(self.image_paths)
+        event.acceptProposedAction()

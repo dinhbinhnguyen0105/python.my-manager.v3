@@ -92,12 +92,18 @@ class BrowserWorker(QRunnable):
                         )
 
                 if not is_succeeded:
+                    self._signals.failed_signal.emit(
+                        self._browser,
+                        "Failed",
+                        self._raw_proxy,
+                    )
                     sleep(60)
-                self._signals.succeeded_signal.emit(
-                    self._browser,
-                    ("Succeeded" if is_succeeded else "Failed"),
-                    self._raw_proxy,
-                )
+                else:
+                    self._signals.succeeded_signal.emit(
+                        self._browser,
+                        "Succeeded",
+                        self._raw_proxy,
+                    )
             except Exception as e:
                 self._signals.error_signal.emit(self._browser, str(e))
 

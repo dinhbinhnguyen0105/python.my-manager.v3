@@ -281,6 +281,8 @@ class UserPage(QWidget, Ui_PageUser):
     @pyqtSlot()
     def on_export_clicked(self):
         file_path = dialog_save_file(self)
+        if not file_path:
+            return
         is_exported = self._user_controller.export_to_file(file_path=file_path)
         if is_exported:
             QMessageBox.about(self, "Exported file", f"Export to {file_path}")
@@ -290,6 +292,8 @@ class UserPage(QWidget, Ui_PageUser):
     @pyqtSlot()
     def on_import_clicked(self):
         file_path = dialog_open_file(self)
+        if not file_path:
+            return
         is_imported = self._user_controller.import_products(file_path)
         if is_imported:
             QMessageBox.about(self, "Imported file", f"Import to {file_path}")

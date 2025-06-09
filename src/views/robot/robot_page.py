@@ -132,7 +132,7 @@ class RobotPage(QWidget, Ui_PageRobot):
         return selected_users_data
 
     def set_action_tree(self):
-        # TODO set actions_tree
+        self.actions_tree.setMaximumWidth(300)
         pass
 
     def set_pid_completer(self, line_edit: QLineEdit, parent: QWidget):

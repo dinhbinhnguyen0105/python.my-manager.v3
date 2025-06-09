@@ -123,7 +123,7 @@ class BrowserWorkerSignals(QObject):
     progress_signal = pyqtSignal(
         BrowserType, str, int, int
     )  # task, message, current_progress, total_progress
-    failed_signal = pyqtSignal(BrowserType, str)  # task, message
+    failed_signal = pyqtSignal(BrowserType, str, str)  # task, message, raw_proxy
     error_signal = pyqtSignal(BrowserType, str)  # task, message
     succeeded_signal = pyqtSignal(BrowserType, str, str)  # task, message, raw_proxy
     proxy_unavailable_signal = pyqtSignal(BrowserType, str)  # task, raw_proxy

@@ -20,7 +20,7 @@ from src.my_types import (
 )
 from src.my_constants import RE_TRANSACTION
 
-from src.utils.re_template import replace_template
+from src.utils.re_template import replace_template, init_footer_content
 
 
 class RobotController(BaseController):
@@ -51,9 +51,7 @@ class RobotController(BaseController):
         browser_actions = {}
         re_products = self._re_product_service.read_all()
         misc_products = self._misc_product_service.read_all()
-        products = []
-        products.append(re_products)
-        products.append(misc_products)
+        products = re_products + misc_products
 
         for user_data in list_user_data:
             user_type = user_data.type.strip().lower()
@@ -63,18 +61,26 @@ class RobotController(BaseController):
                     pid = action["pid"]
                     action_payload: Optional[SellPayloadType] = None
                     product = None
-                    if not pid or not any(product.pid == pid for product in products):
-                        if user_type == "re.s":
+                    if pid:
+                        product_type = pid.split(".")[0]
+                        if "re" in product_type.lower():
+                            product = self._re_product_service.read_by_pid(pid)
+                        elif "misc" in product_type.lower():
+                            # TODO get random misc.
+                            raise RuntimeError("Invalid logic for misc")
+                    if not product:
+                        if "re.s" in user_type.lower():
                             product = self._re_product_service.get_random(
                                 RE_TRANSACTION["sell"]
                             )
-                        elif user_type == "re.r":
+                        elif "re.r" in user_type.lower():
                             product = self._re_product_service.get_random(
                                 RE_TRANSACTION["rent"]
                             )
-                        elif user_type == "misc.":
+                        elif "misc." in user_type.lower():
                             # TODO get random misc.
-                            continue
+                            raise RuntimeError("Invalid logic for misc")
+
                     if type(product) == RealEstateProductType:
                         temp_title = self._re_template_service.get_random(
                             part="title",
@@ -92,11 +98,19 @@ class RobotController(BaseController):
                         desc = replace_template(
                             product_data=product, template=temp_desc
                         )
+                        desc = (
+                            title
+                            + "\n\n"
+                            + desc
+                            + "\n\n"
+                            + init_footer_content(product)
+                        )
                         image_paths = self._re_product_service.get_images_by_path(
                             product.image_dir
                         )
+                        title = title[:90]
                         action_payload = SellPayloadType(
-                            title=title, description=desc, image_paths=image_paths
+                            title=title, description=desc, image_paths=image_paths[:9]
                         )
 
                     elif type(product) == MiscProductType:

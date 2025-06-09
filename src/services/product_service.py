@@ -77,7 +77,7 @@ class RealEstateProductService(BaseService):
     def import_data(self, payload: List[RealEstateProductType]):
         return super().import_data(payload)
 
-    def find_by_pid(self, pid: str) -> Optional[RealEstateProductType]:
+    def read_by_pid(self, pid: str) -> Optional[RealEstateProductType]:
         return self._find_by_model_index(find_method_name="find_row_by_pid", value=pid)
 
     def toggle_status(self, record_id: int) -> bool:
@@ -133,7 +133,7 @@ class RealEstateProductService(BaseService):
                     elif transaction_type == "sang nhượng":
                         pid = "A." + pid
                     pid = "RE." + pid
-                    if not self.find_by_pid(pid):
+                    if not self.read_by_pid(pid):
                         return pid
         except KeyError:
             raise KeyError(
@@ -230,7 +230,7 @@ class RealEstateProductService(BaseService):
         # Giả sử cột transaction_type lưu đúng kiểu dữ liệu, có thể cần chỉnh lại tên cột nếu khác
         sql = f"""
             SELECT id FROM {self.model.tableName()}
-            WHERE transaction_type = ?
+            WHERE transaction_type = ? AND status = 1
             ORDER BY RANDOM() LIMIT 1
         """
         query.prepare(sql)
@@ -480,9 +480,6 @@ class MiscProductService(BaseService):
 
     def import_data(self, payload: List[MiscProductModel]):
         return super().import_data(payload)
-
-    def find_by_pid(self, pid: str) -> Optional[MiscProductModel]:
-        return self._find_by_model_index(find_method_name="find_row_by_pid", value=pid)
 
     def toggle_status(self, record_id: int) -> bool:
         product = self.read(record_id)

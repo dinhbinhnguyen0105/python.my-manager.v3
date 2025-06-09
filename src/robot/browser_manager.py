@@ -111,15 +111,17 @@ class BrowserManager(QObject):
         print(msg)
         self.progress_signal.emit(msg, current_progress, total_progress)
 
-    @pyqtSlot(BrowserType, str)
-    def _on_failed(
-        self,
-        browser: BrowserType,
-        message: str,
-    ):
-        msg = f"[Failed][{browser.user_info.uid}]({browser.action_name}): {message}"
+    @pyqtSlot(BrowserType, str, str)
+    def _on_failed(self, browser: BrowserType, message: str, raw_proxy):
+        msg = (
+            f"⚠️ ⚠️ ⚠️ [Failed][{browser.user_info.uid}]({browser.action_name}): {message}"
+        )
+        print(msg)
         self.failed_signal.emit(msg)
-        pass
+        self._pending_raw_proxies.append(raw_proxy)
+        if browser.user_info.uid in self._in_progress.keys():
+            del self._in_progress[browser.user_info.uid]
+        self._try_start_browsers()
 
     @pyqtSlot(BrowserType, str)
     def _on_error(
@@ -127,7 +129,7 @@ class BrowserManager(QObject):
         browser: BrowserType,
         message: str,
     ):
-        msg = f"[Error][{browser.user_info.uid}]({browser.action_name}): {message}"
+        msg = f"❌ ❌ ❌ [Error][{browser.user_info.uid}]({browser.action_name}): {message}"
         print(msg)
         self.error_signal.emit(msg)
 
@@ -138,7 +140,9 @@ class BrowserManager(QObject):
         message: str,
         raw_proxy: str,
     ):
-        msg = f"[Succeeded][{browser.user_info.uid}]({browser.action_name}): {message}"
+        msg = (
+            f"✅ [Succeeded][{browser.user_info.uid}]({browser.action_name}): {message}"
+        )
         print(msg)
         self.succeeded_signal.emit(msg)
         self._pending_raw_proxies.append(raw_proxy)

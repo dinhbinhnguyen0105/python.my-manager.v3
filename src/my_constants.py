@@ -22,7 +22,7 @@ RE_STATUS = {"1": "khả dụng", "0": "không khả dụng"}
 RE_CATEGORY = {
     "house": "nhà phố",
     "shop_house": "nhà mặt tiền",
-    "apartment": "căn hộ/chung cư",
+    "apartment": "căn hộ/ chung cư",
     "villa": "biệt thự",
     "land": "đất nền",
     "workshop": "kho/bãi",

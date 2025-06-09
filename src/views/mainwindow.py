@@ -211,6 +211,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     @pyqtSlot(str)
     def on_export_clicked(self, setting_option: str):
         file_path = dialog_save_file(self)
+        if not file_path:
+            return
         current_controller = None
         if "udd" == setting_option:
             current_controller = self._setting_user_data_dir_controller
@@ -229,6 +231,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     @pyqtSlot(str)
     def on_import_clicked(self, setting_option: str):
         file_path = dialog_open_file(self)
+        if not file_path:
+            return
         current_controller = None
         if "udd" == setting_option:
             current_controller = self._setting_user_data_dir_controller

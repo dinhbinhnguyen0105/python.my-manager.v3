@@ -366,6 +366,7 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
                 self.current_product.category,
             )
         title = replace_template(self.current_product, title_template)
+        # title = title[:100]
         description = replace_template(self.current_product, description_template)
         footer = init_footer_content(self.current_product)
         self.detail_text.setPlainText(f"{title.upper()} \n\n {description} \n{footer}")
@@ -403,6 +404,8 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
     @pyqtSlot()
     def on_export_clicked(self):
         file_path = dialog_save_file(self)
+        if not file_path:
+            return
         is_exported = self._product_controller.export_to_file(file_path=file_path)
         if is_exported:
             QMessageBox.about(self, "Exported file", f"Export to {file_path}")
@@ -412,6 +415,8 @@ class RealEstateProductPage(QWidget, Ui_PageREProduct):
     @pyqtSlot()
     def on_import_clicked(self):
         file_path = dialog_open_file(self)
+        if not file_path:
+            return
         is_imported = self._product_controller.import_products(file_path)
         if is_imported:
             QMessageBox.about(self, "Imported file", f"Import to {file_path}")
