@@ -214,6 +214,9 @@ class RobotController(BaseController):
             self._current_browser_progress.failed_signal.connect(self.warning_signal)
             self._current_browser_progress.progress_signal.connect(self.on_bot_progress)
             self._current_browser_progress.finished.connect(self.finished_signal)
+            self._current_browser_progress.task_progress_signal.connect(
+                self.task_progress_signal
+            )
             self._current_browser_progress.add_browsers(
                 list_browser=browser_task, list_raw_proxy=raw_proxies
             )

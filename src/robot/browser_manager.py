@@ -13,6 +13,7 @@ class BrowserManager(QObject):
     warning_signal = pyqtSignal(str)
     failed_signal = pyqtSignal(str)
     progress_signal = pyqtSignal(str, int, int)
+    task_progress_signal = pyqtSignal(list)
     finished = pyqtSignal()
 
     def __init__(self, parent=None):
@@ -28,6 +29,7 @@ class BrowserManager(QObject):
         self._proxy_timer = None
         self._no_proxy_timer = None
         self.signals.progress_signal.connect(self._on_progress)
+        self.signals.task_progress_signal.connect(self.task_progress_signal)
         self.signals.failed_signal.connect(self._on_failed)
         self.signals.error_signal.connect(self._on_error)
         self.signals.succeeded_signal.connect(self._on_succeeded)

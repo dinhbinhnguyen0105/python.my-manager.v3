@@ -1,6 +1,7 @@
 # src/views/mainwindow.py
+from typing import List
 from PyQt6.QtCore import Qt, pyqtSlot
-from PyQt6.QtWidgets import QMainWindow, QLabel, QMessageBox
+from PyQt6.QtWidgets import QMainWindow, QLabel, QMessageBox, QProgressBar
 from PyQt6.QtCore import QTimer
 
 from src.my_types import (
@@ -75,6 +76,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             parent=self,
         )
 
+        self.progress_bar = QProgressBar(self)
+        self.progress_bar.setMinimum(0)
+        self.progress_bar.setMaximum(100)
+        self.progress_bar.setValue(0)
+        self.progress_bar.setVisible(False)
+        self.status_bar.addPermanentWidget(self.progress_bar)
+
         self.setup_ui()
         self.setup_events()
 
@@ -112,6 +120,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     message=f"Info: {message}", color="#2196F3", time_out=1_000
                 )
             )
+            controller.task_progress_signal.connect(self.set_progress)
 
     def setup_ui(self):
         self.content_container.addWidget(self.real_estate_product_page)
@@ -254,3 +263,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         label.setStyleSheet(f"color: {color};")
         self.status_bar.addWidget(label)
         QTimer.singleShot(time_out, lambda: self.status_bar.removeWidget(label))
+
+    @pyqtSlot(list)
+    def set_progress(self, progress: List):
+        """
+        Display a QProgressBar on the right of the status bar.
+        progress: List[int, int] -> [current, total]
+        """
+        if not hasattr(self, "_progress_bar"):
+            self._progress_bar = QProgressBar()
+            self._progress_bar.setMaximumWidth(200)
+            self.status_bar.addPermanentWidget(self._progress_bar)
+        current, total = progress
+        self._progress_bar.setMaximum(total)
+        self._progress_bar.setValue(current)
+        if current >= total or total == 0:
+            self._progress_bar.hide()
+        else:
+            self._progress_bar.show()

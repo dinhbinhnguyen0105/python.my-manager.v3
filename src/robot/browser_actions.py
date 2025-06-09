@@ -1,12 +1,59 @@
 # src/robot/browser_actions.py
 import random
-from typing import Any
+from typing import Any, List
 from time import sleep
 from playwright.sync_api import Page, TimeoutError as PlaywrightTimeoutError, Locator
 from src.my_types import RobotTaskType, BrowserWorkerSignals
 from src.robot import selector_constants as selectors
 
 MIN = 60_000
+
+
+def close_dialog(page: Page):
+    try:
+        dialog_locators = page.locator(selectors.S_DIALOG)
+        for dialog_locator in dialog_locators.all():
+            if dialog_locator.is_visible() and dialog_locator.is_enabled():
+                close_button_locators = dialog_locator.locator(selectors.S_CLOSE_BUTTON)
+                sleep(random.uniform(0.2, 1.5))
+                close_button_locators.last.click(timeout=MIN)
+                dialog_locator.wait_for(state="detached", timeout=MIN)
+        return True
+    except PlaywrightTimeoutError:
+        return False
+
+
+def click_button(page: Page, btn_selector: Any, timeout: int) -> bool:
+    btn_locator = page.locator(btn_selector)
+
+    def try_click_btn(locator: Locator, current_timeout: int) -> bool:
+        try:
+            locator.wait_for(state="visible", timeout=current_timeout)
+            locator.wait_for(state="attached", timeout=current_timeout)
+            sleep(random.uniform(0.2, 1.5))  # Đổi sleep thành time.sleep
+            locator.first.click(timeout=current_timeout)
+            return {
+                "status": True,
+                "message": "✔️ Clicked button successfully.",
+            }
+
+        except PlaywrightTimeoutError:
+            return {
+                "status": False,
+                "message": f"❌ Could not click button within {current_timeout/1000}s.",
+            }
+        except Exception as e:
+            return {
+                "status": False,
+                "message": f"❌ Unexpected error when clicking button: {e}",
+            }
+
+    clicked_result = try_click_btn(btn_locator, timeout)
+    if clicked_result["status"]:
+        return clicked_result
+
+    close_dialog(page)
+    return try_click_btn(btn_locator, timeout)
 
 
 def do_launch_browser(
@@ -61,53 +108,6 @@ def do_marketplace(
     except Exception as e:
         signals.error_signal.emit(task, str(e))
         return False
-
-
-def close_dialog(page: Page):
-    try:
-        dialog_locators = page.locator(selectors.S_DIALOG)
-        for dialog_locator in dialog_locators.all():
-            if dialog_locator.is_visible() and dialog_locator.is_enabled():
-                close_button_locators = dialog_locator.locator(selectors.S_CLOSE_BUTTON)
-                sleep(random.uniform(0.2, 1.5))
-                close_button_locators.last.click(timeout=MIN)
-                dialog_locator.wait_for(state="detached", timeout=MIN)
-        return True
-    except PlaywrightTimeoutError:
-        return False
-
-
-def click_button(page: Page, btn_selector: Any, timeout: int) -> bool:
-    btn_locator = page.locator(btn_selector)
-
-    def try_click_btn(locator: Locator, current_timeout: int) -> bool:
-        try:
-            locator.wait_for(state="visible", timeout=current_timeout)
-            locator.wait_for(state="attached", timeout=current_timeout)
-            sleep(random.uniform(0.2, 1.5))  # Đổi sleep thành time.sleep
-            locator.first.click(timeout=current_timeout)
-            return {
-                "status": True,
-                "message": "✔️ Clicked button successfully.",
-            }
-
-        except PlaywrightTimeoutError:
-            return {
-                "status": False,
-                "message": f"❌ Could not click button within {current_timeout/1000}s.",
-            }
-        except Exception as e:
-            return {
-                "status": False,
-                "message": f"❌ Unexpected error when clicking button: {e}",
-            }
-
-    clicked_result = try_click_btn(btn_locator, timeout)
-    if clicked_result["status"]:
-        return clicked_result
-
-    close_dialog(page)
-    return try_click_btn(btn_locator, timeout)
 
 
 def handle_list_on_marketplace(
@@ -300,6 +300,165 @@ def handle_list_on_more_place(
                 task, clicked_publish_result["message"], settings.get("raw_proxy")
             )
             return False
+    except Exception as e:
+        signals.error_signal.emit(task, str(e))
+        return False
+
+
+def handle_discussion(
+    page: Page, task: RobotTaskType, settings: dict, signals: BrowserWorkerSignals
+):
+    progress: List[int, int] = [0, 0]
+
+    def emit_progress():
+        signals.task_progress_signal.emit(progress[0], progress[1])
+        progress[0] += 1
+
+    groups_num = settings.get("group_num", 5)
+    progress[1] += groups_num
+    current_group = 0
+
+    try:
+        try:
+            emit_progress()
+            page.goto("https://www.facebook.com/groups/feed/", timeout=MIN)
+        except TimeoutError:
+            if settings.get("raw_proxy"):
+                signals.proxy_not_ready_signal.emit(task, settings.get("raw_proxy"))
+            return False
+        page_language = page.locator("html").get_attribute("lang")
+        if page_language != "en":
+            signals.failed_signal.emit(
+                task, "Switch to English.", settings.get("raw_proxy", None)
+            )
+            return False
+        sidebar_locator = page.locator(
+            f"{selectors.S_NAVIGATION}:not({selectors.S_BANNER} {selectors.S_NAVIGATION})"
+        )
+        emit_progress()
+        while sidebar_locator.first.locator(selectors.S_LOADING).count():
+            _ = sidebar_locator.first.locator(selectors.S_LOADING)
+            if _.count():
+                try:
+                    sleep(random.uniform(1, 3))
+                    _.first.scroll_into_view_if_needed(timeout=100)
+                except:
+                    break
+        group_locators = sidebar_locator.first.locator(
+            "a[href^='https://www.facebook.com/groups/']"
+        )
+        group_urls = [
+            group_locator.get_attribute("href")
+            for group_locator in group_locators.all()
+        ]
+        if not len(group_urls):
+            signals.log_message.emit("Could not retrieve any group URLs")
+            return
+        emit_progress()
+        for group_url in group_urls:
+            page.goto(group_url, timeout=MIN)
+            main_locator = page.locator(selectors.S_MAIN)
+            tablist_locator = main_locator.first.locator(selectors.S_TABLIST)
+            if tablist_locator.first.is_visible(timeout=5000):
+                continue
+            tab_locators = tablist_locator.first.locator(selectors.S_TABLIST_TAB)
+            is_discussion = False
+            for tab_locator in tab_locators.all():
+                is_discussion = True
+                try:
+                    tab_url = tab_locator.get_attribute("href", timeout=5_000)
+                except TimeoutError:
+                    continue
+                if not tab_url:
+                    continue
+                tab_url = tab_url[:-1] if tab_url.endswith("/") else tab_url
+                if tab_url.endswith("buy_sell_discussion"):
+                    is_discussion = False
+                    break
+
+            if not is_discussion:
+                continue
+            profile_locator = main_locator.first.locator(selectors.S_PROFILE)
+            try:
+                profile_locator.first.wait_for(state="attached", timeout=MIN)
+            except Exception as e:
+                continue
+            sleep(random.uniform(1, 3))
+            profile_locator.first.scroll_into_view_if_needed()
+            discussion_btn_locator = profile_locator
+            while True:
+                if (
+                    discussion_btn_locator.first.locator("..")
+                    .locator(selectors.S_BUTTON)
+                    .count()
+                ):
+                    discussion_btn_locator = discussion_btn_locator.first.locator(
+                        ".."
+                    ).locator(selectors.S_BUTTON)
+                    break
+                else:
+                    discussion_btn_locator = discussion_btn_locator.first.locator("..")
+            sleep(random.uniform(1, 3))
+            discussion_btn_locator.first.scroll_into_view_if_needed()
+            try:
+                discussion_btn_locator.first.click()
+            except Exception as e:
+                continue
+            page.locator(selectors.S_DIALOG_CREATE_POST).first.locator(
+                selectors.S_LOADING
+            ).first.wait_for(state="detached", timeout=30_000)
+            dialog_locator = page.locator(selectors.S_DIALOG_CREATE_POST)
+            dialog_container_locator = dialog_locator.first.locator(
+                "xpath=ancestor::*[contains(@role, 'dialog')][1]"
+            )
+            if len(task.action_payload.image_paths):
+                try:
+                    dialog_container_locator.locator(selectors.S_IMG_INPUT).wait_for(
+                        state="attached", timeout=10_000
+                    )
+                except PlaywrightTimeoutError:
+                    image_btn_locator = dialog_container_locator.first.locator(
+                        selectors.S_IMAGE_BUTTON
+                    )
+                    sleep(random.uniform(1, 3))
+                    image_btn_locator.click()
+                finally:
+                    image_input_locator = dialog_container_locator.locator(
+                        selectors.S_IMG_INPUT
+                    )
+                    sleep(random.uniform(1, 3))
+                    image_input_locator.set_input_files(
+                        task.action_payload.image_paths, timeout=10000
+                    )
+            textbox_locator = dialog_container_locator.first.locator(
+                selectors.S_TEXTBOX
+            )
+            sleep(random.uniform(1, 3))
+            textbox_locator.fill(
+                f"{task.action_payload.title}\n\n{task.action_payload.description}"
+            )
+            post_btn_locators = dialog_container_locator.first.locator(
+                selectors.S_POST_BUTTON
+            )
+
+            dialog_container_locator.locator(
+                f"{selectors.S_POST_BUTTON}[aria-disabled]"
+            ).wait_for(state="detached", timeout=30_000)
+            post_btn_locators.first.click()
+            try:
+                dialog_container_locator.wait_for(state="detached", timeout=MIN)
+            except TimeoutError:
+                signals.failed_signal.emit(
+                    task, "Publish failed", settings.get("raw_proxy")
+                )
+                return False
+            sleep(random.uniform(1, 3))
+            signals.log_message.emit(f"Published in {group_url}.")
+            current_group += 1
+            emit_progress()
+            if current_group > groups_num:
+                break
+        return True
     except Exception as e:
         signals.error_signal.emit(task, str(e))
         return False
