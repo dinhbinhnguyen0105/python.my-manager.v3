@@ -204,6 +204,7 @@ class RobotController(BaseController):
                     "delay_time": delay_time,
                     "group_num": group_num,
                     "thread_num": thread_num,
+                    "delay_time": delay_time,
                 }
             )
             self._current_browser_progress.succeeded_signal.connect(self.success_signal)

@@ -72,7 +72,6 @@ class BrowserManager(QObject):
             self.settings.get("thread_num", 1),
             len(self._pending_raw_proxies),
         )
-        print("available_threads: ", available_threads)
         while (
             available_threads > 0
             and self._pending_browsers
