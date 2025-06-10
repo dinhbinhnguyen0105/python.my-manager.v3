@@ -227,7 +227,7 @@ class RobotPage(QWidget, Ui_PageRobot):
 
         self._robot_controller.handle_run_bot(
             browser_task=browser_tasks,
-            thread_num=thread_num,
-            delay_time=delay_time,
-            group_num=group_num,
+            thread_num=int(thread_num),
+            delay_time=int(delay_time),
+            group_num=int(group_num),
         )

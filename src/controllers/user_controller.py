@@ -208,7 +208,7 @@ class UserController(BaseController):
                 f"[{self.__class__.__name__}.handle_launch_browser] Starting new launch browser tasks."
             )
             self._current_browser_progress = BrowserManager(self)
-            self._current_browser_progress.set_max_worker(len(browsers))
+            self._current_browser_progress.set_settings({"thread_num": len(browsers)})
             self._current_browser_progress.succeeded_signal.connect(self.success_signal)
             self._current_browser_progress.error_signal.connect(self.error_signal)
             self._current_browser_progress.warning_signal.connect(self.warning_signal)

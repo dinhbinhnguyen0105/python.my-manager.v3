@@ -29,7 +29,7 @@ class BaseController(QObject):
     warning_signal = pyqtSignal(str)
     info_signal = pyqtSignal(str)
     data_changed_signal = pyqtSignal()
-    task_progress_signal = pyqtSignal(list)
+    task_progress_signal = pyqtSignal(str, list)
 
     def __init__(self, service: Optional[Any], parent=None):
         super().__init__(parent)

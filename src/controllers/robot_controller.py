@@ -199,7 +199,6 @@ class RobotController(BaseController):
         else:
             print(f"[{self.__class__.__name__}.handle_run_bot] Starting new bot tasks.")
             self._current_browser_progress = BrowserManager(self)
-            self._current_browser_progress.set_max_worker(int(thread_num))
             self._current_browser_progress.set_settings(
                 {
                     "delay_time": delay_time,

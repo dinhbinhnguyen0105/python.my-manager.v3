@@ -13,12 +13,11 @@ class BrowserManager(QObject):
     warning_signal = pyqtSignal(str)
     failed_signal = pyqtSignal(str)
     progress_signal = pyqtSignal(str, int, int)
-    task_progress_signal = pyqtSignal(list)
+    task_progress_signal = pyqtSignal(str, list)
     finished = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._max_worker_num: int = 0
         self._pending_browsers: deque[BrowserType] = deque()
         self._pending_raw_proxies: deque[str] = deque()
         self._in_progress: Dict[str, dict] = {}
@@ -37,9 +36,6 @@ class BrowserManager(QObject):
         self.signals.proxy_not_ready_signal.connect(self._on_proxy_not_ready)
 
         self.threadpool = QThreadPool.globalInstance()
-
-    def set_max_worker(self, max_worker: int):
-        self._max_worker_num = max_worker
 
     def set_settings(self, settings: dict):
         self.settings = settings
@@ -61,15 +57,22 @@ class BrowserManager(QObject):
         for proxy in list_raw_proxy:
             if proxy not in self._pending_raw_proxies:
                 self._pending_raw_proxies.append(proxy)
-
+        self.threadpool.setMaxThreadCount(
+            min(
+                self.threadpool.maxThreadCount() - self.threadpool.activeThreadCount(),
+                self.settings.get("thread_num", 1),
+                len(self._pending_raw_proxies),
+            )
+        )
         self._try_start_browsers()
 
     def _try_start_browsers(self):
         available_threads = min(
             self.threadpool.maxThreadCount() - self.threadpool.activeThreadCount(),
-            self._max_worker_num,
+            self.settings.get("thread_num", 1),
             len(self._pending_raw_proxies),
         )
+        print("available_threads: ", available_threads)
         while (
             available_threads > 0
             and self._pending_browsers

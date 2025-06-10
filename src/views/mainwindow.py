@@ -100,26 +100,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._setting_user_data_dir_controller,
             self._robot_controller,
         ]:
-            controller.success_signal.connect(
-                lambda message: self.set_status_bar(
-                    message=f"Success: {message}", color="#28a745", time_out=1_000
-                )
-            )
-            controller.error_signal.connect(
-                lambda message: self.set_status_bar(
-                    message=f"Error: {message}", color="#dc3545", time_out=3_000
-                )
-            )
-            controller.warning_signal.connect(
-                lambda message: self.set_status_bar(
-                    message=f"Warning: {message}", color="#ffc107", time_out=2_000
-                )
-            )
-            controller.info_signal.connect(
-                lambda message: self.set_status_bar(
-                    message=f"Info: {message}", color="#2196F3", time_out=1_000
-                )
-            )
+            controller.success_signal.connect(self.set_status_bar)
+            controller.error_signal.connect(self.set_status_bar)
+            controller.warning_signal.connect(self.set_status_bar)
+            controller.info_signal.connect(self.set_status_bar)
             controller.task_progress_signal.connect(self.set_progress)
 
     def setup_ui(self):
@@ -257,19 +241,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             QMessageBox.critical(self, "Error", "Failed to import data")
 
-    @pyqtSlot(str, str, int)
-    def set_status_bar(self, message: str, color: str, time_out: int):
-        label = QLabel(message)
-        label.setStyleSheet(f"color: {color};")
-        self.status_bar.addWidget(label)
-        QTimer.singleShot(time_out, lambda: self.status_bar.removeWidget(label))
+    @pyqtSlot(str)
+    def set_status_bar(self, message: str):
+        self.status_bar.showMessage(message, 1_500)
 
-    @pyqtSlot(list)
-    def set_progress(self, progress: List):
-        """
-        Display a QProgressBar on the right of the status bar.
-        progress: List[int, int] -> [current, total]
-        """
+    @pyqtSlot(str, list)
+    def set_progress(self, msg: str, progress: List):
+        self.set_status_bar(message=msg)
         if not hasattr(self, "_progress_bar"):
             self._progress_bar = QProgressBar()
             self._progress_bar.setMaximumWidth(200)

@@ -22,31 +22,39 @@ def close_dialog(page: Page):
         return True
     except PlaywrightTimeoutError:
         return False
+    except Exception as e:
+        print(
+            f"ERROR: An unexpected error occurred while closing dialog: {e}",
+            file=sys.stderr,
+        )
+        return False
 
 
-def click_button(page: Page, btn_selector: Any, timeout: int) -> bool:
+def click_button(
+    page: Page, btn_selector: Any, timeout: int
+) -> dict:  # Changed return type hint to dict for clarity
     btn_locator = page.locator(btn_selector)
 
-    def try_click_btn(locator: Locator, current_timeout: int) -> bool:
+    def try_click_btn(locator: Locator, current_timeout: int) -> dict:
         try:
             locator.wait_for(state="visible", timeout=current_timeout)
             locator.wait_for(state="attached", timeout=current_timeout)
-            sleep(random.uniform(0.2, 1.5))  # Đổi sleep thành time.sleep
+            sleep(random.uniform(0.2, 1.5))
             locator.first.click(timeout=current_timeout)
             return {
                 "status": True,
-                "message": "✔️ Clicked button successfully.",
+                "message": "Clicked button successfully.",
             }
 
         except PlaywrightTimeoutError:
             return {
                 "status": False,
-                "message": f"❌ Could not click button within {current_timeout/1000}s.",
+                "message": f"Could not click button within {current_timeout/1000}s.",
             }
         except Exception as e:
             return {
                 "status": False,
-                "message": f"❌ Unexpected error when clicking button: {e}",
+                "message": f"Unexpected error when clicking button: {e}",
             }
 
     clicked_result = try_click_btn(btn_locator, timeout)
@@ -60,54 +68,142 @@ def click_button(page: Page, btn_selector: Any, timeout: int) -> bool:
 def do_launch_browser(
     page: Page, task: RobotTaskType, settings: dict, signals: BrowserWorkerSignals
 ):
+    log_prefix = f"[Task {task.user_info.username} - do_launch_browser]"
+    progress: List[int] = [0, 0]  # current, total
+
+    def emit_progress_update(message: str):
+        progress[0] += 1
+        signals.task_progress_signal.emit(message, [progress[0], progress[1]])
+        print(f"{log_prefix} Progress: {progress[0]}/{progress[1]} - {message}")
+
     try:
-        signals.progress_signal.emit(task, "Launching ...", 0, 1)
+        progress[1] = 2  # Total steps for launch browser
+        emit_progress_update("Launching browser...")
         try:
             page.goto(task.action_payload.get("url", ""), timeout=MIN)
-        except TimeoutError:
+            signals.task_progress_signal.emit(
+                "Successfully navigated to URL.", [progress[0], progress[1]]
+            )
+        except PlaywrightTimeoutError as e:
+            emit_progress_update(f"ERROR: Timeout while navigating to URL.")
+            print(
+                f"{log_prefix} ERROR: Timeout when navigating to URL: {e}",
+                file=sys.stderr,
+            )
             if settings.get("raw_proxy"):
                 signals.proxy_not_ready_signal.emit(task, settings.get("raw_proxy"))
             return False
         except Exception as e:
             if "ERR_ABORTED" in str(e):
-                pass
+                pass  # This is often an expected error when closing the browser.
+            else:
+                emit_progress_update(
+                    f"ERROR: An unexpected error occurred during navigation."
+                )
+                print(
+                    f"{log_prefix} ERROR: An unexpected error occurred during navigation: {e}",
+                    file=sys.stderr,
+                )
 
-        page.wait_for_event("close", timeout=0)
-        signals.progress_signal.emit(task, "Closed!", 1, 1)
+        emit_progress_update("Waiting for browser to close event (if applicable).")
+        # page.wait_for_event("close", timeout=0) # This will block indefinitely if the page doesn't close
+        signals.task_progress_signal.emit(
+            "Browser launched and ready. Waiting for task completion.",
+            [progress[0], progress[1]],
+        )
         return True
     except Exception as e:
-        signals.error_signal.emit(task, str(e))
+        error_type = type(e).__name__
+        error_message = str(e)
+        full_traceback = traceback.format_exc()
+
+        print(
+            f"{log_prefix} UNEXPECTED ERROR: A general error occurred during task execution:",
+            file=sys.stderr,
+        )
+        print(f"  Error Type: {error_type}", file=sys.stderr)
+        print(f"  Message: {error_message}", file=sys.stderr)
+        print(f"  Traceback Details:\n{full_traceback}", file=sys.stderr)
+
+        signals.error_signal.emit(
+            task,
+            f"Unexpected error: {error_message}\nDetails: See console log for full traceback.",
+        )
         return False
 
 
 def do_marketplace(
     page: Page, task: RobotTaskType, settings: dict, signals: BrowserWorkerSignals
 ):
+    log_prefix = f"[Task {task.user_info.username} - do_marketplace]"
+    progress: List[int] = [0, 0]
+
+    def emit_progress_update(message: str):
+        progress[0] += 1
+        signals.task_progress_signal.emit(message, [progress[0], progress[1]])
+        print(f"{log_prefix} Progress: {progress[0]}/{progress[1]} - {message}")
+
     try:
-        total_progress = 12
-        msg = f"[{task.user_info.username}] Performing {task.action_name}"
-        signals.progress_signal.emit(task, msg, 0, total_progress)
+        progress[1] = 12  # Total steps for marketplace
+        emit_progress_update(f"Performing marketplace listing: {task.action_name}")
         try:
             page.goto(
                 "https://www.facebook.com/marketplace/create/item",
                 timeout=MIN,
             )
-        except TimeoutError:
+            signals.task_progress_signal.emit(
+                "Successfully navigated to Marketplace item creation page.",
+                [progress[0], progress[1]],
+            )
+        except PlaywrightTimeoutError as e:
+            emit_progress_update(
+                "ERROR: Timeout while navigating to Marketplace creation page."
+            )
+            print(
+                f"{log_prefix} ERROR: Timeout when navigating to Marketplace creation page: {e}",
+                file=sys.stderr,
+            )
             if settings.get("raw_proxy"):
                 signals.proxy_not_ready_signal.emit(task, settings.get("raw_proxy"))
             return False
+        except Exception as e:
+            emit_progress_update(
+                f"ERROR: An unexpected error occurred during navigation to Marketplace creation page."
+            )
+            print(
+                f"{log_prefix} ERROR: An unexpected error occurred during navigation to Marketplace creation page: {e}",
+                file=sys.stderr,
+            )
+            signals.error_signal.emit(task, str(e))
+            return False
+
         is_listed_on_marketplace = handle_list_on_marketplace(
-            page, task, signals, settings, total_progress
+            page, task, signals, settings, progress, emit_progress_update
         )
         if is_listed_on_marketplace:
             is_listed_on_more_place = handle_list_on_more_place(
-                page, task, signals, settings, total_progress
+                page, task, signals, settings, progress, emit_progress_update
             )
-            sleep(60)
+            sleep(60)  # Original code had a sleep here, keeping it for now
             return is_listed_on_more_place
         return is_listed_on_marketplace
     except Exception as e:
-        signals.error_signal.emit(task, str(e))
+        error_type = type(e).__name__
+        error_message = str(e)
+        full_traceback = traceback.format_exc()
+
+        print(
+            f"{log_prefix} UNEXPECTED ERROR: A general error occurred during task execution:",
+            file=sys.stderr,
+        )
+        print(f"  Error Type: {error_type}", file=sys.stderr)
+        print(f"  Message: {error_message}", file=sys.stderr)
+        print(f"  Traceback Details:\n{full_traceback}", file=sys.stderr)
+
+        signals.error_signal.emit(
+            task,
+            f"Unexpected error: {error_message}\nDetails: See console log for full traceback.",
+        )
         return False
 
 
@@ -116,40 +212,54 @@ def handle_list_on_marketplace(
     task: RobotTaskType,
     signals: BrowserWorkerSignals,
     settings: dict,
-    total_progress: int,
+    progress: List[int],
+    emit_progress_update: callable,
 ) -> bool:
-    def emit_progress(msg: str, current_progress: int):
-        msg = f"[{task.user_info.username}] {msg}"
-        signals.progress_signal.emit(task, msg, current_progress, total_progress)
+    log_prefix = f"[Task {task.user_info.username} - handle_list_on_marketplace]"
 
     try:
-        emit_progress(" ✔️Start listing on marketplace", 1)
+        emit_progress_update("Starting listing on marketplace.")
         page_language = page.locator("html").get_attribute("lang")
         if page_language != "en":
             failed_msg = (
                 f"Cannot start {task.action_name}. Please switch language to English."
             )
             signals.failed_signal.emit(task, failed_msg, settings.get("raw_proxy"))
+            print(f"{log_prefix} ERROR: {failed_msg}", file=sys.stderr)
             return False
 
+        emit_progress_update("Searching for marketplace form.")
         marketplace_forms = page.locator(selectors.S_MARKETPLACE_FORM)
         marketplace_form = None
-        for marketplace_form in marketplace_forms.all():
-            if marketplace_form.is_visible() and marketplace_form.is_enabled():
+        for (
+            marketplace_form_candidate
+        ) in marketplace_forms.all():  # Renamed to avoid shadowing
+            if (
+                marketplace_form_candidate.is_visible()
+                and marketplace_form_candidate.is_enabled()
+            ):
+                marketplace_form = marketplace_form_candidate
                 break
         if not marketplace_form:
-            failed_msg = f"[{task.user_info.username}] {selectors.S_MARKETPLACE_FORM} is not found or is not interactive."
+            failed_msg = (
+                f"{selectors.S_MARKETPLACE_FORM} is not found or is not interactive."
+            )
             signals.failed_signal.emit(task, failed_msg, settings.get("raw_proxy"))
+            print(f"{log_prefix} ERROR: {failed_msg}", file=sys.stderr)
             return False
 
+        emit_progress_update("Closing any open dialogs.")
         close_dialog(page)
+
+        emit_progress_update("Clicking the more details button.")
         expand_btn_locators = marketplace_form.locator(selectors.S_EXPAND_BUTTON)
         sleep(random.uniform(0.2, 1.5))
         expand_btn_locators.first.scroll_into_view_if_needed()
         sleep(random.uniform(0.2, 1.5))
         expand_btn_locators.first.click(timeout=MIN)
-        emit_progress(" ✔️Clicked the more details button", 2)
+        emit_progress_update("Clicked the more details button.")
 
+        emit_progress_update("Filling data into the description field.")
         description_locators = marketplace_form.locator(selectors.S_TEXTAREA)
         sleep(random.uniform(0.2, 1.5))
         description_locators.first.scroll_into_view_if_needed()
@@ -157,26 +267,29 @@ def handle_list_on_marketplace(
         description_locators.first.fill(
             value=task.action_payload.description, timeout=MIN
         )
-        emit_progress(" ✔️Filled data into the description field.", 3)
+        emit_progress_update("Filled data into the description field.")
 
         input_text_locators = marketplace_form.locator(selectors.S_INPUT_TEXT)
         title_locator = input_text_locators.nth(0)
         price_locator = input_text_locators.nth(1)
         location_locator = input_text_locators.nth(3)
 
+        emit_progress_update("Filling data into the title field.")
         sleep(random.uniform(0.2, 1.5))
         title_locator.scroll_into_view_if_needed()
         sleep(random.uniform(0.2, 1.5))
         title_locator.fill(value=task.action_payload.title, timeout=MIN)
-        emit_progress(" ✔️Filled data into the title field.", 4)
+        emit_progress_update("Filled data into the title field.")
 
+        emit_progress_update("Filling data into the price field.")
         sleep(random.uniform(0.2, 1.5))
         price_locator.scroll_into_view_if_needed()
         sleep(random.uniform(0.2, 1.5))
         price_locator.fill(value="0", timeout=MIN)
         sleep(random.uniform(0.2, 1.5))
-        emit_progress(" ✔️Filled data into the price field.", 5)
+        emit_progress_update("Filled data into the price field.")
 
+        emit_progress_update("Filling data into the location field.")
         location_locator.scroll_into_view_if_needed()
         sleep(random.uniform(0.2, 1.5))
         location_locator.fill("Da Lat")
@@ -193,12 +306,13 @@ def handle_list_on_marketplace(
         location_option_locators.first.scroll_into_view_if_needed()
         sleep(random.uniform(0.2, 1.5))
         location_option_locators.first.click(timeout=MIN)
-        emit_progress(" ✔️Filled data into the location field.", 6)
+        emit_progress_update("Filled data into the location field.")
 
         combobox_locators = page.locator(selectors.S_LABEL_COMBOBOX_LISTBOX)
         category_locator = combobox_locators.nth(0)
         condition_locator = combobox_locators.nth(1)
 
+        emit_progress_update("Filling data into the category field.")
         sleep(random.uniform(0.2, 1.5))
         category_locator.scroll_into_view_if_needed()
         sleep(random.uniform(0.2, 1.5))
@@ -214,8 +328,9 @@ def handle_list_on_marketplace(
         dialog_misc_button_locator.scroll_into_view_if_needed()
         dialog_misc_button_locator.click(timeout=MIN)
         dialog_locators.wait_for(state="detached")
-        emit_progress(" ✔️Filled data into the category field.", 7)
+        emit_progress_update("Filled data into the category field.")
 
+        emit_progress_update("Filling data into the condition field.")
         sleep(random.uniform(0.2, 1.5))
         condition_locator.scroll_into_view_if_needed()
         sleep(random.uniform(0.2, 1.5))
@@ -229,24 +344,44 @@ def handle_list_on_marketplace(
         sleep(random.uniform(0.2, 1.5))
         listbox_option_locators.first.click(timeout=MIN)
         dialog_locators.wait_for(state="detached")
-        emit_progress(" ✔️Filled data into the condition field.", 8)
+        emit_progress_update("Filled data into the condition field.")
 
+        emit_progress_update("Filling data into the images field.")
         image_input_locators = marketplace_form.locator(selectors.S_IMG_INPUT)
         sleep(random.uniform(0.2, 1.5))
         image_input_locators.first.set_input_files(task.action_payload.image_paths)
-        emit_progress(" ✔️Filled data into the images field.", 9)
+        emit_progress_update("Filled data into the images field.")
 
+        emit_progress_update("Clicking the 'Next' button.")
         clicked_next_result = click_button(page, selectors.S_NEXT_BUTTON, MIN)
         if clicked_next_result["status"]:
-            emit_progress(clicked_next_result["message"], 10)
+            emit_progress_update(clicked_next_result["message"])
             return True
         else:
             signals.failed_signal.emit(
                 task, clicked_next_result["message"], settings.get("raw_proxy")
             )
+            print(
+                f"{log_prefix} ERROR: {clicked_next_result['message']}", file=sys.stderr
+            )
             return False
     except Exception as e:
-        signals.error_signal.emit(task, str(e))
+        error_type = type(e).__name__
+        error_message = str(e)
+        full_traceback = traceback.format_exc()
+
+        print(
+            f"{log_prefix} UNEXPECTED ERROR: A general error occurred during task execution:",
+            file=sys.stderr,
+        )
+        print(f"  Error Type: {error_type}", file=sys.stderr)
+        print(f"  Message: {error_message}", file=sys.stderr)
+        print(f"  Traceback Details:\n{full_traceback}", file=sys.stderr)
+
+        signals.error_signal.emit(
+            task,
+            f"Unexpected error: {error_message}\nDetails: See console log for full traceback.",
+        )
         return False
 
 
@@ -255,11 +390,12 @@ def handle_list_on_more_place(
     task: RobotTaskType,
     signals: BrowserWorkerSignals,
     settings: dict,
-    total_progress: int,
+    progress: List[int],
+    emit_progress_update: callable,
 ):
+    log_prefix = f"[Task {task.user_info.username} - handle_list_on_more_place]"
     try:
-        msg = f"[{task.user_info.username}] Start list on more place"
-        signals.progress_signal.emit(task, msg, 11, total_progress)
+        emit_progress_update("Starting listing on more places.")
 
         page_language = page.locator("html").get_attribute("lang")
         if page_language != "en":
@@ -267,18 +403,26 @@ def handle_list_on_more_place(
                 f"Cannot start {task.action_name}. Please switch language to English."
             )
             signals.failed_signal.emit(task, failed_msg, settings.get("raw_proxy"))
+            print(f"{log_prefix} ERROR: {failed_msg}", file=sys.stderr)
             return False
 
+        emit_progress_update("Searching for marketplace form for additional listing.")
         marketplace_forms = page.locator(selectors.S_MARKETPLACE_FORM)
         marketplace_form = None
-        for marketplace_form in marketplace_forms.all():
-            if marketplace_form.is_visible() and marketplace_form.is_enabled():
+        for marketplace_form_candidate in marketplace_forms.all():
+            if (
+                marketplace_form_candidate.is_visible()
+                and marketplace_form_candidate.is_enabled()
+            ):
+                marketplace_form = marketplace_form_candidate
                 break
         if not marketplace_form:
-            failed_msg = f"[{task.user_info.username}] {selectors.S_MARKETPLACE_FORM} is not found or is not interactive."
+            failed_msg = f"{selectors.S_MARKETPLACE_FORM} is not found or is not interactive for additional listing."
             signals.failed_signal.emit(task, failed_msg, settings.get("raw_proxy"))
+            print(f"{log_prefix} ERROR: {failed_msg}", file=sys.stderr)
             return False
 
+        emit_progress_update("Clicking checkboxes for additional listing locations.")
         checkbox_locators = marketplace_form.locator(selectors.S_CHECK_BOX)
         for checkbox_locator in checkbox_locators.all():
             if checkbox_locator.is_visible() and checkbox_locator.is_enabled():
@@ -286,298 +430,166 @@ def handle_list_on_more_place(
                 checkbox_locator.scroll_into_view_if_needed()
                 sleep(random.uniform(0.2, 0.8))
                 checkbox_locator.click()
+        emit_progress_update(
+            "Finished clicking checkboxes for additional listing locations."
+        )
 
+        emit_progress_update("Clicking the 'Publish' button.")
         clicked_publish_result = click_button(page, selectors.S_PUBLISH_BUTTON, MIN)
         if clicked_publish_result["status"]:
-            signals.progress_signal.emit(
-                task,
-                f"[{task.user_info.username}] {clicked_publish_result["message"]}",
-                12,
-                total_progress,
+            emit_progress_update(clicked_publish_result["message"])
+            signals.succeeded_signal.emit(
+                task, clicked_publish_result["message"], settings.get("raw_proxy")
             )
             return True
         else:
             signals.failed_signal.emit(
                 task, clicked_publish_result["message"], settings.get("raw_proxy")
             )
+            print(
+                f"{log_prefix} ERROR: {clicked_publish_result['message']}",
+                file=sys.stderr,
+            )
             return False
     except Exception as e:
-        signals.error_signal.emit(task, str(e))
-        return False
+        error_type = type(e).__name__
+        error_message = str(e)
+        full_traceback = traceback.format_exc()
 
-
-def _do_discussion(
-    page: Page, task: RobotTaskType, settings: dict, signals: BrowserWorkerSignals
-):
-    progress: List[int, int] = [0, 0]
-
-    def emit_progress():
-        signals.task_progress_signal.emit([progress[0], progress[1]])
-        progress[0] += 1
-
-    groups_num = settings.get("group_num", 5)
-    progress[1] += int(groups_num)
-    current_group = 0
-
-    try:
-        try:
-            emit_progress()
-            page.goto("https://www.facebook.com/groups/feed/", timeout=MIN)
-        except TimeoutError:
-            if settings.get("raw_proxy"):
-                signals.proxy_not_ready_signal.emit(task, settings.get("raw_proxy"))
-            return False
-        page_language = page.locator("html").get_attribute("lang")
-        if page_language != "en":
-            signals.failed_signal.emit(
-                task, "Switch to English.", settings.get("raw_proxy", None)
-            )
-            return False
-        sidebar_locator = page.locator(
-            f"{selectors.S_NAVIGATION}:not({selectors.S_BANNER} {selectors.S_NAVIGATION})"
+        print(
+            f"{log_prefix} UNEXPECTED ERROR: A general error occurred during task execution:",
+            file=sys.stderr,
         )
-        emit_progress()
-        while sidebar_locator.first.locator(selectors.S_LOADING).count():
-            _ = sidebar_locator.first.locator(selectors.S_LOADING)
-            if _.count():
-                try:
-                    sleep(random.uniform(1, 3))
-                    _.first.scroll_into_view_if_needed(timeout=100)
-                except:
-                    break
-        group_locators = sidebar_locator.first.locator(
-            "a[href^='https://www.facebook.com/groups/']"
+        print(f"  Error Type: {error_type}", file=sys.stderr)
+        print(f"  Message: {error_message}", file=sys.stderr)
+        print(f"  Traceback Details:\n{full_traceback}", file=sys.stderr)
+
+        signals.error_signal.emit(
+            task,
+            f"Unexpected error: {error_message}\nDetails: See console log for full traceback.",
         )
-        group_urls = [
-            group_locator.get_attribute("href")
-            for group_locator in group_locators.all()
-        ]
-        if not len(group_urls):
-            signals.failed_signal.emit(
-                task, "Could not retrieve any group URLs", settings.get("raw_proxy")
-            )
-            return
-        emit_progress()
-        for group_url in group_urls:
-            page.goto(group_url, timeout=MIN)
-            main_locator = page.locator(selectors.S_MAIN)
-            tablist_locator = main_locator.first.locator(selectors.S_TABLIST)
-            if tablist_locator.first.is_visible(timeout=5000):
-                continue
-            tab_locators = tablist_locator.first.locator(selectors.S_TABLIST_TAB)
-            is_discussion = False
-            for tab_locator in tab_locators.all():
-                is_discussion = True
-                try:
-                    tab_url = tab_locator.get_attribute("href", timeout=5_000)
-                except TimeoutError:
-                    continue
-                if not tab_url:
-                    continue
-                tab_url = tab_url[:-1] if tab_url.endswith("/") else tab_url
-                if tab_url.endswith("buy_sell_discussion"):
-                    break
-
-            if not is_discussion:
-                continue
-            profile_locator = main_locator.first.locator(selectors.S_PROFILE)
-            try:
-                profile_locator.first.wait_for(state="attached", timeout=MIN)
-            except Exception as e:
-                continue
-            sleep(random.uniform(1, 3))
-            profile_locator.first.scroll_into_view_if_needed()
-            discussion_btn_locator = profile_locator
-            while True:
-                if (
-                    discussion_btn_locator.first.locator("..")
-                    .locator(selectors.S_BUTTON)
-                    .count()
-                ):
-                    discussion_btn_locator = discussion_btn_locator.first.locator(
-                        ".."
-                    ).locator(selectors.S_BUTTON)
-                    break
-                else:
-                    discussion_btn_locator = discussion_btn_locator.first.locator("..")
-            sleep(random.uniform(1, 3))
-            discussion_btn_locator.first.scroll_into_view_if_needed()
-            try:
-                discussion_btn_locator.first.click()
-            except Exception as e:
-                continue
-            page.locator(selectors.S_DIALOG_CREATE_POST).first.locator(
-                selectors.S_LOADING
-            ).first.wait_for(state="detached", timeout=30_000)
-            dialog_locator = page.locator(selectors.S_DIALOG_CREATE_POST)
-            dialog_container_locator = dialog_locator.first.locator(
-                "xpath=ancestor::*[contains(@role, 'dialog')][1]"
-            )
-            if len(task.action_payload.image_paths):
-                try:
-                    dialog_container_locator.locator(selectors.S_IMG_INPUT).wait_for(
-                        state="attached", timeout=10_000
-                    )
-                except PlaywrightTimeoutError:
-                    image_btn_locator = dialog_container_locator.first.locator(
-                        selectors.S_IMAGE_BUTTON
-                    )
-                    sleep(random.uniform(1, 3))
-                    image_btn_locator.click()
-                finally:
-                    image_input_locator = dialog_container_locator.locator(
-                        selectors.S_IMG_INPUT
-                    )
-                    sleep(random.uniform(1, 3))
-                    image_input_locator.set_input_files(
-                        task.action_payload.image_paths, timeout=10000
-                    )
-            textbox_locator = dialog_container_locator.first.locator(
-                selectors.S_TEXTBOX
-            )
-            sleep(random.uniform(1, 3))
-            textbox_locator.fill(
-                f"{task.action_payload.title}\n\n{task.action_payload.description}"
-            )
-            post_btn_locators = dialog_container_locator.first.locator(
-                selectors.S_POST_BUTTON
-            )
-
-            dialog_container_locator.locator(
-                f"{selectors.S_POST_BUTTON}[aria-disabled]"
-            ).wait_for(state="detached", timeout=30_000)
-            post_btn_locators.first.click()
-            try:
-                dialog_container_locator.wait_for(state="detached", timeout=MIN)
-            except TimeoutError:
-                signals.failed_signal.emit(
-                    task, "Publish failed", settings.get("raw_proxy")
-                )
-                return False
-            sleep(random.uniform(1, 3))
-            signals.succeeded_signal.emit(
-                task, f"Published in {group_url}.", settings.get("raw_proxy")
-            )
-            current_group += 1
-            emit_progress()
-            if current_group > groups_num:
-                break
-        return True
-    except Exception as e:
-        signals.error_signal.emit(task, str(e))
         return False
 
 
 def do_discussion(
     page: Page, task: RobotTaskType, settings: dict, signals: BrowserWorkerSignals
 ):
-    # Log prefix for clarity in debug messages
-    log_prefix = f"[Task {task.user_info.uid} - do_discussion]"
-    print(f"{log_prefix} Bắt đầu thực hiện tác vụ thảo luận.")
+    log_prefix = f"[Task {task.user_info.username} - do_discussion]"
 
-    # progress[0] là current_step, progress[1] là total_steps
     progress: List[int] = [0, 0]
 
-    def emit_progress_update():
-        """Hàm trợ giúp để phát tín hiệu tiến độ và tăng bước hiện tại."""
-        progress[
-            0
-        ] += 1  # Tăng bước hiện tại TRƯỚC khi phát tín hiệu để hiển thị chính xác số bước đã hoàn thành
-        signals.task_progress_signal.emit([progress[0], progress[1]])
-        print(f"{log_prefix} Tiến độ: {progress[0]}/{progress[1]}")
+    def emit_progress_update(message: str):
+        progress[0] += 1
+        signals.task_progress_signal.emit(message, [progress[0], progress[1]])
+        print(f"{log_prefix} Progress: {progress[0]}/{progress[1]} - {message}")
 
-    # Tính toán tổng số bước dự kiến. Đây là ước tính để QProgressBar hoạt động tốt.
-    groups_num = settings.get("group_num", 5)  # Mặc định 5 nhóm nếu không được chỉ định
+    groups_num = settings.get("group_num", 5)
     groups_num = int(groups_num)
-    # Ước tính tổng số bước: 5 bước chung + (số nhóm cần xử lý * 5 bước/nhóm)
     progress[1] = 5 + int(groups_num) * 5
+    signals.task_progress_signal.emit(
+        f"Estimated total steps: {progress[1]}. Number of groups to process: {groups_num}.",
+        [progress[0], progress[1]],
+    )
     print(
-        f"{log_prefix} Tổng số bước dự kiến: {progress[1]}. Số nhóm cần xử lý: {groups_num}."
+        f"{log_prefix} Estimated total steps: {progress[1]}. Number of groups to process: {groups_num}."
     )
 
-    current_group_processed = (
-        0  # Đếm số nhóm đã xử lý thành công (để so sánh với groups_num)
-    )
+    current_group_processed = 0
 
     try:
-        # Bước 1: Điều hướng đến trang nhóm Facebook
-        print(f"{log_prefix} Bước 1: Điều hướng đến trang nhóm chung Facebook.")
-        emit_progress_update()
+        emit_progress_update("Navigating to Facebook general groups page.")
         try:
             page.goto("https://www.facebook.com/groups/feed/", timeout=MIN)
-            print(f"{log_prefix} Đã điều hướng thành công đến trang nhóm chung.")
+            signals.task_progress_signal.emit(
+                "Successfully navigated to general groups page.",
+                [progress[0], progress[1]],
+            )
         except PlaywrightTimeoutError as e:
+            signals.task_progress_signal.emit(
+                f"ERROR: Timeout while navigating to general groups page.",
+                [progress[0], progress[1]],
+            )
             print(
-                f"{log_prefix} LỖI: Hết thời gian chờ khi điều hướng đến trang nhóm chung: {e}",
+                f"{log_prefix} ERROR: Timeout when navigating to general groups page: {e}",
                 file=sys.stderr,
             )
             if settings.get("raw_proxy"):
                 signals.proxy_not_ready_signal.emit(task, settings.get("raw_proxy"))
             return False
 
-        # Bước 2: Kiểm tra ngôn ngữ trang
-        print(f"{log_prefix} Bước 2: Kiểm tra ngôn ngữ trang.")
+        emit_progress_update("Checking page language.")
         page_language = page.locator("html").get_attribute("lang")
-        print(f"{log_prefix} Ngôn ngữ trang được phát hiện: '{page_language}'.")
+        signals.task_progress_signal.emit(
+            f"Detected page language: '{page_language}'.", [progress[0], progress[1]]
+        )
         if page_language != "en":
-            print(
-                f"{log_prefix} CẢNH BÁO: Ngôn ngữ trang không phải tiếng Anh. Yêu cầu chuyển đổi ngôn ngữ."
+            signals.task_progress_signal.emit(
+                "WARNING: Page language is not English. Language conversion required.",
+                [progress[0], progress[1]],
             )
             signals.failed_signal.emit(
                 task,
-                "Yêu cầu chuyển đổi ngôn ngữ trang sang tiếng Anh.",
+                "Page language conversion to English required.",
                 settings.get("raw_proxy", None),
             )
             return False
 
-        # Bước 3: Chờ sidebar tải xong (nếu có loading indicator)
-        print(
-            f"{log_prefix} Bước 3: Chờ sidebar nhóm tải xong (nếu có biểu tượng loading)."
+        emit_progress_update(
+            "Waiting for group sidebar to load (if loading icon is present)."
         )
         sidebar_locator = page.locator(
             f"{selectors.S_NAVIGATION}:not({selectors.S_BANNER} {selectors.S_NAVIGATION})"
         )
-        emit_progress_update()
         loading_attempt = 0
-        max_loading_attempts = 10  # Giới hạn số lần thử chờ loading
+        max_loading_attempts = 10
         while (
             sidebar_locator.first.locator(selectors.S_LOADING).count()
             and loading_attempt < max_loading_attempts
         ):
             loading_attempt += 1
-            print(
-                f"{log_prefix}   Phát hiện loading indicator trong sidebar. Đang chờ... (Lần {loading_attempt}/{max_loading_attempts})"
+            signals.task_progress_signal.emit(
+                f"Loading indicator detected in sidebar. Waiting... (Attempt {loading_attempt}/{max_loading_attempts})",
+                [progress[0], progress[1]],
             )
             _loading_element = sidebar_locator.first.locator(selectors.S_LOADING)
             try:
                 sleep(random.uniform(1, 3))
-                _loading_element.first.scroll_into_view_if_needed(
-                    timeout=100
-                )  # Cuộn để đảm bảo tải
-                print(f"{log_prefix}   Đã cuộn loading indicator vào chế độ xem.")
-            except (
-                PlaywrightTimeoutError
-            ) as e:  # Catch specific Playwright timeout for scroll
+                _loading_element.first.scroll_into_view_if_needed(timeout=100)
+                signals.task_progress_signal.emit(
+                    "Loading indicator scrolled into view.", [progress[0], progress[1]]
+                )
+            except PlaywrightTimeoutError as e:
+                signals.task_progress_signal.emit(
+                    f"ERROR: Timeout while scrolling loading indicator.",
+                    [progress[0], progress[1]],
+                )
                 print(
-                    f"{log_prefix}   LỖI: Hết thời gian chờ khi cuộn loading indicator: {e}. Có thể đã tải xong hoặc bị kẹt. Thoát vòng lặp chờ."
+                    f"{log_prefix} ERROR: Timeout when scrolling loading indicator: {e}. Might be loaded or stuck. Exiting wait loop.",
+                    file=sys.stderr,
                 )
                 break
-            except Exception as ex:  # Catch other potential exceptions during scroll
+            except Exception as ex:
+                signals.task_progress_signal.emit(
+                    f"ERROR: An unexpected error occurred while scrolling loading indicator.",
+                    [progress[0], progress[1]],
+                )
                 print(
-                    f"{log_prefix}   LỖI: Xảy ra lỗi không mong muốn khi cuộn loading indicator: {ex}. Thoát vòng lặp chờ."
+                    f"{log_prefix} ERROR: An unexpected error occurred when scrolling loading indicator: {ex}. Exiting wait loop.",
+                    file=sys.stderr,
                 )
                 break
         if loading_attempt >= max_loading_attempts:
-            print(
-                f"{log_prefix} CẢNH BÁO: Vượt quá số lần chờ loading tối đa ({max_loading_attempts}). Tiếp tục mà không chắc chắn sidebar đã tải đầy đủ."
+            signals.task_progress_signal.emit(
+                f"WARNING: Exceeded maximum loading wait attempts ({max_loading_attempts}). Continuing without full sidebar load confirmation.",
+                [progress[0], progress[1]],
             )
         else:
-            print(
-                f"{log_prefix} Sidebar nhóm đã tải xong hoặc không có loading indicator."
+            signals.task_progress_signal.emit(
+                "Group sidebar loaded or no loading indicator found.",
+                [progress[0], progress[1]],
             )
 
-        # Bước 4: Lấy danh sách URL các nhóm
-        print(f"{log_prefix} Bước 4: Đang tìm kiếm các URL nhóm trong sidebar.")
+        emit_progress_update("Searching for group URLs in the sidebar.")
         group_locators = sidebar_locator.first.locator(
             "a[href^='https://www.facebook.com/groups/']"
         )
@@ -585,142 +597,175 @@ def do_discussion(
             group_locator.get_attribute("href")
             for group_locator in group_locators.all()
         ]
-        print(f"{log_prefix} Đã tìm thấy {len(group_urls)} URL nhóm.")
-        if not group_urls:  # Sử dụng if not list để kiểm tra danh sách rỗng
-            print(
-                f"{log_prefix} CẢNH BÁO: Không thể lấy bất kỳ URL nhóm nào. Không có nhóm để đăng bài."
+        signals.task_progress_signal.emit(
+            f"Found {len(group_urls)} group URLs.", [progress[0], progress[1]]
+        )
+        if not group_urls:
+            signals.task_progress_signal.emit(
+                "WARNING: No group URLs could be retrieved. No groups to post in.",
+                [progress[0], progress[1]],
             )
             signals.failed_signal.emit(
                 task,
-                "Không thể truy xuất bất kỳ URL nhóm nào.",
+                "Could not retrieve any group URLs.",
                 settings.get("raw_proxy"),
             )
             return False
 
-        emit_progress_update()  # Tiến độ sau khi lấy nhóm
-
-        # Bước 5: Lặp qua từng nhóm và đăng bài
-        print(
-            f"{log_prefix} Bước 5: Bắt đầu lặp qua các nhóm để đăng bài. (Tổng số nhóm tìm thấy: {len(group_urls)})"
+        signals.task_progress_signal.emit(
+            f"Starting loop through groups to post. (Total groups found: {len(group_urls)})",
+            [progress[0], progress[1]],
         )
         for i, group_url in enumerate(group_urls):
             if current_group_processed >= groups_num:
-                print(
-                    f"{log_prefix} Đã xử lý đủ {groups_num} nhóm. Dừng vòng lặp nhóm."
+                signals.task_progress_signal.emit(
+                    f"Processed {groups_num} groups. Stopping group loop.",
+                    [progress[0], progress[1]],
                 )
                 break
 
-            print(
-                f"{log_prefix}   Xử lý nhóm {i+1}/{len(group_urls)} (Target: {groups_num} nhóm): {group_url}"
+            emit_progress_update(
+                f"Processing group {i+1}/{len(group_urls)} (Target: {groups_num} groups): {group_url}"
             )
-            emit_progress_update()  # Tiến độ cho mỗi nhóm mới
 
-            # 5.1: Điều hướng đến trang nhóm cụ thể
             try:
                 page.goto(group_url, timeout=MIN)
-                print(
-                    f"{log_prefix}     Đã điều hướng thành công đến nhóm: {group_url}"
+                signals.task_progress_signal.emit(
+                    f"Successfully navigated to group: {group_url}",
+                    [progress[0], progress[1]],
                 )
             except PlaywrightTimeoutError as e:
-                print(
-                    f"{log_prefix}     LỖI: Hết thời gian chờ khi điều hướng đến nhóm {group_url}: {e}. Bỏ qua nhóm này."
+                signals.task_progress_signal.emit(
+                    f"ERROR: Timeout while navigating to group {group_url}. Skipping this group.",
+                    [progress[0], progress[1]],
                 )
-                continue  # Bỏ qua nhóm này và tiếp tục với nhóm tiếp theo
+                print(
+                    f"{log_prefix} ERROR: Timeout when navigating to group {group_url}: {e}. Skipping this group.",
+                    file=sys.stderr,
+                )
+                continue
 
             main_locator = page.locator(selectors.S_MAIN)
             tablist_locator = main_locator.first.locator(selectors.S_TABLIST)
 
-            # 5.2: Kiểm tra tab 'Discussion' (hoặc 'Buy/Sell Discussion')
-            print(
-                f"{log_prefix}     Kiểm tra các tab trong nhóm để tìm tab 'Discussion' hoặc 'Buy/Sell Discussion'."
+            signals.task_progress_signal.emit(
+                "Checking group tabs for 'Discussion' or 'Buy/Sell Discussion' tab.",
+                [progress[0], progress[1]],
             )
-            is_discussion_tab_found = True
+            is_discussion_tab_found = False
             if tablist_locator.first.is_visible(timeout=5000):
                 tab_locators = tablist_locator.first.locator(selectors.S_TABLIST_TAB)
-                print(
-                    f"{log_prefix}     Đã tìm thấy {tab_locators.count()} tab trong nhóm."
+                signals.task_progress_signal.emit(
+                    f"Found {tab_locators.count()} tabs in the group.",
+                    [progress[0], progress[1]],
                 )
                 for tab_index in range(tab_locators.count()):
-                    tab_locator = tab_locators.nth(tab_index)  # Lấy tab theo chỉ mục
+                    tab_locator = tab_locators.nth(tab_index)
                     try:
                         tab_url = tab_locator.get_attribute("href", timeout=5_000)
                         if not tab_url:
-                            print(
-                                f"{log_prefix}       CẢNH BÁO: Tab {tab_index} không có URL. Bỏ qua."
+                            signals.task_progress_signal.emit(
+                                f"WARNING: Tab {tab_index} has no URL. Skipping.",
+                                [progress[0], progress[1]],
                             )
                             continue
 
-                        # Chuẩn hóa URL để so sánh
                         cleaned_tab_url = tab_url.rstrip("/")
 
-                        print(
-                            f"{log_prefix}       Kiểm tra Tab {tab_index}: URL = '{cleaned_tab_url}'"
+                        signals.task_progress_signal.emit(
+                            f"Checking Tab {tab_index}: URL = '{cleaned_tab_url}'",
+                            [progress[0], progress[1]],
                         )
                         if cleaned_tab_url.endswith("buy_sell_discussion"):
-                            print(
-                                f"{log_prefix}       Đã tìm thấy tab 'Buy/Sell Discussion' tại URL: {cleaned_tab_url}."
+                            signals.task_progress_signal.emit(
+                                f"Found 'Buy/Sell Discussion' tab at URL: {cleaned_tab_url}.",
+                                [progress[0], progress[1]],
                             )
                             is_discussion_tab_found = False
                             break
                         if cleaned_tab_url.endswith("discussion"):
-                            print(
-                                f"{log_prefix}       Đã tìm thấy tab 'Discussion' tại URL: {cleaned_tab_url}. Click vào tab này."
+                            signals.task_progress_signal.emit(
+                                f"Found 'Discussion' tab at URL: {cleaned_tab_url}. Clicking this tab.",
+                                [progress[0], progress[1]],
                             )
                             tab_locator.click()
                             is_discussion_tab_found = True
-                            sleep(random.uniform(1, 2))  # Đợi tab tải
-                        # break
+                            sleep(random.uniform(1, 2))
+                            break
                         else:
-                            print(
-                                f"{log_prefix}       Tab {tab_index} không phải tab thảo luận."
+                            signals.task_progress_signal.emit(
+                                f"Tab {tab_index} is not a discussion tab.",
+                                [progress[0], progress[1]],
                             )
                     except PlaywrightTimeoutError as e:
+                        signals.task_progress_signal.emit(
+                            f"ERROR: Timeout while getting URL for tab {tab_index}. Skipping this tab.",
+                            [progress[0], progress[1]],
+                        )
                         print(
-                            f"{log_prefix}       LỖI: Hết thời gian chờ khi lấy URL tab {tab_index}: {e}. Bỏ qua tab này."
+                            f"{log_prefix} ERROR: Timeout when getting URL for tab {tab_index}: {e}. Skipping this tab.",
+                            file=sys.stderr,
                         )
                         continue
                     except Exception as e:
+                        signals.task_progress_signal.emit(
+                            f"ERROR: An error occurred while processing tab {tab_index}. Skipping this tab.",
+                            [progress[0], progress[1]],
+                        )
                         print(
-                            f"{log_prefix}       LỖI: Xảy ra lỗi khi xử lý tab {tab_index}: {e}. Bỏ qua tab này."
+                            f"{log_prefix} ERROR: An error occurred when processing tab {tab_index}: {e}. Skipping this tab.",
+                            file=sys.stderr,
                         )
                         continue
             else:
-                print(
-                    f"{log_prefix}     CẢNH BÁO: Tablist không hiển thị cho nhóm này."
+                signals.task_progress_signal.emit(
+                    "WARNING: Tablist not visible for this group.",
+                    [progress[0], progress[1]],
                 )
                 continue
 
             if not is_discussion_tab_found:
-                print(
-                    f"{log_prefix}     Đã tìm thấy tab 'Buy/Sell Discussion' trong nhóm này. Bỏ qua nhóm."
+                signals.task_progress_signal.emit(
+                    "Found 'Buy/Sell Discussion' tab in this group or no suitable discussion tab found. Skipping group.",
+                    [progress[0], progress[1]],
                 )
-                continue  # Bỏ qua nhóm này nếu không tìm thấy tab discussion
+                continue
 
-            # Bước 5.3: Chờ và cuộn đến khu vực tạo bài viết
-            print(f"{log_prefix}     Chờ và cuộn đến khu vực tạo bài viết trong nhóm.")
+            signals.task_progress_signal.emit(
+                "Waiting and scrolling to the post creation area in the group.",
+                [progress[0], progress[1]],
+            )
             profile_locator = main_locator.first.locator(selectors.S_PROFILE)
             try:
                 profile_locator.first.wait_for(state="attached", timeout=MIN)
-                print(
-                    f"{log_prefix}     Khu vực profile/tạo bài viết đã được đính kèm."
+                signals.task_progress_signal.emit(
+                    "Profile/post creation area is attached.",
+                    [progress[0], progress[1]],
                 )
             except Exception as e:
+                signals.task_progress_signal.emit(
+                    f"ERROR: Profile/post creation area not attached. Skipping this group.",
+                    [progress[0], progress[1]],
+                )
                 print(
-                    f"{log_prefix}     LỖI: Khu vực profile/tạo bài viết không được đính kèm: {e}. Bỏ qua nhóm này."
+                    f"{log_prefix} ERROR: Profile/post creation area not attached: {e}. Skipping this group.",
+                    file=sys.stderr,
                 )
                 continue
 
             sleep(random.uniform(1, 3))
             profile_locator.first.scroll_into_view_if_needed()
-            print(f"{log_prefix}     Đã cuộn khu vực profile vào chế độ xem.")
+            signals.task_progress_signal.emit(
+                "Profile area scrolled into view.", [progress[0], progress[1]]
+            )
 
-            # Bước 5.4: Tìm và click nút "Discussion" (hoặc "Write Something")
-            print(
-                f"{log_prefix}     Tìm và click nút 'Discussion' hoặc 'Write Something' để mở dialog tạo bài."
+            signals.task_progress_signal.emit(
+                "Finding and clicking 'Discussion' or 'Write Something' button to open post creation dialog.",
+                [progress[0], progress[1]],
             )
             discussion_btn_locator = profile_locator
             button_found = False
-            max_parent_walks = 5  # Giới hạn số lần đi lên cây DOM
+            max_parent_walks = 5
             walk_count = 0
             while walk_count < max_parent_walks:
                 walk_count += 1
@@ -728,25 +773,24 @@ def do_discussion(
                     selectors.S_BUTTON
                 )
                 if temp_locator.count():
-                    discussion_btn_locator = (
-                        temp_locator.first
-                    )  # Lấy phần tử đầu tiên nếu có nhiều nút
-                    print(
-                        f"{log_prefix}       Đã tìm thấy nút 'Discussion' (hoặc tương tự) sau {walk_count} lần đi lên cây DOM."
+                    discussion_btn_locator = temp_locator.first
+                    signals.task_progress_signal.emit(
+                        f"Found 'Discussion' (or similar) button after {walk_count} DOM tree walks.",
+                        [progress[0], progress[1]],
                     )
                     button_found = True
                     break
                 else:
-                    discussion_btn_locator = discussion_btn_locator.first.locator(
-                        ".."
-                    )  # Đi lên một cấp cha nữa
-                    print(
-                        f"{log_prefix}       Không tìm thấy nút, tiếp tục đi lên cha. (Lần {walk_count})"
+                    discussion_btn_locator = discussion_btn_locator.first.locator("..")
+                    signals.task_progress_signal.emit(
+                        f"Button not found, moving up parent. (Attempt {walk_count})",
+                        [progress[0], progress[1]],
                     )
 
             if not button_found:
-                print(
-                    f"{log_prefix}     CẢNH BÁO: Không tìm thấy nút 'Discussion' hoặc 'Write Something' trong phạm vi giới hạn. Bỏ qua nhóm này."
+                signals.task_progress_signal.emit(
+                    "WARNING: 'Discussion' or 'Write Something' button not found within limit. Skipping this group.",
+                    [progress[0], progress[1]],
                 )
                 continue
 
@@ -754,29 +798,42 @@ def do_discussion(
             try:
                 discussion_btn_locator.scroll_into_view_if_needed()
                 discussion_btn_locator.click()
-                print(
-                    f"{log_prefix}     Đã click nút 'Discussion' để mở dialog tạo bài viết."
+                signals.task_progress_signal.emit(
+                    "Clicked 'Discussion' button to open post creation dialog.",
+                    [progress[0], progress[1]],
                 )
             except Exception as e:
+                signals.task_progress_signal.emit(
+                    f"ERROR: Could not click 'Discussion' button or scroll into view. Skipping this group.",
+                    [progress[0], progress[1]],
+                )
                 print(
-                    f"{log_prefix}     LỖI: Không thể click nút 'Discussion' hoặc cuộn vào chế độ xem: {e}. Bỏ qua nhóm này."
+                    f"{log_prefix} ERROR: Could not click 'Discussion' button or scroll into view: {e}. Skipping this group.",
+                    file=sys.stderr,
                 )
                 continue
 
-            # Bước 5.5: Chờ dialog tạo bài viết xuất hiện và loading hoàn tất
-            print(
-                f"{log_prefix}     Chờ dialog tạo bài viết ('{selectors.S_DIALOG_CREATE_POST}') xuất hiện và loading hoàn tất."
+            signals.task_progress_signal.emit(
+                f"Waiting for post creation dialog ('{selectors.S_DIALOG_CREATE_POST}') to appear and loading to complete.",
+                [progress[0], progress[1]],
             )
             dialog_locator = page.locator(selectors.S_DIALOG_CREATE_POST)
             try:
-                # Chờ loading trong dialog biến mất
                 dialog_locator.first.locator(selectors.S_LOADING).first.wait_for(
                     state="detached", timeout=30_000
                 )
-                print(f"{log_prefix}     Loading trong dialog tạo bài đã hoàn tất.")
+                signals.task_progress_signal.emit(
+                    "Loading in post creation dialog completed.",
+                    [progress[0], progress[1]],
+                )
             except PlaywrightTimeoutError as e:
+                signals.task_progress_signal.emit(
+                    f"ERROR: Timeout while waiting for loading in post creation dialog. Skipping this group.",
+                    [progress[0], progress[1]],
+                )
                 print(
-                    f"{log_prefix}     LỖI: Hết thời gian chờ khi chờ loading trong dialog tạo bài: {e}. Bỏ qua nhóm này."
+                    f"{log_prefix} ERROR: Timeout when waiting for loading in post creation dialog: {e}. Skipping this group.",
+                    file=sys.stderr,
                 )
                 continue
 
@@ -784,42 +841,49 @@ def do_discussion(
                 "xpath=ancestor::*[contains(@role, 'dialog')][1]"
             )
 
-            # Bước 5.6: Xử lý hình ảnh (nếu có)
             if task.action_payload.image_paths:
-                print(
-                    f"{log_prefix}     Phát hiện {len(task.action_payload.image_paths)} đường dẫn hình ảnh. Đang xử lý tải lên."
+                signals.task_progress_signal.emit(
+                    f"Detected {len(task.action_payload.image_paths)} image paths. Processing upload.",
+                    [progress[0], progress[1]],
                 )
                 try:
-                    # Thử chờ input hình ảnh trực tiếp nếu nó đã sẵn sàng
                     dialog_container_locator.locator(selectors.S_IMG_INPUT).wait_for(
                         state="attached", timeout=10_000
                     )
-                    print(f"{log_prefix}     Input hình ảnh đã sẵn sàng trực tiếp.")
-                except PlaywrightTimeoutError as e:
-                    print(
-                        f"{log_prefix}     CẢNH BÁO: Input hình ảnh không sẵn sàng trực tiếp: {e}. Thử click nút hình ảnh."
+                    signals.task_progress_signal.emit(
+                        "Image input is directly ready.", [progress[0], progress[1]]
                     )
-                    # Nếu không chờ được input trực tiếp, click nút hình ảnh để mở nó
+                except PlaywrightTimeoutError as e:
+                    signals.task_progress_signal.emit(
+                        "WARNING: Image input not directly ready. Attempting to click image button.",
+                        [progress[0], progress[1]],
+                    )
+                    print(
+                        f"{log_prefix} WARNING: Image input not directly ready: {e}. Trying to click image button.",
+                        file=sys.stderr,
+                    )
                     try:
                         image_btn_locator = dialog_container_locator.first.locator(
                             selectors.S_IMAGE_BUTTON
                         )
                         sleep(random.uniform(1, 3))
                         image_btn_locator.click()
-                        print(f"{log_prefix}     Đã click nút hình ảnh để mở input.")
-                    except Exception as ex:
-                        print(
-                            f"{log_prefix}     LỖI: Không thể click nút hình ảnh: {ex}. Bỏ qua tải ảnh."
+                        signals.task_progress_signal.emit(
+                            "Clicked image button to open input.",
+                            [progress[0], progress[1]],
                         )
-                        # Nếu không thể click nút, không thể tải ảnh, tiếp tục mà không có ảnh.
-                        task.action_payload.image_paths = (
-                            []
-                        )  # Xóa đường dẫn ảnh để không cố gắng set files
+                    except Exception as ex:
+                        signals.task_progress_signal.emit(
+                            f"ERROR: Could not click image button. Skipping image upload.",
+                            [progress[0], progress[1]],
+                        )
+                        print(
+                            f"{log_prefix} ERROR: Could not click image button: {ex}. Skipping image upload.",
+                            file=sys.stderr,
+                        )
+                        task.action_payload.image_paths = []
                 finally:
-                    # Cố gắng đặt tệp sau khi input đã sẵn sàng (hoặc được mở)
-                    if (
-                        task.action_payload.image_paths
-                    ):  # Kiểm tra lại nếu vẫn còn ảnh để tải
+                    if task.action_payload.image_paths:
                         try:
                             image_input_locator = dialog_container_locator.locator(
                                 selectors.S_IMG_INPUT
@@ -828,25 +892,37 @@ def do_discussion(
                             image_input_locator.set_input_files(
                                 task.action_payload.image_paths, timeout=10000
                             )
-                            print(
-                                f"{log_prefix}     Đã đặt thành công các tệp hình ảnh."
+                            signals.task_progress_signal.emit(
+                                "Successfully set image files.",
+                                [progress[0], progress[1]],
                             )
                         except PlaywrightTimeoutError as e:
+                            signals.task_progress_signal.emit(
+                                f"ERROR: Timeout while setting image files. Image might not be uploaded.",
+                                [progress[0], progress[1]],
+                            )
                             print(
-                                f"{log_prefix}     LỖI: Hết thời gian chờ khi đặt tệp hình ảnh: {e}. Có thể không tải được ảnh."
+                                f"{log_prefix} ERROR: Timeout when setting image files: {e}. Image might not be uploaded.",
+                                file=sys.stderr,
                             )
                         except Exception as e:
+                            signals.task_progress_signal.emit(
+                                f"ERROR: An error occurred while setting image files. Image might not be uploaded.",
+                                [progress[0], progress[1]],
+                            )
                             print(
-                                f"{log_prefix}     LỖI: Xảy ra lỗi khi đặt tệp hình ảnh: {e}. Có thể không tải được ảnh."
+                                f"{log_prefix} ERROR: An error occurred when setting image files: {e}. Image might not be uploaded.",
+                                file=sys.stderr,
                             )
             else:
-                print(
-                    f"{log_prefix}     Không có đường dẫn hình ảnh nào được cung cấp. Bỏ qua tải ảnh."
+                signals.task_progress_signal.emit(
+                    "No image paths provided. Skipping image upload.",
+                    [progress[0], progress[1]],
                 )
 
-            # Bước 5.7: Điền tiêu đề và mô tả vào hộp văn bản
-            print(
-                f"{log_prefix}     Điền tiêu đề và mô tả vào hộp văn bản tạo bài viết."
+            signals.task_progress_signal.emit(
+                "Filling title and description into the post creation text box.",
+                [progress[0], progress[1]],
             )
             textbox_locator = dialog_container_locator.first.locator(
                 selectors.S_TEXTBOX
@@ -857,105 +933,126 @@ def do_discussion(
                     f"{task.action_payload.title}\n\n{task.action_payload.description}"
                 )
                 textbox_locator.fill(content_to_fill)
-                print(
-                    f"{log_prefix}     Đã điền nội dung bài viết (Tiêu đề: '{task.action_payload.title}', Mô tả: '{task.action_payload.description}')."
+                signals.task_progress_signal.emit(
+                    f"Filled post content (Title: '{task.action_payload.title}', Description: '{task.action_payload.description}').",
+                    [progress[0], progress[1]],
                 )
             except Exception as e:
-                print(
-                    f"{log_prefix}     LỖI: Không thể điền nội dung vào hộp văn bản: {e}. Bỏ qua nhóm này."
+                signals.task_progress_signal.emit(
+                    f"ERROR: Could not fill content into the text box. Skipping this group.",
+                    [progress[0], progress[1]],
                 )
-                continue  # Nếu không điền được nội dung thì bỏ qua
+                print(
+                    f"{log_prefix} ERROR: Could not fill content into the text box: {e}. Skipping this group.",
+                    file=sys.stderr,
+                )
+                continue
 
-            # Bước 5.8: Chờ nút đăng bài được kích hoạt và click
-            print(f"{log_prefix}     Chờ nút 'Đăng' được kích hoạt và click.")
+            signals.task_progress_signal.emit(
+                "Waiting for 'Post' button to be enabled and clicking.",
+                [progress[0], progress[1]],
+            )
             post_btn_locators = dialog_container_locator.first.locator(
                 selectors.S_POST_BUTTON
             )
             try:
-                # Chờ nút Đăng không còn bị vô hiệu hóa (aria-disabled)
                 dialog_container_locator.locator(
                     f"{selectors.S_POST_BUTTON}[aria-disabled]"
-                ).wait_for(
-                    state="detached", timeout=30_000
-                )  # Khi aria-disabled detached, nghĩa là nó đã bị xóa/thay đổi -> nút đã kích hoạt
-                print(f"{log_prefix}     Nút 'Đăng' đã được kích hoạt.")
+                ).wait_for(state="detached", timeout=30_000)
+                signals.task_progress_signal.emit(
+                    "'Post' button is now enabled.", [progress[0], progress[1]]
+                )
                 post_btn_locators.first.click()
-                print(f"{log_prefix}     Đã click nút 'Đăng'.")
+                signals.task_progress_signal.emit(
+                    "Clicked 'Post' button.", [progress[0], progress[1]]
+                )
             except PlaywrightTimeoutError as e:
+                signals.task_progress_signal.emit(
+                    f"ERROR: Timeout while waiting for 'Post' button to be enabled or clicked. Post might not have been published.",
+                    [progress[0], progress[1]],
+                )
                 print(
-                    f"{log_prefix}     LỖI: Hết thời gian chờ khi chờ nút 'Đăng' được kích hoạt hoặc click: {e}. Bài viết có thể chưa được đăng."
+                    f"{log_prefix} ERROR: Timeout when waiting for 'Post' button to be enabled or clicked: {e}. Post might not have been published.",
+                    file=sys.stderr,
                 )
                 signals.failed_signal.emit(
                     task,
-                    "Không thể click nút Đăng hoặc nút bị vô hiệu hóa.",
+                    "Could not click Post button or button remained disabled.",
                     settings.get("raw_proxy"),
                 )
-                continue  # Bỏ qua nhóm này vì không thể đăng bài
+                continue
 
-            # Bước 5.9: Chờ dialog tạo bài viết đóng lại (detached)
-            print(f"{log_prefix}     Chờ dialog tạo bài viết đóng lại.")
+            signals.task_progress_signal.emit(
+                "Waiting for post creation dialog to close.", [progress[0], progress[1]]
+            )
             try:
                 dialog_container_locator.wait_for(state="detached", timeout=MIN)
-                print(f"{log_prefix}     Dialog tạo bài viết đã đóng thành công.")
+                signals.task_progress_signal.emit(
+                    "Post creation dialog closed successfully.",
+                    [progress[0], progress[1]],
+                )
             except PlaywrightTimeoutError as e:
+                signals.task_progress_signal.emit(
+                    f"ERROR: Timeout while waiting for post creation dialog to close. Post might not have been published successfully or dialog is stuck.",
+                    [progress[0], progress[1]],
+                )
                 print(
-                    f"{log_prefix}     LỖI: Hết thời gian chờ khi chờ dialog tạo bài viết đóng lại: {e}. Có thể bài viết chưa đăng thành công hoặc dialog bị kẹt."
+                    f"{log_prefix} ERROR: Timeout when waiting for post creation dialog to close: {e}. Post might not have been published successfully or dialog is stuck.",
+                    file=sys.stderr,
                 )
                 signals.failed_signal.emit(
                     task,
-                    "Dialog tạo bài viết không đóng lại sau khi đăng. Có thể đăng thất bại.",
+                    "Post creation dialog did not close after publishing. Post might have failed.",
                     settings.get("raw_proxy"),
                 )
-                continue  # Bỏ qua nhóm này nếu dialog không đóng
+                continue
 
-            sleep(random.uniform(1, 3))  # Dừng một chút sau khi đăng thành công
+            sleep(random.uniform(1, 3))
 
-            # Bước 5.10: Phát tín hiệu thành công cho nhóm này
             signals.succeeded_signal.emit(
                 task,
-                f"Đã đăng bài thành công trong nhóm: {group_url}.",
+                f"Successfully posted in group: {group_url}.",
                 settings.get("raw_proxy"),
             )
             current_group_processed += 1
-            print(
-                f"{log_prefix}   Đã xử lý thành công {current_group_processed}/{groups_num} nhóm."
+            signals.task_progress_signal.emit(
+                f"Successfully processed {current_group_processed}/{groups_num} groups.",
+                [progress[0], progress[1]],
             )
-            emit_progress_update()  # Tiến độ sau khi đăng bài thành công cho nhóm này
 
-            # Kiểm tra nếu đã xử lý đủ số nhóm mong muốn
             if current_group_processed >= groups_num:
-                print(
-                    f"{log_prefix} Đã xử lý đủ {groups_num} nhóm. Kết thúc tác vụ đăng bài."
+                signals.task_progress_signal.emit(
+                    f"Processed {groups_num} groups. Ending posting task.",
+                    [progress[0], progress[1]],
                 )
-                break  # Dừng vòng lặp nếu đã đạt số nhóm cần xử lý
+                break
 
-        print(
-            f"{log_prefix} Đã hoàn thành vòng lặp xử lý nhóm. Tổng số nhóm đã đăng: {current_group_processed}/{groups_num}."
+        signals.task_progress_signal.emit(
+            f"Completed group processing loop. Total groups posted: {current_group_processed}/{groups_num}.",
+            [progress[0], progress[1]],
         )
 
-        # Kết thúc tác vụ
-        print(f"{log_prefix} Tác vụ thảo luận hoàn tất thành công.")
+        signals.task_progress_signal.emit(
+            "Discussion task completed successfully.", [progress[0], progress[1]]
+        )
         return True
     except Exception as e:
-        # Bắt các lỗi không mong đợi khác trong toàn bộ hàm
         error_type = type(e).__name__
         error_message = str(e)
 
-        # Lấy toàn bộ traceback, bao gồm file và dòng
         full_traceback = traceback.format_exc()
 
         print(
-            f"{log_prefix} LỖI KHÔNG MONG ĐỢI: Xảy ra lỗi tổng quát trong quá trình thực hiện tác vụ:",
+            f"{log_prefix} UNEXPECTED ERROR: A general error occurred during task execution:",
             file=sys.stderr,
         )
-        print(f"  Loại lỗi: {error_type}", file=sys.stderr)
-        print(f"  Thông báo: {error_message}", file=sys.stderr)
-        print(f"  Chi tiết Traceback:\n{full_traceback}", file=sys.stderr)
+        print(f"  Error Type: {error_type}", file=sys.stderr)
+        print(f"  Message: {error_message}", file=sys.stderr)
+        print(f"  Traceback Details:\n{full_traceback}", file=sys.stderr)
 
-        # Gửi thông tin lỗi chi tiết hơn qua signal
         signals.error_signal.emit(
             task,
-            f"Lỗi không mong đợi: {error_message}\nChi tiết: Xem log console để biết đầy đủ traceback.",
+            f"Unexpected error: {error_message}\nDetails: See console log for full traceback.",
         )
         return False
 
