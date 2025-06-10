@@ -13,51 +13,53 @@ class Ui_Dialog_RobotRun(object):
     def setupUi(self, Dialog_RobotRun):
         Dialog_RobotRun.setObjectName("Dialog_RobotRun")
         Dialog_RobotRun.resize(480, 149)
-        Dialog_RobotRun.setStyleSheet("#Dialog_RobotRun{\n"
-"  font-family: \"Courier New\";\n"
-"  background-color: #FFFFFF;\n"
-"  font-size: 12px;\n"
-"}\n"
-"QGroupBox {\n"
-"  font-family: \"Courier New\";\n"
-"  font-size: 12px;\n"
-"  background-color: rgba(248, 249, 250, 1);\n"
-"}\n"
-"QLineEdit {\n"
-"  padding: 4px 0;\n"
-"  border: 1px solid #ced4da;\n"
-"  border-radius: 8px;\n"
-"  margin-left: 8px;\n"
-"  padding-left: 4px;\n"
-"  background-color: #FFFFFF;\n"
-"  color:#212529;\n"
-"  font-size: 12px;\n"
-"}\n"
-"QPlainTextEdit {\n"
-"    background-color: #FFFFFF;\n"
-"  color:#212529;\n"
-"  font-size: 12px;\n"
-"}\n"
-"QLabel {\n"
-"  font-family: \"Courier New\";\n"
-"  font-size: 12px;\n"
-"  color: rgb(90, 93, 97);\n"
-"}\n"
-"QRadioButton {\n"
-"  font-family: \"Courier New\";\n"
-"  font-size: 12px;\n"
-"  color: #212529;\n"
-"}\n"
-"QComboBox {\n"
-"  font-family: \"Courier New\";\n"
-"  font-size: 12px;\n"
-"  color: #212529;\n"
-"}\n"
-"QPushButton {\n"
-"  color: #212529;\n"
-"  font-size: 12px;\n"
-"}\n"
-"")
+        Dialog_RobotRun.setStyleSheet(
+            "#Dialog_RobotRun{\n"
+            '  font-family: "Courier New";\n'
+            "  background-color: #FFFFFF;\n"
+            "  font-size: 12px;\n"
+            "}\n"
+            "QGroupBox {\n"
+            '  font-family: "Courier New";\n'
+            "  font-size: 12px;\n"
+            "  background-color: rgba(248, 249, 250, 1);\n"
+            "}\n"
+            "QLineEdit {\n"
+            "  padding: 4px 0;\n"
+            "  border: 1px solid #ced4da;\n"
+            "  border-radius: 8px;\n"
+            "  margin-left: 8px;\n"
+            "  padding-left: 4px;\n"
+            "  background-color: #FFFFFF;\n"
+            "  color:#212529;\n"
+            "  font-size: 12px;\n"
+            "}\n"
+            "QPlainTextEdit {\n"
+            "    background-color: #FFFFFF;\n"
+            "  color:#212529;\n"
+            "  font-size: 12px;\n"
+            "}\n"
+            "QLabel {\n"
+            '  font-family: "Courier New";\n'
+            "  font-size: 12px;\n"
+            "  color: rgb(90, 93, 97);\n"
+            "}\n"
+            "QRadioButton {\n"
+            '  font-family: "Courier New";\n'
+            "  font-size: 12px;\n"
+            "  color: #212529;\n"
+            "}\n"
+            "QComboBox {\n"
+            '  font-family: "Courier New";\n'
+            "  font-size: 12px;\n"
+            "  color: #212529;\n"
+            "}\n"
+            "QPushButton {\n"
+            "  color: #212529;\n"
+            "  font-size: 12px;\n"
+            "}\n"
+            ""
+        )
         self.gridLayout = QtWidgets.QGridLayout(Dialog_RobotRun)
         self.gridLayout.setContentsMargins(8, 8, 8, 8)
         self.gridLayout.setObjectName("gridLayout")
@@ -109,7 +111,9 @@ class Ui_Dialog_RobotRun(object):
         self.is_headless_layout = QtWidgets.QVBoxLayout()
         self.is_headless_layout.setSpacing(0)
         self.is_headless_layout.setObjectName("is_headless_layout")
-        self.is_headless_checkbox = QtWidgets.QCheckBox(parent=self.is_headless_container)
+        self.is_headless_checkbox = QtWidgets.QCheckBox(
+            parent=self.is_headless_container
+        )
         self.is_headless_checkbox.setObjectName("is_headless_checkbox")
         self.is_headless_layout.addWidget(self.is_headless_checkbox)
         self.verticalLayout_28.addLayout(self.is_headless_layout)
@@ -155,13 +159,16 @@ class Ui_Dialog_RobotRun(object):
         self.gridLayout.addLayout(self.dialog_robot_run_layout, 0, 0, 1, 1)
         self.buttonBox = QtWidgets.QDialogButtonBox(parent=Dialog_RobotRun)
         self.buttonBox.setOrientation(QtCore.Qt.Orientation.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.StandardButton.Cancel|QtWidgets.QDialogButtonBox.StandardButton.Ok)
+        self.buttonBox.setStandardButtons(
+            QtWidgets.QDialogButtonBox.StandardButton.Cancel
+            | QtWidgets.QDialogButtonBox.StandardButton.Ok
+        )
         self.buttonBox.setObjectName("buttonBox")
         self.gridLayout.addWidget(self.buttonBox, 1, 0, 1, 1)
 
         self.retranslateUi(Dialog_RobotRun)
-        self.buttonBox.accepted.connect(Dialog_RobotRun.accept) # type: ignore
-        self.buttonBox.rejected.connect(Dialog_RobotRun.reject) # type: ignore
+        self.buttonBox.accepted.connect(Dialog_RobotRun.accept)  # type: ignore
+        self.buttonBox.rejected.connect(Dialog_RobotRun.reject)  # type: ignore
         QtCore.QMetaObject.connectSlotsByName(Dialog_RobotRun)
 
     def retranslateUi(self, Dialog_RobotRun):
@@ -171,8 +178,12 @@ class Ui_Dialog_RobotRun(object):
         self.thread_num_input.setInputMask(_translate("Dialog_RobotRun", "1"))
         self.is_mobile_checkbox.setText(_translate("Dialog_RobotRun", "Is mobile"))
         self.is_headless_checkbox.setText(_translate("Dialog_RobotRun", "Is headless"))
-        self.group_num_label.setText(_translate("Dialog_RobotRun", "Số lượng nhóm (discussion)"))
+        self.group_num_label.setText(
+            _translate("Dialog_RobotRun", "Số lượng nhóm (discussion)")
+        )
         self.group_num_input.setInputMask(_translate("Dialog_RobotRun", "5"))
-        self.delay_time_label.setText(_translate("Dialog_RobotRun", "Thời gian delay (phút)"))
-        self.delay_time_input.setInputMask(_translate("Dialog_RobotRun", "3"))
-        self.delay_time_input.setText(_translate("Dialog_RobotRun", "3"))
+        self.delay_time_label.setText(
+            _translate("Dialog_RobotRun", "Thời gian delay (phút)")
+        )
+        self.delay_time_input.setInputMask(_translate("Dialog_RobotRun", "0"))
+        self.delay_time_input.setText(_translate("Dialog_RobotRun", "0"))
