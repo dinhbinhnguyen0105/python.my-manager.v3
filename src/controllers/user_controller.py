@@ -27,6 +27,8 @@ class UserController(BaseController):
         self._user_service = user_service
         self._current_check_live_process: Optional[CheckLive] = None
         self._current_browser_progress: Optional[BrowserManager] = None
+        self.list_selected_uid = []
+        self.current_check_user_progress_num = 0
 
     def create_user(self, user_data: UserType):
         try:
@@ -137,11 +139,13 @@ class UserController(BaseController):
             return False
 
     def handle_check_users(self, selected_ids: List[int]) -> bool:
-        list_uid = self._user_service.get_uids_by_record_ids(selected_ids)
-        if not list_uid:
+        self.list_selected_uid = []
+        self.list_selected_uid = self._user_service.get_uids_by_record_ids(selected_ids)
+        self.current_check_user_progress_num = 0
+        if not self.list_selected_uid:
             # TODO emit message
             return True
-        tasks = list(zip(selected_ids, list_uid))
+        tasks = list(zip(selected_ids, self.list_selected_uid))
         if (
             self._current_check_live_process
             and not self._current_check_live_process._check_if_done()
@@ -155,7 +159,6 @@ class UserController(BaseController):
                 f"[{self.__class__.__name__}.handleCheckUsersRequest] Starting new Check Live process."
             )
             self._current_check_live_process = CheckLive(self)
-
             self._current_check_live_process.task_succeeded.connect(
                 self._on_check_live_task_succeeded
             )
@@ -224,8 +227,13 @@ class UserController(BaseController):
 
     @pyqtSlot(int, str, bool)
     def _on_check_live_task_succeeded(self, record_id: int, uid: str, is_live: bool):
-        print(f"{record_id} - {uid} : {is_live}")
+        # print()
         self._user_service.update_status(record_id, 1 if is_live else 0)
+        self.current_check_user_progress_num += 1
+        self.task_progress_signal.emit(
+            f"{record_id} - {uid} : {is_live}",
+            [self.current_check_user_progress_num, len(self.list_selected_uid)],
+        )
 
     @pyqtSlot(int, str, str)
     def _on_check_live_task_failed(self, record_id: int, uid: str, error_message: str):
