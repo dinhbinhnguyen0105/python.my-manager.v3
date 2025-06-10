@@ -139,7 +139,7 @@ def do_marketplace(
         print(f"{log_prefix} Progress: {progress[0]}/{progress[1]} - {message}")
 
     try:
-        progress[1] = 12  # Total steps for marketplace
+        progress[1] = 28  # Total steps for marketplace
         emit_progress_update(f"Performing marketplace listing: {task.action_name}")
         try:
             page.goto(
