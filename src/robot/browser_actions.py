@@ -69,7 +69,7 @@ def do_launch_browser(
     page: Page, task: RobotTaskType, settings: dict, signals: BrowserWorkerSignals
 ):
     log_prefix = f"[Task {task.user_info.username} - do_launch_browser]"
-    progress: List[int] = [0, 0]  # current, total
+    progress: List[int] = [0, 2]  # current, total
 
     def emit_progress_update(message: str):
         progress[0] += 1
@@ -81,9 +81,7 @@ def do_launch_browser(
         emit_progress_update("Launching browser...")
         try:
             page.goto(task.action_payload.get("url", ""), timeout=MIN)
-            signals.task_progress_signal.emit(
-                "Successfully navigated to URL.", [progress[0], progress[1]]
-            )
+            emit_progress_update("Successfully navigated to URL.")
         except PlaywrightTimeoutError as e:
             emit_progress_update(f"ERROR: Timeout while navigating to URL.")
             print(
@@ -106,11 +104,8 @@ def do_launch_browser(
                 )
 
         emit_progress_update("Waiting for browser to close event (if applicable).")
-        # page.wait_for_event("close", timeout=0) # This will block indefinitely if the page doesn't close
-        signals.task_progress_signal.emit(
-            "Browser launched and ready. Waiting for task completion.",
-            [progress[0], progress[1]],
-        )
+        page.wait_for_event("close", timeout=0)
+        emit_progress_update("Browser launched and ready. Waiting for task completion.")
         return True
     except Exception as e:
         error_type = type(e).__name__
