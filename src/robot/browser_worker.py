@@ -91,6 +91,8 @@ class BrowserWorker(QRunnable):
                             page, self._browser, self._settings, self._signals
                         )
 
+                sleep(self._settings.get("delay_time", 0))
+
                 if not is_succeeded:
                     self._signals.failed_signal.emit(
                         self._browser,
@@ -104,6 +106,7 @@ class BrowserWorker(QRunnable):
                         "Succeeded",
                         self._raw_proxy,
                     )
+
             except Exception as e:
                 self._signals.error_signal.emit(self._browser, str(e))
 
