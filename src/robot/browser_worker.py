@@ -90,9 +90,9 @@ class BrowserWorker(QRunnable):
                         is_succeeded = action_func(
                             page, self._browser, self._settings, self._signals
                         )
-                print(
-                    f"{self._settings.get("delay_time", 0)} - {type(self._settings.get("delay_time", 0))}"
-                )
+                # print(
+                #     f"{self._settings.get("delay_time", 0)} - {type(self._settings.get("delay_time", 0))}"
+                # )
                 sleep(self._settings.get("delay_time", 0))
 
                 if not is_succeeded:

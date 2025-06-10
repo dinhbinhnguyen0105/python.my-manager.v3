@@ -980,7 +980,7 @@ def do_discussion(
                 "Waiting for post creation dialog to close.", [progress[0], progress[1]]
             )
             try:
-                dialog_container_locator.wait_for(state="detached", timeout=MIN)
+                dialog_container_locator.wait_for(state="detached", timeout=30_000)
                 signals.task_progress_signal.emit(
                     "Post creation dialog closed successfully.",
                     [progress[0], progress[1]],
@@ -999,7 +999,7 @@ def do_discussion(
                     "Post creation dialog did not close after publishing. Post might have failed.",
                     settings.get("raw_proxy"),
                 )
-                continue
+                break
 
             sleep(random.uniform(1, 3))
 
