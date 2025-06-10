@@ -165,9 +165,6 @@ class RobotPage(QWidget, Ui_PageRobot):
             self.actions_tree.addTopLevelItem(user_item)
         self.actions_tree.expandAll()
 
-    def init_browser_task(self):
-        pass
-
     def set_filters(self):
         filter_widgets = [
             (self.note_input, self.base_user_model.fieldIndex("note")),

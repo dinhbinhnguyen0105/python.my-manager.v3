@@ -647,7 +647,7 @@ def do_discussion(
                 "Checking group tabs for 'Discussion' or 'Buy/Sell Discussion' tab.",
                 [progress[0], progress[1]],
             )
-            is_discussion_tab_found = False
+            is_discussion_tab_found = True
             if tablist_locator.first.is_visible(timeout=5000):
                 tab_locators = tablist_locator.first.locator(selectors.S_TABLIST_TAB)
                 signals.task_progress_signal.emit(
@@ -686,12 +686,11 @@ def do_discussion(
                             tab_locator.click()
                             is_discussion_tab_found = True
                             sleep(random.uniform(1, 2))
-                            break
-                        else:
-                            signals.task_progress_signal.emit(
-                                f"Tab {tab_index} is not a discussion tab.",
-                                [progress[0], progress[1]],
-                            )
+                        # else:
+                        #     signals.task_progress_signal.emit(
+                        #         f"Tab {tab_index} is not a discussion tab.",
+                        #         [progress[0], progress[1]],
+                        #     )
                     except PlaywrightTimeoutError as e:
                         signals.task_progress_signal.emit(
                             f"ERROR: Timeout while getting URL for tab {tab_index}. Skipping this tab.",
