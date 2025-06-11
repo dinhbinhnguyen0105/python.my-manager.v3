@@ -5,7 +5,6 @@ from playwright.sync_api import (
     Page,
     TimeoutError as PlaywrightTimeoutError,
     Locator,
-    Request,
 )
 from src.my_types import RobotTaskType, BrowserWorkerSignals
 
@@ -17,9 +16,7 @@ MIN = 60_000
 SELECTORS = {
     "root": 'div[data-type="vscroller"]',
     "container": 'div[data-type="container"]',
-    # "ServerTextArea": 'div[data-mcomponent="ServerTextArea"]',
     "product": '> div[data-mcomponent="ServerTextArea"]:nth-of-type(3)',
-    "product_title": '> div[data-mcomponent="ServerTextArea"]',
     "product_menu_button": 'div[role="button"][data-focusable="true"]',
     "bottom_sheet": 'div[role="presentation"]',
     "fixed_top": "div.fixed-container.top",
@@ -27,27 +24,25 @@ SELECTORS = {
 }
 
 
-def share_lasted_product(
+def share_latest_product(
     page: Page, task: RobotTaskType, settings: dict, signals: BrowserWorkerSignals
 ):
     log_prefix = f"[Task {task.user_info.username} - do_launch_browser]"
     progress: List[int] = [0, 4]  # current, total
 
-    def emit_progress_update(message: str):
-        progress[0] += 1
-        signals.task_progress_signal.emit(message, [progress[0], progress[1]])
-        print(f"{log_prefix} Progress: {progress[0]}/{progress[1]} - {message}")
-
     try:
         # click vào sản phẩm mới nhất trong list sản phẩm
         product_url = goto_product_details(
             page=page,
-            signals_handler={"progress_update": emit_progress_update},
+            task=task,
+            settings=settings,
+            signals=signals,
         )
         goto_more_place(
-            page=page,
             product_url=product_url,
-            signals_handler={"progress_update": emit_progress_update},
+            page=page,
+            task=task,
+            signals=signals,
         )
 
         print("Wait for close")
@@ -64,14 +59,58 @@ def share_lasted_product(
         return except_handle(e)
 
 
-def goto_product_details(page: Page, signals_handler: dict) -> str:
-    update_progress_handler: Optional[Callable] = signals_handler.get(
-        "progress_update", None
-    )
-    if not update_progress_handler:
-        raise KeyError("Invalid progress_update")
+def goto_product_details(
+    page: Page,
+    task: RobotTaskType,
+    settings: dict,
+    signals: BrowserWorkerSignals,
+) -> str:
+    progress: List[int] = [0, 0]
+    log_prefix = f"[Task {task.user_info.username} - do_discussion]"
+
+    def emit_progress_update(message: str):
+        progress[0] += 1
+        signals.task_progress_signal.emit(message, [progress[0], progress[1]])
+        print(f"{log_prefix} Progress: {progress[0]}/{progress[1]} - {message}")
+
+    progress[1] = 10
+    emit_progress_update(f"Estimated total steps: {progress[1]}")
+
     listing_id_url = "https://www.facebook.com/marketplace/selling/?listing_id"
-    page.goto(listing_id_url, wait_until="domcontentloaded", timeout=MIN)
+    try:
+        page.goto(listing_id_url, wait_until="domcontentloaded", timeout=MIN)
+        emit_progress_update(
+            "Successfully navigated to listing_id page.",
+            [progress[0], progress[1]],
+        )
+    except PlaywrightTimeoutError as e:
+        emit_progress_update(
+            "ERROR: Timeout while navigating to listing_id page.",
+            [progress[0], progress[1]],
+        )
+        if settings.get("raw_proxy"):
+            signals.proxy_not_ready_signal.emit(task, settings.get("raw_proxy"))
+        return False
+
+    emit_progress_update("Checking page language.")
+    page_language = page.locator("html").get_attribute("lang")
+    signals.task_progress_signal.emit(
+        f"Detected page language: '{page_language}'.", [progress[0], progress[1]]
+    )
+    if page_language != "en":
+        signals.task_progress_signal.emit(
+            "WARNING: Page language is not English. Language conversion required.",
+            [progress[0], progress[1]],
+        )
+        signals.failed_signal.emit(
+            task,
+            "Page language conversion to English required.",
+            settings.get("raw_proxy", None),
+        )
+        return False
+
+    # TODO emit signals
+
     root_locators = page.locator(SELECTORS["root"])
     container_locators = root_locators.first.locator(SELECTORS["container"])
     product_locators = container_locators.filter(
@@ -87,12 +126,20 @@ def goto_product_details(page: Page, signals_handler: dict) -> str:
     return page.url
 
 
-def goto_more_place(page: Page, product_url: str, signals_handler: dict):
-    update_progress_handler: Optional[Callable] = signals_handler.get(
-        "progress_update", None
-    )
-    if not update_progress_handler:
-        raise KeyError("Invalid progress_update")
+def goto_more_place(
+    product_url: str,
+    page: Page,
+    task: RobotTaskType,
+    signals: BrowserWorkerSignals,
+):
+    progress: List[int] = [0, 0]
+    log_prefix = f"[Task {task.user_info.username} - do_discussion]"
+
+    def emit_progress_update(message: str):
+        progress[0] += 1
+        signals.task_progress_signal.emit(message, [progress[0], progress[1]])
+        print(f"{log_prefix} Progress: {progress[0]}/{progress[1]} - {message}")
+
     if product_url != page.url:
         page.goto(product_url, wait_until="domcontentloaded", timeout=MIN)
     # click vào nut menu

@@ -9,7 +9,7 @@ from undetected_playwright import Tarnished
 from PyQt6.QtCore import QRunnable
 
 from src.my_types import BrowserWorkerSignals, BrowserType
-from src.robot.browser_actions import ACTION_MAP
+from src.robot.action_mapping import ACTION_MAP
 from src.my_constants import ROBOT_ACTION_NAMES
 
 
@@ -35,7 +35,7 @@ class BrowserWorker(QRunnable):
         if proxy and self._browser.action_name in ACTION_MAP.keys():
             try:
                 action_func = ACTION_MAP[self._browser.action_name]
-                if self._browser.action_name == "share_lasted_product":
+                if self._browser.action_name == "share_latest_product":
                     self._browser.is_mobile = True
                 is_succeeded = False
                 with sync_playwright() as p:
