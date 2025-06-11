@@ -254,9 +254,9 @@ ICONS = [
 
 
 ROBOT_ACTION_NAMES = {
+    "share_lasted_product": "share marketplace lên nhóm (mobile)",
     "marketplace": "niêm yết trên marketplace",
     "discussion": "đăng bài lên nhóm",
-    "share_lasted_product": "share marketplace lên nhóm (mobile)",
     # "interaction": "Tương tác",
 }
 

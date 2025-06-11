@@ -57,14 +57,6 @@ class BrowserManager(QObject):
         for proxy in list_raw_proxy:
             if proxy not in self._pending_raw_proxies:
                 self._pending_raw_proxies.append(proxy)
-        self.threadpool.setMaxThreadCount(
-            min(
-                self.threadpool.maxThreadCount() - self.threadpool.activeThreadCount(),
-                self.settings.get("thread_num", 1),
-                len(self._pending_raw_proxies),
-            )
-        )
-        self.threadpool.setMaxThreadCount(_)
         self._try_start_browsers()
 
     def _try_start_browsers(self):
