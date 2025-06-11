@@ -126,6 +126,9 @@ QPushButton {
           <item>
            <widget class="QLineEdit" name="thread_num_input">
             <property name="inputMask">
+             <string/>
+            </property>
+            <property name="text">
              <string>1</string>
             </property>
            </widget>
@@ -250,6 +253,9 @@ QPushButton {
           <item>
            <widget class="QLineEdit" name="group_num_input">
             <property name="inputMask">
+             <string/>
+            </property>
+            <property name="text">
              <string>5</string>
             </property>
            </widget>
@@ -298,7 +304,7 @@ QPushButton {
           <item>
            <widget class="QLineEdit" name="delay_time_input">
             <property name="inputMask">
-             <string>3</string>
+             <string/>
             </property>
             <property name="text">
              <string>3</string>

@@ -59,7 +59,7 @@ class BrowserWorker(QRunnable):
                         context_kwargs["screen"] = {"width": 390, "height": 844}
                         context_kwargs["is_mobile"] = True
                         context_kwargs["device_scale_factor"] = 3
-                        context_kwargs["has_touch"] = True
+                        context_kwargs["has_touch"] = False
                     context = p.chromium.launch_persistent_context(**context_kwargs)
                     Tarnished.apply_stealth(context)
                     pages = context.pages
