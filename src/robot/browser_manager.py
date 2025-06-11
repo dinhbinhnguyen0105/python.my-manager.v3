@@ -59,7 +59,6 @@ class BrowserManager(QObject):
                 self._pending_raw_proxies.append(proxy)
         self.threadpool.setMaxThreadCount(
             min(
-                self.threadpool.maxThreadCount() - self.threadpool.activeThreadCount(),
                 self.settings.get("thread_num", 1),
                 len(self._pending_raw_proxies),
             )
