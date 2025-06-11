@@ -1042,9 +1042,12 @@ def do_discussion(
         return False
 
 
+from src.robot.actions_2 import share_lasted_product
+
 ACTION_MAP = {
     "launch_browser": do_launch_browser,
     "marketplace": do_marketplace,
     # "marketplace_and_groups": do_marketplace_and_groups,
     "discussion": do_discussion,
+    "share_lasted_product": share_lasted_product,
 }

@@ -35,6 +35,8 @@ class BrowserWorker(QRunnable):
         if proxy and self._browser.action_name in ACTION_MAP.keys():
             try:
                 action_func = ACTION_MAP[self._browser.action_name]
+                if self._browser.action_name == "share_lasted_product":
+                    self._browser.is_mobile = True
                 is_succeeded = False
                 with sync_playwright() as p:
                     context_kwargs = dict(

@@ -49,9 +49,9 @@ class RobotController(BaseController):
         self, list_user_data: List[UserType], action_payloads: List
     ) -> Dict[str, BrowserType]:
         browser_actions = {}
-        re_products = self._re_product_service.read_all()
-        misc_products = self._misc_product_service.read_all()
-        products = re_products + misc_products
+        # re_products = self._re_product_service.read_all()
+        # misc_products = self._misc_product_service.read_all()
+        # products = re_products + misc_products
 
         for user_data in list_user_data:
             user_type = user_data.type.strip().lower()
