@@ -69,7 +69,7 @@ def do_launch_browser(
     page: Page, task: RobotTaskType, settings: dict, signals: BrowserWorkerSignals
 ):
     log_prefix = f"[Task {task.user_info.username} - do_launch_browser]"
-    progress: List[int] = [0, 2]  # current, total
+    progress: List[int] = [0, 4]  # current, total
 
     def emit_progress_update(message: str):
         progress[0] += 1
@@ -77,7 +77,6 @@ def do_launch_browser(
         print(f"{log_prefix} Progress: {progress[0]}/{progress[1]} - {message}")
 
     try:
-        progress[1] = 2  # Total steps for launch browser
         emit_progress_update("Launching browser...")
         try:
             page.goto(task.action_payload.get("url", ""), timeout=MIN)
@@ -685,12 +684,6 @@ def do_discussion(
                             )
                             tab_locator.click()
                             is_discussion_tab_found = True
-                            sleep(random.uniform(1, 2))
-                        # else:
-                        #     signals.task_progress_signal.emit(
-                        #         f"Tab {tab_index} is not a discussion tab.",
-                        #         [progress[0], progress[1]],
-                        #     )
                     except PlaywrightTimeoutError as e:
                         signals.task_progress_signal.emit(
                             f"ERROR: Timeout while getting URL for tab {tab_index}. Skipping this tab.",
@@ -923,9 +916,7 @@ def do_discussion(
             )
             sleep(random.uniform(1, 3))
             try:
-                content_to_fill = (
-                    f"{task.action_payload.title}\n\n{task.action_payload.description}"
-                )
+                content_to_fill = task.action_payload.description
                 textbox_locator.fill(content_to_fill)
                 signals.task_progress_signal.emit(
                     f"Filled post content (Title: '{task.action_payload.title}', Description: '{task.action_payload.description}').",
@@ -1051,9 +1042,12 @@ def do_discussion(
         return False
 
 
+from src.robot.actions_2 import share_lasted_product
+
 ACTION_MAP = {
     "launch_browser": do_launch_browser,
     "marketplace": do_marketplace,
     # "marketplace_and_groups": do_marketplace_and_groups,
     "discussion": do_discussion,
+    "share_lasted_product": share_lasted_product,
 }

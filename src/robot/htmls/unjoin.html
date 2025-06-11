@@ -1,0 +1,22 @@
+url: https://www.facebook.com/marketplace/selling/?listing_id
+const containerElms = document.querySelectorAll('div[data-type="container"]');
+const productElms = [...containerElms].filter(elm => {
+const textElms = elm.querySelectorAll(':scope > div[data-mcomponent="ServerTextArea"]');
+if (textElms.length >=3){ return true;}
+else {return false; };
+});
+productElms[0].click();
+product_url = window.location.href
+
+ellipsisMenuBtnElm = document.querySelector('div[data-client-focused-component="true"]');
+ellipsisMenuBtnElm.click();
+
+menuElms = document.querySelectorAll('div[role="presentation"]')
+menuElm = menuElms.isVisible();
+listMorePlaceBtnElm = "List in More Places"
+
+
+
+-------------------------
+container = document.querySelectorAll('div[data-type="vscroller"]')
+container.querySelectorAll(':scope > div[data-mcomponent="ServerTextArea"]') => ["also post to", "suggested groups"]
