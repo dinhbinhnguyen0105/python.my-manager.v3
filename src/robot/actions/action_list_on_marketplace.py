@@ -45,6 +45,7 @@ def list_on_marketplace(
             if settings.get("raw_proxy"):
                 signals.proxy_not_ready_signal.emit(task, settings.get("raw_proxy"))
             return False
+
         emit_progress_update("Starting listing on marketplace.")
         page_language = page.locator("html").get_attribute("lang")
         if page_language != "en":
@@ -73,7 +74,7 @@ def list_on_marketplace(
             _msg = f"marketplace_form is not found or is not interactive."
             raise RuntimeError(_msg)
 
-        emit_progress_update("Thử đóng các dialog không được định nghĩa.")
+        emit_progress_update("Try closing anonymous dialogs.")
         close_dialog(page)
 
         emit_progress_update(
@@ -106,6 +107,8 @@ def list_on_marketplace(
         )
         emit_progress_update("Filled data into the description field.")
 
+        # --------------
+
         emit_progress_update(
             f"Locating title_locator, price_locator, location_locator with selector: {selectors.S_INPUT_TEXT}."
         )
@@ -131,7 +134,10 @@ def list_on_marketplace(
         emit_progress_update("Filled data into the price field.")
 
         emit_progress_update("Filling data into the location field.")
-        page.wait_for_selector(selectors.S_UL_LISTBOX, timeout=MIN)
+        location_locator.scroll_into_view_if_needed()
+        sleep(random.uniform(0.2, 1.5))
+        location_locator.fill("Da Lat")
+        location_locator.press(" ")
         location_listbox_locators = page.locator(selectors.S_UL_LISTBOX)
         sleep(random.uniform(0.2, 1.5))
         location_listbox_locators.first.scroll_into_view_if_needed()
@@ -185,11 +191,12 @@ def list_on_marketplace(
         emit_progress_update("Filled data into the condition field.")
 
         emit_progress_update("Filling data into the images field.")
-        page.wait_for_selector(selectors.S_IMG_INPUT, timeout=MIN)
         image_input_locators = marketplace_form.locator(selectors.S_IMG_INPUT)
         sleep(random.uniform(0.2, 1.5))
         image_input_locators.first.set_input_files(task.action_payload.image_paths)
         emit_progress_update("Filled data into the images field.")
+
+        # ------- click next
 
         emit_progress_update("Clicking the 'Next' button.")
         clicked_next_result = click_button(page, selectors.S_NEXT_BUTTON, 30_000)
@@ -203,7 +210,7 @@ def list_on_marketplace(
             )
             if not clicked_publish_result["status"]:
                 raise RuntimeError("Could not click Next button or Publish button")
-            sleep(60)
+            sleep(10)
             return True
 
     except RuntimeError as e:
