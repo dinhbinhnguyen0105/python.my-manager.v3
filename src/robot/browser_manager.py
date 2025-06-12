@@ -60,9 +60,6 @@ class BrowserManager(QObject):
         self._try_start_browsers()
 
     def _try_start_browsers(self):
-        print(
-            'self.settings.get("thread_num", 1): ', self.settings.get("thread_num", 1)
-        )
         available_threads = min(
             self.threadpool.maxThreadCount() - self.threadpool.activeThreadCount(),
             self.settings.get("thread_num", 1),
