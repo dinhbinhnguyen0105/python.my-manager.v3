@@ -171,7 +171,8 @@ class RobotController(BaseController):
                                 break
                             check_index = (check_index + 1) % uid_num
                         if has_gap_of_skipped_uid_s:
-                            browser_tasks.append(None)
+                            # browser_tasks.append(None)
+                            continue
                     browser_tasks.append(task_obj)
                     last_uid_contributed = current_uid
         return browser_tasks

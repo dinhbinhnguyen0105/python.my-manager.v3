@@ -16,6 +16,7 @@ class DialogRobotRun(QDialog, Ui_Dialog_RobotRun):
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self.setWindowTitle(f"Run settings")
 
+        self.delay_time_input.setText("0")
         self.thread_num_input.setValidator(QIntValidator())
         self.group_num_input.setValidator(QIntValidator())
         self.delay_time_input.setValidator(QIntValidator())

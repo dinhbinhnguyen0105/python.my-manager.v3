@@ -1,3 +1,4 @@
+import sys, traceback
 import random
 from typing import Any
 from time import sleep
@@ -43,12 +44,14 @@ def click_button(
                 "message": "Clicked button successfully.",
             }
 
-        except PlaywrightTimeoutError:
+        except PlaywrightTimeoutError as e:
+            except_handle(e)
             return {
                 "status": False,
                 "message": f"Could not click button within {current_timeout/1000}s.",
             }
         except Exception as e:
+            except_handle(e)
             return {
                 "status": False,
                 "message": f"Unexpected error when clicking button: {e}",
@@ -60,3 +63,18 @@ def click_button(
 
     close_dialog(page)
     return try_click_btn(btn_locator, timeout)
+
+
+def except_handle(e):
+    error_type = type(e).__name__
+    error_message = str(e)
+    full_traceback = traceback.format_exc()
+
+    print(
+        f"ERROR: A general error occurred during task execution:",
+        file=sys.stderr,
+    )
+    print(f"  Error Type: {error_type}", file=sys.stderr)
+    print(f"  Message: {error_message}", file=sys.stderr)
+    print(f"  Traceback Details:\n{full_traceback}", file=sys.stderr)
+    return False

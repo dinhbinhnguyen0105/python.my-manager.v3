@@ -216,8 +216,9 @@ class RobotPage(QWidget, Ui_PageRobot):
     def handle_run_robot(self, robot_settings: dict):
         browser_tasks = self._robot_controller.init_browser_tasks(self.browser_actions)
         for browser_task in browser_tasks:
-            browser_task.is_mobile = robot_settings.get("is_mobile", False)
-            browser_task.headless = robot_settings.get("is_headless", False)
+            if browser_task:
+                browser_task.is_mobile = robot_settings.get("is_mobile", False)
+                browser_task.headless = robot_settings.get("is_headless", False)
         delay_time = robot_settings.get("delay_num", 3)
         thread_num = robot_settings.get("thread_num", 1)
         group_num = robot_settings.get("group_num", 5)

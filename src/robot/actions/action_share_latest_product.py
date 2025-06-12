@@ -1,6 +1,5 @@
-import random
 import re
-from typing import Any, List, Optional, Callable
+from typing import List, Optional
 from time import sleep
 from playwright.sync_api import (
     Page,
@@ -8,7 +7,7 @@ from playwright.sync_api import (
     Locator,
 )
 from src.my_types import RobotTaskType, BrowserWorkerSignals
-import sys, traceback
+from src.robot.actions.action_funcs import except_handle
 
 MIN = 60_000
 
@@ -24,6 +23,7 @@ SELECTORS = {
     "focusable": "div[data-focusable='true']",
     "data_action_id": "div[data-action-id]",
     "fixed_bottom": "div.fixed-container.bottom",
+    "loading": "div.loading-overlay",
 }
 
 
@@ -102,6 +102,7 @@ def goto_product_details(
     )
     try:
         page.goto(listing_id_url, wait_until="domcontentloaded", timeout=MIN)
+        wait_loading(page)
         emit_progress_update("Step 1: Successfully navigated to listing ID page.")
     except PlaywrightTimeoutError as e:
         _msg = "ERROR: Step 1: Timeout while navigating to listing ID page."
@@ -114,6 +115,8 @@ def goto_product_details(
     emit_progress_update(
         f"Step 2: Locating root element with selector: {SELECTORS['root']}"
     )
+
+    page.wait_for_selector(SELECTORS["root"], timeout=MIN)
     root_locators = page.locator(SELECTORS["root"])
     if root_locators.count():
         emit_progress_update(f"Step 2: Root locator found.")
@@ -126,6 +129,7 @@ def goto_product_details(
     emit_progress_update(
         f"Step 3: Locating container elements within the root (selector: {SELECTORS['container']})."
     )
+    page.wait_for_selector(SELECTORS["container"], timeout=MIN)
     container_locators = root_locators.first.locator(SELECTORS["container"])
     if container_locators.count():
         emit_progress_update(f"Step 3: Container locator found.")
@@ -147,7 +151,7 @@ def goto_product_details(
     emit_progress_update(
         "Step 5: Identifying the specific product locator (nth(1) of filtered results)."
     )
-    latest_product_locator = product_locators.nth(1)
+    latest_product_locator = product_locators.nth(0)
     if latest_product_locator.count():
         emit_progress_update(f"Step 5: Specific product locator found.")
     else:
@@ -160,6 +164,7 @@ def goto_product_details(
         "Step 6: Clicking the product to navigate to its details page."
     )
     latest_product_locator.evaluate("elm => elm.click();")
+    wait_loading(page)
 
     # Step 7: Wait for page navigation to product details
     emit_progress_update("Step 7: Waiting for page to redirect from listing ID page.")
@@ -208,6 +213,7 @@ def goto_more_place(
         )
         try:
             page.goto(product_url, wait_until="domcontentloaded", timeout=MIN)
+            wait_loading(page)
             emit_progress_update(f"Step 1: Successfully navigated to product URL.")
         except PlaywrightTimeoutError as e:
             _msg = f"ERROR: Step 1: Timeout while navigating to product URL: {e}"
@@ -216,7 +222,6 @@ def goto_more_place(
         emit_progress_update(
             "Step 1: Already on the correct product URL. No navigation needed."
         )
-
     # Step 2: Find the 'Edit' button
     emit_progress_update("Step 2: Searching for the 'Edit' button using aria-label.")
     edit_btn_locators = page.locator("[aria-label]")
@@ -227,6 +232,7 @@ def goto_more_place(
         btn = edit_btn_locators.nth(i)
         label = btn.get_attribute("aria-label")
         if label and label.lower() == "edit":
+            print("\t\tPassed")
             if btn.is_visible() and btn.is_enabled():
                 edit_btn_locator = btn
                 emit_progress_update(
@@ -265,6 +271,7 @@ def goto_more_place(
     # Step 5: Click the product menu button
     emit_progress_update("Step 5: Clicking the product menu button (nth(1)).")
     product_menu_locator.nth(1).evaluate("elm => elm.click();")
+    wait_loading(page)
     emit_progress_update("Step 5: Product menu button clicked.")
 
     # Step 6: Wait for the bottom sheet to appear
@@ -328,6 +335,7 @@ def goto_more_place(
     # Step 10: Click 'List in more places' button
     emit_progress_update("Step 10: Clicking 'List in more places' button.")
     list_more_button_locators.first.evaluate("elm => elm.click();")
+    wait_loading(page)
     emit_progress_update("Step 10: 'List in more places' button clicked successfully.")
 
     # Step 11: Wait for page redirection after clicking 'List in more places'
@@ -477,6 +485,7 @@ def list_more_place(
         try:
             text = group_locators.first.text_content().strip()[:50].replace("\n", " ")
             group_locators.first.evaluate("elm => elm.click();")
+            wait_loading(page)
             emit_progress_update(f"Step 1.{idx+1}: Successfully clicked group.")
         except Exception as e:
             continue
@@ -511,12 +520,12 @@ def list_more_place(
 
     if not post_button_locator:
         _msg = "ERROR: Step 3: 'Post' button not found within the footer."
-        emit_progress_update(_msg)
         raise RuntimeError(_msg)
 
     # Step 4: Click the 'Post' button
     emit_progress_update("Step 4: Clicking the 'Post' button.")
     post_button_locator.evaluate("elm => elm.click()")
+    wait_loading(page)
     emit_progress_update("Step 4: Successfully clicked the 'Post' button.")
 
     # Step 5: Final confirmation/cleanup
@@ -528,16 +537,11 @@ def list_more_place(
     emit_progress_update("Step 6: Waited!")
     return True
 
-def except_handle(e):
-    error_type = type(e).__name__
-    error_message = str(e)
-    full_traceback = traceback.format_exc()
 
-    print(
-        f"ERROR: A general error occurred during task execution:",
-        file=sys.stderr,
-    )
-    print(f"  Error Type: {error_type}", file=sys.stderr)
-    print(f"  Message: {error_message}", file=sys.stderr)
-    print(f"  Traceback Details:\n{full_traceback}", file=sys.stderr)
-    return False
+def wait_loading(page: Page):
+    # Wait until the loading overlay disappears from the DOM (if present)
+    try:
+        page.wait_for_selector(SELECTORS["loading"], state="detached", timeout=MIN)
+    except PlaywrightTimeoutError:
+        # If timeout, maybe loading overlay never appeared or took too long
+        pass
