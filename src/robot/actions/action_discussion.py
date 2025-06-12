@@ -538,11 +538,11 @@ def discussion(
 
             sleep(random.uniform(1, 3))
 
-            signals.succeeded_signal.emit(
-                task,
-                f"Successfully posted in group: {group_url}.",
-                settings.get("raw_proxy"),
-            )
+            # signals.succeeded_signal.emit(
+            #     task,
+            #     f"Successfully posted in group: {group_url}.",
+            #     settings.get("raw_proxy"),
+            # )
             current_group_processed += 1
             signals.task_progress_signal.emit(
                 f"Successfully processed {current_group_processed}/{groups_num} groups.",

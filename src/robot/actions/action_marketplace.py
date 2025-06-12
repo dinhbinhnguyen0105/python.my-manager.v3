@@ -316,9 +316,9 @@ def list_on_more_place(
         clicked_publish_result = click_button(page, selectors.S_PUBLISH_BUTTON, MIN)
         if clicked_publish_result["status"]:
             emit_progress_update(clicked_publish_result["message"])
-            signals.succeeded_signal.emit(
-                task, clicked_publish_result["message"], settings.get("raw_proxy")
-            )
+            # signals.succeeded_signal.emit(
+            #     task, clicked_publish_result["message"], settings.get("raw_proxy")
+            # )
             return True
         else:
             signals.failed_signal.emit(
