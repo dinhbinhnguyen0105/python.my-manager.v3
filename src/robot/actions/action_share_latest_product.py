@@ -224,15 +224,14 @@ def goto_more_place(
         )
     # Step 2: Find the 'Edit' button
     emit_progress_update("Step 2: Searching for the 'Edit' button using aria-label.")
+    sleep(3)
     edit_btn_locators = page.locator("[aria-label]")
     count = edit_btn_locators.count()
     edit_btn_locator: Optional[Locator] = None
-
     for i in range(count):
         btn = edit_btn_locators.nth(i)
         label = btn.get_attribute("aria-label")
         if label and label.lower() == "edit":
-            print("\t\tPassed")
             if btn.is_visible() and btn.is_enabled():
                 edit_btn_locator = btn
                 emit_progress_update(
@@ -423,9 +422,10 @@ def get_group_selectors(
 
         if not group_locator_classes:
             continue
-
         # Step 4: Check if the group has a class starting with 'bg-'
-        if bool(re.search(regex_pattern, group_locator_classes)):
+        if not bool(re.search(regex_pattern, group_locator_classes)):
+            label_num += 1
+        else:
             focusable_locators = group_locator.locator(SELECTORS["data_action_id"])
             if not focusable_locators.count():
                 continue
@@ -438,8 +438,6 @@ def get_group_selectors(
                 )
             else:
                 continue
-        else:
-            label_num += 1
     # Step 7: Final summary
     emit_progress_update(
         f"Step 7: Found `{len(unlisting_action_id_locators)}` selectors for target groups."
@@ -484,6 +482,7 @@ def list_more_place(
         # Taking a short text snippet for logging
         try:
             text = group_locators.first.text_content().strip()[:50].replace("\n", " ")
+            group_locators.first.scroll_into_view_if_needed()
             group_locators.first.evaluate("elm => elm.click();")
             wait_loading(page)
             emit_progress_update(f"Step 1.{idx+1}: Successfully clicked group.")
@@ -533,7 +532,8 @@ def list_more_place(
 
     # Step 6: Wait for page redirection in 3s.
     emit_progress_update("Step 6: Wait for page redirection in 3s.")
-    sleep(3)
+    wait_loading(page)
+    sleep(1)
     emit_progress_update("Step 6: Waited!")
     return True
 

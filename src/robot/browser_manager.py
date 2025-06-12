@@ -1,5 +1,8 @@
 # src/robot/task_manager.py
-from typing import List, Dict
+
+# TODO tạo id cho _in_progress. trùng nhau sẽ xoá nhầm
+
+from typing import List, Dict, Optional
 from collections import deque
 from PyQt6.QtCore import QThreadPool, QObject, pyqtSignal, pyqtSlot, QTimer
 
@@ -41,22 +44,14 @@ class BrowserManager(QObject):
         self.settings = settings
 
     def add_browsers(self, list_browser: List[BrowserType], list_raw_proxy: List[str]):
-        existing_uid = set(
-            browser.user_info.uid for browser in self._pending_browsers
-        ) | set(key for key in self._in_progress.keys())
-        add_uid_in_current_call = set()
         for browser in list_browser:
-            if (
-                browser.user_info.uid not in existing_uid
-                and browser.user_info.uid not in add_uid_in_current_call
-            ):
-                self._pending_browsers.append(browser)
-                self._total_browser_num += 1
-                add_uid_in_current_call.add(browser.user_info.uid)
+            self._pending_browsers.append(browser)
+            self._total_browser_num += 1
 
         for proxy in list_raw_proxy:
             if proxy not in self._pending_raw_proxies:
                 self._pending_raw_proxies.append(proxy)
+
         self._try_start_browsers()
 
     def _try_start_browsers(self):
@@ -71,6 +66,8 @@ class BrowserManager(QObject):
             and self._pending_raw_proxies
         ):
             browser = self._pending_browsers.popleft()
+            # print(f"{browser.user_info.username} : {browser.action_name}")
+            # continue
             raw_proxy = self._pending_raw_proxies.popleft()
             worker = BrowserWorker(
                 browser,
@@ -79,11 +76,13 @@ class BrowserManager(QObject):
                 self.settings,
             )
             available_threads -= 1
-            self._in_progress[browser.user_info.uid] = {
-                "browser": browser,
-                "raw_proxy": raw_proxy,
-                "worker": worker,
-            }
+
+            if browser:
+                self._in_progress[browser.browser_id] = {
+                    "browser": browser,
+                    "raw_proxy": raw_proxy,
+                    "worker": worker,
+                }
             self.threadpool.start(worker)
 
         if not self._pending_browsers and not self._in_progress:
@@ -116,8 +115,8 @@ class BrowserManager(QObject):
         print(msg)
         self.failed_signal.emit(msg)
         self._pending_raw_proxies.append(raw_proxy)
-        if browser.user_info.uid in self._in_progress.keys():
-            del self._in_progress[browser.user_info.uid]
+        if browser.browser_id in self._in_progress.keys():
+            del self._in_progress[browser.browser_id]
         self._try_start_browsers()
 
     @pyqtSlot(BrowserType, str)
@@ -133,18 +132,20 @@ class BrowserManager(QObject):
     @pyqtSlot(BrowserType, str, str)
     def _on_succeeded(
         self,
-        browser: BrowserType,
+        browser: Optional[BrowserType],
         message: str,
         raw_proxy: str,
     ):
-        msg = (
-            f"✅ [Succeeded][{browser.user_info.uid}]({browser.action_name}): {message}"
-        )
-        print(msg)
-        self.succeeded_signal.emit(msg)
+        if browser:
+            msg = f"✅ [Succeeded][{browser.user_info.uid}]({browser.action_name}): {message}"
+            print(msg)
+            if browser.browser_id in self._in_progress.keys():
+                del self._in_progress[browser.browser_id]
+        else:
+            pass
+
         self._pending_raw_proxies.append(raw_proxy)
-        if browser.user_info.uid in self._in_progress.keys():
-            del self._in_progress[browser.user_info.uid]
+        self.succeeded_signal.emit(msg)
         self._try_start_browsers()
 
     @pyqtSlot(BrowserType, str)

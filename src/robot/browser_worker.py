@@ -1,4 +1,5 @@
 # src/robot/browser_worker.py
+import threading
 from time import sleep
 from typing import Optional
 import io, pycurl, json
@@ -11,6 +12,8 @@ from PyQt6.QtCore import QRunnable
 from src.my_types import BrowserWorkerSignals, BrowserType
 from src.robot.action_mapping import ACTION_MAP
 from src.my_constants import ROBOT_ACTION_NAMES
+
+UDD_LOCKS = {}
 
 
 class BrowserWorker(QRunnable):
@@ -32,84 +35,99 @@ class BrowserWorker(QRunnable):
 
     def run(self):
         proxy = self.handle_get_proxy()
-        if proxy and self._browser.action_name in ACTION_MAP.keys():
-            try:
-                action_func = ACTION_MAP[self._browser.action_name]
-                if self._browser.action_name == "share_latest_product":
-                    self._browser.is_mobile = True
-                is_succeeded = False
-                with sync_playwright() as p:
-                    context_kwargs = dict(
-                        user_data_dir=self._browser.udd,
-                        user_agent=(
-                            self._browser.user_info.mobile_ua
-                            if self._browser.is_mobile
-                            else self._browser.user_info.desktop_ua
-                        ),
-                        headless=self._browser.headless,
-                        args=[
-                            "--disable-blink-features=AutomationControlled",
-                            f'--app-name=Chromium - {self._browser.user_info.username or "Unknown User"}',
-                        ],
-                        ignore_default_args=["--enable-automation"],
-                        proxy=proxy,
-                    )
-                    if self._browser.is_mobile:
-                        context_kwargs["viewport"] = {"width": 390, "height": 844}
-                        context_kwargs["screen"] = {"width": 390, "height": 844}
-                        context_kwargs["is_mobile"] = True
-                        context_kwargs["device_scale_factor"] = 3
-                        context_kwargs["has_touch"] = False
-                    context = p.chromium.launch_persistent_context(**context_kwargs)
-                    Tarnished.apply_stealth(context)
-                    pages = context.pages
-                    if pages:
-                        current_page = pages[0]
+        udd = self._browser.udd
+        if udd not in UDD_LOCKS:
+            UDD_LOCKS[udd] = threading.Lock()
+        lock = UDD_LOCKS[udd]
+        with lock:
+            if not self._browser:
+                self._signals.task_progress_signal(
+                    "Action is empty, waiting in 180s", [0, 1]
+                )
+                sleep(180)
+                self._signals.task_progress_signal("Action is empty, waited.", [1, 1])
+                self._signals.succeeded_signal.emit(
+                    None,
+                    "Succeeded",
+                    self._raw_proxy,
+                )
+
+            elif proxy and self._browser.action_name in ACTION_MAP.keys():
+                try:
+                    action_func = ACTION_MAP[self._browser.action_name]
+                    if self._browser.action_name == "share_latest_product":
+                        self._browser.is_mobile = True
+                    is_succeeded = False
+                    with sync_playwright() as p:
+                        context_kwargs = dict(
+                            user_data_dir=self._browser.udd,
+                            user_agent=(
+                                self._browser.user_info.mobile_ua
+                                if self._browser.is_mobile
+                                else self._browser.user_info.desktop_ua
+                            ),
+                            headless=self._browser.headless,
+                            args=[
+                                "--disable-blink-features=AutomationControlled",
+                                f'--app-name=Chromium - {self._browser.user_info.username or "Unknown User"}',
+                            ],
+                            ignore_default_args=["--enable-automation"],
+                            proxy=proxy,
+                        )
+                        if self._browser.is_mobile:
+                            context_kwargs["viewport"] = {"width": 390, "height": 844}
+                            context_kwargs["screen"] = {"width": 390, "height": 844}
+                            context_kwargs["is_mobile"] = True
+                            context_kwargs["device_scale_factor"] = 3
+                            context_kwargs["has_touch"] = False
+                        context = p.chromium.launch_persistent_context(**context_kwargs)
+                        Tarnished.apply_stealth(context)
+                        pages = context.pages
+                        if pages:
+                            current_page = pages[0]
+                        else:
+                            current_page = context.new_page()
+                        info_html = f"""
+        <html>
+            <head><title>{self._browser.user_info.username}</title></head>
+            <body>
+                <h2>username: {self._browser.user_info.username}</h2>
+                <p>id: {self._browser.user_info.id}</p>
+                <p>uid: {self._browser.user_info.uid}</p>
+                <p>user_data_dir: {self._browser.udd}</p>
+            </body>
+        </html>
+    """
+                        current_page.set_content(info_html)
+
+                        page = context.new_page()
+                        print(
+                            f"[Info] Opened Chromium for user: {self._browser.user_info.username}"
+                        )
+                        if self._browser.action_name == "launch_browser":
+                            is_succeeded = action_func(
+                                page, self._browser, self._settings, self._signals
+                            )
+                        elif self._browser.action_name in ROBOT_ACTION_NAMES.keys():
+                            is_succeeded = action_func(
+                                page, self._browser, self._settings, self._signals
+                            )
+                    sleep(int(self._settings.get("delay_time", 0)) * 60)
+                    if not is_succeeded:
+                        self._signals.failed_signal.emit(
+                            self._browser,
+                            "Failed",
+                            self._raw_proxy,
+                        )
                     else:
-                        current_page = context.new_page()
-                    info_html = f"""
-    <html>
-        <head><title>{self._browser.user_info.username}</title></head>
-        <body>
-            <h2>username: {self._browser.user_info.username}</h2>
-            <p>id: {self._browser.user_info.id}</p>
-            <p>uid: {self._browser.user_info.uid}</p>
-            <p>user_data_dir: {self._browser.udd}</p>
-        </body>
-    </html>
-"""
-                    current_page.set_content(info_html)
-
-                    page = context.new_page()
-                    print(
-                        f"[Info] Opened Chromium for user: {self._browser.user_info.username}"
-                    )
-                    if self._browser.action_name == "launch_browser":
-                        is_succeeded = action_func(
-                            page, self._browser, self._settings, self._signals
+                        self._signals.succeeded_signal.emit(
+                            self._browser,
+                            "Succeeded",
+                            self._raw_proxy,
                         )
-                    elif self._browser.action_name in ROBOT_ACTION_NAMES.keys():
-                        is_succeeded = action_func(
-                            page, self._browser, self._settings, self._signals
-                        )
-                    # page.wait_for_event("close", timeout=0)
 
-                sleep(int(self._settings.get("delay_time", 0)) * 60)
-                if not is_succeeded:
-                    self._signals.failed_signal.emit(
-                        self._browser,
-                        "Failed",
-                        self._raw_proxy,
-                    )
-                else:
-                    self._signals.succeeded_signal.emit(
-                        self._browser,
-                        "Succeeded",
-                        self._raw_proxy,
-                    )
-
-            except Exception as e:
-                self._signals.error_signal.emit(self._browser, str(e))
+                except Exception as e:
+                    self._signals.error_signal.emit(self._browser, str(e))
 
     def handle_get_proxy(self):
         try:

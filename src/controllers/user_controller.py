@@ -196,6 +196,7 @@ class UserController(BaseController):
                     udd=os.path.join(udd_container, str(user_info.id)),
                     is_mobile=is_mobile,
                     headless=False,
+                    browser_id="",
                 )
                 browsers.append(browser)
         if (

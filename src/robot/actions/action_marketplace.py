@@ -5,7 +5,7 @@ from playwright.sync_api import Page, TimeoutError as PlaywrightTimeoutError, Lo
 from src.my_types import RobotTaskType, BrowserWorkerSignals
 from src.robot import selector_constants as selectors
 import sys, traceback
-from src.robot.actions.action_funcs import click_button
+from src.robot.actions.action_funcs import click_button, except_handle
 from src.robot.actions.action_list_on_marketplace import list_on_marketplace
 
 MIN = 60_000
@@ -56,7 +56,9 @@ def marketplace(
             signals.error_signal.emit(task, str(e))
             return False
 
-        is_listed_on_marketplace = list_on_marketplace(page, task, settings, signals)
+        is_listed_on_marketplace = list_on_marketplace(
+            page, task, settings, signals, is_publish=False
+        )
         if is_listed_on_marketplace:
             is_listed_on_more_place = list_on_more_place(
                 page, task, signals, settings, progress, emit_progress_update
@@ -151,20 +153,10 @@ def list_on_more_place(
             )
             return False
     except Exception as e:
-        error_type = type(e).__name__
-        error_message = str(e)
-        full_traceback = traceback.format_exc()
-
-        print(
-            f"{log_prefix} UNEXPECTED ERROR: A general error occurred during task execution:",
-            file=sys.stderr,
-        )
-        print(f"  Error Type: {error_type}", file=sys.stderr)
-        print(f"  Message: {error_message}", file=sys.stderr)
-        print(f"  Traceback Details:\n{full_traceback}", file=sys.stderr)
+        except_handle(e)
 
         signals.error_signal.emit(
             task,
-            f"Unexpected error: {error_message}\nDetails: See console log for full traceback.",
+            f"Unexpected error, Details: See console log for full traceback.",
         )
         return False

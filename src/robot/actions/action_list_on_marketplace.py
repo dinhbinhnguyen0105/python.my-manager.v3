@@ -17,6 +17,7 @@ def list_on_marketplace(
     task: RobotTaskType,
     settings: dict,
     signals: BrowserWorkerSignals,
+    is_publish=True,
 ) -> bool:
     log_prefix = f"[Task {task.user_info.username} - list_on_marketplace]"
     progress: List[int] = [0, 0]
@@ -201,16 +202,23 @@ def list_on_marketplace(
         emit_progress_update("Clicking the 'Next' button.")
         clicked_next_result = click_button(page, selectors.S_NEXT_BUTTON, 30_000)
         emit_progress_update(clicked_next_result["message"])
-        if clicked_next_result["status"]:
-            return True
-        else:
-            emit_progress_update(clicked_next_result["message"])
+        if not clicked_next_result["status"]:
             clicked_publish_result = click_button(
                 page, selectors.S_PUBLISH_BUTTON, 30_000
             )
             if not clicked_publish_result["status"]:
                 raise RuntimeError("Could not click Next button or Publish button")
-            sleep(10)
+            sleep(60)
+            return True
+        if is_publish:
+            clicked_publish_result = click_button(
+                page, selectors.S_PUBLISH_BUTTON, 30_000
+            )
+            if not clicked_publish_result["status"]:
+                raise RuntimeError("Could not click Next button or Publish button")
+            sleep(60)
+            return True
+        else:
             return True
 
     except RuntimeError as e:

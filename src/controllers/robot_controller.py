@@ -1,5 +1,6 @@
 # src/controllers/robot_controller.py
 import os
+import uuid
 from typing import List, Dict, Optional, Tuple
 from PyQt6.QtCore import pyqtSlot, pyqtSignal
 from src.robot.browser_manager import BrowserManager
@@ -133,6 +134,7 @@ class RobotController(BaseController):
                             self._setting_udd_service.get_selected(),
                             str(user_data.id),
                         ),
+                        browser_id=str(uuid.uuid4()),
                     )
                 )
         return browser_actions
@@ -172,7 +174,8 @@ class RobotController(BaseController):
                             check_index = (check_index + 1) % uid_num
                         if has_gap_of_skipped_uid_s:
                             # browser_tasks.append(None)
-                            continue
+                            pass
+                            # continue
                     browser_tasks.append(task_obj)
                     last_uid_contributed = current_uid
         return browser_tasks

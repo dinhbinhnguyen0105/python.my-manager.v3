@@ -117,6 +117,7 @@ class BrowserType(RobotTaskType):
     is_mobile: bool
     headless: bool
     udd: str
+    browser_id: str
 
 
 class BrowserWorkerSignals(QObject):
@@ -126,6 +127,8 @@ class BrowserWorkerSignals(QObject):
     task_progress_signal = pyqtSignal(str, list)
     failed_signal = pyqtSignal(BrowserType, str, str)  # task, message, raw_proxy
     error_signal = pyqtSignal(BrowserType, str)  # task, message
-    succeeded_signal = pyqtSignal(BrowserType, str, str)  # task, message, raw_proxy
+    succeeded_signal = pyqtSignal(
+        object, str, str
+    )  # task (BrowserType), message, raw_proxy
     proxy_unavailable_signal = pyqtSignal(BrowserType, str)  # task, raw_proxy
     proxy_not_ready_signal = pyqtSignal(BrowserType, str)  # task, raw_proxy
