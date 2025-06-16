@@ -163,7 +163,7 @@ class BrowserWorker(QRunnable):
             "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
             "Accept: application/json, text/plain, */*",
             "Accept-Language: en-US,en;q=0.9",
-            "Referer: https://proxyxoay.shop/",
+            # "Referer: https://proxyxoay.shop/",
             "Connection: keep-alive",
         ]
         curl.setopt(pycurl.HTTPHEADER, headers)
@@ -178,7 +178,7 @@ class BrowserWorker(QRunnable):
             data = None
             parsed_url = urlparse(proxy_raw)
             domain = parsed_url.netloc
-            if domain == "proxyxoay.shop":
+            if domain == "proxyxoay.shop" or domain == "proxyxoay.org":
                 if res.get("status") == 100 and "proxyhttp" in res:
                     raw = res["proxyhttp"]
                     ip, port, user, pwd = raw.split(":", 3)
@@ -187,6 +187,7 @@ class BrowserWorker(QRunnable):
                         "password": pwd,
                         "server": f"{ip}:{port}",
                     }
+
             else:
                 raise Exception(f"Invalid domain ({domain})")
 
