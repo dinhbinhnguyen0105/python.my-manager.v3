@@ -214,33 +214,27 @@ def get_otp_task(
     while True:
         code_info = api_client.get_code(request_id)
         status = code_info.get("status")
-        if status:
-            if status == 1:
-                otp_queue.put(
-                    {
-                        "code": code_info.get("code"),
-                        "phone_number": code_info.get("phone_number"),
-                    }
-                )
-                print(
-                    f"[{threading.current_thread().name}] OTP for {service_name}: {code_info.get('code')}"
-                )
-                break
-            elif status == 2:
-                print(
-                    f"[{threading.current_thread().name}] Phone number {code_info.get('phone_number')} for {service_name} has expired."
-                )
-                break
-            else:
-                print(
-                    f"[{threading.current_thread().name}] Waiting for OTP for {service_name}..."
-                )
-                time.sleep(5)
-        else:
+        if status == 1:
+            otp_queue.put(
+                {
+                    "code": code_info.get("code"),
+                    "phone_number": code_info.get("phone_number"),
+                }
+            )
             print(
-                f"[{threading.current_thread().name}] Failed to get code info for {service_name}."
+                f"[{threading.current_thread().name}] OTP for {service_name}: {code_info.get('code')}"
             )
             break
+        elif status == 2:
+            print(
+                f"[{threading.current_thread().name}] Phone number {code_info.get('phone_number')} for {service_name} has expired."
+            )
+            break
+        else:
+            print(
+                f"[{threading.current_thread().name}] Waiting for OTP for {service_name}..."
+            )
+            time.sleep(5)
 
 
 if __name__ == "__main__":
