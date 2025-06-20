@@ -224,10 +224,15 @@ def goto_more_place(
         )
     # Step 2: Find the 'Edit' button
     emit_progress_update("Step 2: Searching for the 'Edit' button using aria-label.")
-    sleep(3)
-    edit_btn_locators = page.locator("[aria-label]")
+    wait_loading(page)
+    # sleep(5)
+    # page.wait_for_selector("[aria-label]", timeout=MIN)
+    page.wait_for_selector('div[aria-label="Edit"]', state="visible", timeout=MIN)
+    edit_btn_locators = page.locator('div[aria-label="Edit"]')
+    # edit_btn_locators = page.locator("[aria-label]")
     count = edit_btn_locators.count()
     edit_btn_locator: Optional[Locator] = None
+
     for i in range(count):
         btn = edit_btn_locators.nth(i)
         label = btn.get_attribute("aria-label")
@@ -239,6 +244,7 @@ def goto_more_place(
                 )
                 break
             else:
+                print("Passed!")
                 edit_btn_locator = None
 
     if not edit_btn_locator:

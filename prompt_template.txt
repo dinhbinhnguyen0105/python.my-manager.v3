@@ -1,18 +1,18 @@
-Tạo 10 mẫu cho mỗi `category` với `part = \"title\"` và `part = \"description\"` cho bài đăng bất động sản.
+Tạo 30 mẫu cho mỗi `category` với `part = \"title\"` và `part = \"description\"` cho bài đăng bất động sản.
 
 Các mẫu phải tuân thủ các quy tắc sau:
 - `transaction_type` là \"cho thuê\".
-- `category` lần lượt là \"nhà phố\", \"nhà mặt tiền\", \"căn hộ/ chung cư\", \"biệt thự\", \"đất nền\", \"kho/bãi\", \"MBKD\", \"khách sạn\", \"homestay\".
+- `category` lần lượt là \"nhà phố\", \"nhà mặt tiền\", \"căn hộ/ chung cư\", \"biệt thự\", \"đất nền\", \"kho/bãi\", \"mbkd\", \"khách sạn\", \"homestay\".
 - `area` phải luôn đi cùng \"m²\"** (ví dụ: `<area>m²`).
 - `structure`phải luôn đi cùng \"tầng\"
 - `furniture` không được đi cùng cụm từ \"nội thất\"
 - `function` đại diện cho công năng (số phòng ngủ, số wc, ...) của bất động sản nếu có
-** \"MBKD\" đại diện cho mặt bằng kinh doanh **
+** \"mbkd\" đại diện cho mặt bằng kinh doanh **
 
-Đối với `category = \"căn hộ/ chung cư\"`, `category = \"kho/bãi\",  `category = \"MBKD\"`, `category = \"đất nền\"`:
+Đối với `category = \"căn hộ/ chung cư\"`, `category = \"kho/bãi\",  `category = \"mbkd\"`, `category = \"đất nền\"`:
 - **Không được chứa trường `<structure>`**.
 
-Đối với `category = \"kho/bãi\",  `category = \"MBKD\"`, `category = \"đất nền\"`:
+Đối với `category = \"kho/bãi\",  `category = \"mbkd\"`, `category = \"đất nền\"`:
 - **Không được chứa trường `<function>`, <furniture>**.
 
 Đối với `transaction_type = \"cho thuê\"`:
@@ -51,4 +51,4 @@ Chỉ được sử dụng các trường sau làm placeholder (keyword) trong c
         "created_at": "thời gian hiện tại (2025-06-07 22:33:28.644642)",
         "updated_at": "thời gian hiện tại (2025-06-07 22:33:28.644642)",
     }**
-**Yêu cầu output là file .json**
+**Yêu cầu output là format dạng json, xuất ra file để tôi có thể tải về**

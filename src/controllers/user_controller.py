@@ -118,7 +118,7 @@ class UserController(BaseController):
         return str(datetime.now())
 
     def handle_new_password(self) -> str:
-        alphabet = string.ascii_letters + string.digits + string.punctuation
+        alphabet = string.ascii_letters + string.digits
         password = "".join(secrets.choice(alphabet) for i in range(30))
         return password
 

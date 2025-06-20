@@ -316,6 +316,7 @@ class RealEstateTemplateController(BaseController):
             return False
 
     def get_random(self, part: str, transaction_type: str, category: str) -> str:
+        # category = category.lower()
         try:
             template = self.service.get_random(part, transaction_type, category)
             if template:
