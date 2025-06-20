@@ -179,14 +179,13 @@ def get_service_task(api_client: RequestViotp, service_name: str, result_queue: 
     if service and service.get("request_id"):
         request_id = service.get("request_id")
         phone_number = service.get("phone_number")
-        result_queue.put(
-            {
-                "success": True,
-                "service_name": service_name,
-                "request_id": request_id,
-                "phone_number": phone_number,
-            }
-        )
+        result = {
+            "success": True,
+            "service_name": service_name,
+            "request_id": request_id,
+            "phone_number": phone_number,
+        }
+        result_queue.put(result)
     else:
         result_queue.put(
             {
