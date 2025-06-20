@@ -163,7 +163,6 @@ class BrowserWorker(QRunnable):
             "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
             "Accept: application/json, text/plain, */*",
             "Accept-Language: en-US,en;q=0.9",
-            # "Referer: https://proxyxoay.shop/",
             "Connection: keep-alive",
         ]
         curl.setopt(pycurl.HTTPHEADER, headers)
