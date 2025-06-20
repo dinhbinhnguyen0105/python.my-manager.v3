@@ -438,8 +438,9 @@ def get_otp_task(
                     "status": "received",
                 }
             )
+            sys.stdout.write("\a")
             print(
-                f"[{threading.current_thread().name}] OTP for {service_name}: {code_info.get('code')}"
+                f"[{threading.current_thread().name}] OTP for {service_name}: {code_info.get('phone_number')} - {code_info.get('code')}"
             )
             break  # Exit loop once OTP is received
         elif status == 2:  # Phone number expired
@@ -458,9 +459,9 @@ def get_otp_task(
             )
             break  # Exit loop as phone number expired
         else:  # OTP not yet available, waiting
-            print(
-                f"[{threading.current_thread().name}] Waiting for OTP for {service_name}..."
-            )
+            # print(
+            #     f"[{threading.current_thread().name}] Waiting for OTP for {service_name}..."
+            # )
             time.sleep(5)  # Wait before polling again
 
 

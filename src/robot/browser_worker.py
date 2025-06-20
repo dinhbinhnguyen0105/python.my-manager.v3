@@ -112,6 +112,7 @@ class BrowserWorker(QRunnable):
                             is_succeeded = action_func(
                                 page, self._browser, self._settings, self._signals
                             )
+
                     sleep(int(self._settings.get("delay_time", 0)) * 60)
                     if not is_succeeded:
                         self._signals.failed_signal.emit(

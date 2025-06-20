@@ -1,7 +1,4 @@
 # src/robot/task_manager.py
-
-# TODO tạo id cho _in_progress. trùng nhau sẽ xoá nhầm
-
 from typing import List, Dict, Optional
 from collections import deque
 from PyQt6.QtCore import QThreadPool, QObject, pyqtSignal, pyqtSlot, QTimer
@@ -37,6 +34,7 @@ class BrowserManager(QObject):
         self.signals.succeeded_signal.connect(self._on_succeeded)
         self.signals.proxy_unavailable_signal.connect(self._on_proxy_unavailable)
         self.signals.proxy_not_ready_signal.connect(self._on_proxy_not_ready)
+        self.signals.require_phone_number_signal.connect(self._on_require_phone_number)
 
         self.threadpool = QThreadPool.globalInstance()
 
@@ -66,8 +64,6 @@ class BrowserManager(QObject):
             and self._pending_raw_proxies
         ):
             browser = self._pending_browsers.popleft()
-            # print(f"{browser.user_info.username} : {browser.action_name}")
-            # continue
             raw_proxy = self._pending_raw_proxies.popleft()
             worker = BrowserWorker(
                 browser,
@@ -202,3 +198,9 @@ class BrowserManager(QObject):
 
         timer.timeout.connect(readd_proxy)
         timer.start(10_000)
+
+    @pyqtSlot(BrowserType)
+    def _on_require_phone_number(self, browser: BrowserType):
+        if browser.browser_id in self._in_progress:
+            worker = self._in_progress[browser.browser_id].get("worker")
+            worker.set_phone_number("0123 456 789")

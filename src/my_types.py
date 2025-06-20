@@ -132,3 +132,5 @@ class BrowserWorkerSignals(QObject):
     )  # task (BrowserType), message, raw_proxy
     proxy_unavailable_signal = pyqtSignal(BrowserType, str)  # task, raw_proxy
     proxy_not_ready_signal = pyqtSignal(BrowserType, str)  # task, raw_proxy
+    require_phone_number_signal = pyqtSignal(BrowserType)
+    require_otp_code_signal = pyqtSignal()
