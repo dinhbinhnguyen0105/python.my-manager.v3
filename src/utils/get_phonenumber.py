@@ -1,5 +1,6 @@
-import traceback
-from typing import Optional, Dict
+import threading, time, sys
+from queue import Queue
+from typing import Optional, Dict, List
 import io, pycurl, json
 from urllib.parse import urljoin, urlencode
 
@@ -170,23 +171,128 @@ class RequestViotpError(Exception):
         return f"{self.__class__.__name__}: {self.args[0]}"
 
 
-if __name__ == "__main__":
-    import time
+def get_service_task(api_client: RequestViotp, service_name: str, result_queue: Queue):
+    print(
+        f"[{threading.current_thread().name}] Starting service info task for {service_name}..."
+    )
+    service = api_client.get_service(service_name=service_name)
+    if service and service.get("request_id"):
+        request_id = service.get("request_id")
+        phone_number = service.get("phone_number")
+        result_queue.put(
+            {
+                "success": True,
+                "service_name": service_name,
+                "request_id": request_id,
+                "phone_number": phone_number,
+            }
+        )
+    else:
+        result_queue.put(
+            {
+                "success": False,
+                "service_name": service_name,
+                "request_id": None,
+                "phone_number": None,
+            }
+        )
 
-    req = RequestViotp("d655ba7073214b0f95740a511864f1e7")
-    service = req.get_service("facebook")
-    print(service)
-    while True and service:
-        code = req.get_code(service.get("request_id"))
-        status = code.get("status")
-        if status == 1:
-            print(code)
-            break
-        elif status == 2:
-            print(f"Phone number {code.get('phone_number')} has expired.")
-            break
+
+def get_otp_task(
+    api_client: RequestViotp,
+    service_name: str,
+    request_id: int,
+    otp_queue: Queue,
+):
+    print(
+        f"[{threading.current_thread().name}] Starting OTP retrieval for {service_name} (Request ID: {request_id})..."
+    )
+    if not request_id:
+        print(
+            f"[{threading.current_thread().name}] Invalid Request ID for {service_name}. Cannot get OTP."
+        )
+        return
+    while True:
+        code_info = api_client.get_code(request_id)
+        status = code_info.get("status")
+        if status:
+            if status == 1:
+                otp_queue.put(
+                    {
+                        "code": code_info.get("code"),
+                        "phone_number": code_info.get("phone_number"),
+                    }
+                )
+                print(
+                    f"[{threading.current_thread().name}] OTP for {service_name}: {code_info.get('code')}"
+                )
+                break
+            elif status == 2:
+                print(
+                    f"[{threading.current_thread().name}] Phone number {code_info.get('phone_number')} for {service_name} has expired."
+                )
+                break
+            else:
+                print(
+                    f"[{threading.current_thread().name}] Waiting for OTP for {service_name}..."
+                )
+                time.sleep(5)
         else:
-            print("Waiting ...")
-            time.sleep(5)
+            print(
+                f"[{threading.current_thread().name}] Failed to get code info for {service_name}."
+            )
+            break
 
-# https://m.facebook.com/profile.php
+
+if __name__ == "__main__":
+    if len(sys.argv) == 2:
+        start_time = time.time()
+
+        api_client = RequestViotp("d655ba7073214b0f95740a511864f1e7")
+        service_request_queue = Queue()
+        otp_queue = Queue()
+        service_threads: List[threading.Thread] = []
+        for i in range(int(sys.argv[1])):
+            service_thread = threading.Thread(
+                target=get_service_task,
+                args=(api_client, "facebook", service_request_queue),
+                name=f"FacebookServiceThread_{i}",
+            )
+            service_threads.append(service_thread)
+            service_thread.start()
+
+        for service_thread in service_threads:
+            service_thread.join()
+
+        otp_threads: List[threading.Thread] = []
+        while not service_request_queue.empty():
+            item = service_request_queue.get()
+            service_name = item.get("service_name")
+            if item.get("success"):
+                request_id = item.get("request_id")
+                phone_number = item.get("phone_number")
+                print(phone_number)
+                otp_thread = threading.Thread(
+                    target=get_otp_task,
+                    args=(api_client, service_name, request_id, otp_queue),
+                    name=f"FacebookOTPThread_{threading.get_ident()}",
+                )
+                otp_threads.append(otp_thread)
+                otp_thread.start()
+            else:
+                print(
+                    f"[MainThread] Skipping OTP task for {service_name} due to missing Request ID."
+                )
+
+        for otp_thread in otp_threads:
+            otp_thread.join()
+
+        while not otp_queue.empty():
+            item = otp_queue.get()
+            print(item)
+
+        end_time = time.time()
+        print(f"\nAll tasks completed in {end_time - start_time:.2f} seconds.")
+
+    else:
+        print("Usage: python get_phonenumber.py <number_of_threads>")
