@@ -103,6 +103,8 @@ class BrowserWorker_2(QRunnable):
                     f"[Info] Opened Chromium for user: {self._browser.user_info.username}"
                 )
 
+                self.run_next_step()
+
     def BrowserWorker_2__handle_get_proxy(self):
         try:
             res = get_proxy(self._raw_proxy)

@@ -120,6 +120,11 @@ class BrowserType(RobotTaskType):
     browser_id: str
 
 
+@dataclass
+class BrowserSettings:
+    pass
+
+
 class BrowserWorkerSignals(QObject):
     progress_signal = pyqtSignal(
         BrowserType, str, int, int
@@ -134,3 +139,25 @@ class BrowserWorkerSignals(QObject):
     proxy_not_ready_signal = pyqtSignal(BrowserType, str)  # task, raw_proxy
     require_phone_number_signal = pyqtSignal(BrowserType)
     require_otp_code_signal = pyqtSignal()
+
+
+class BrowserManagerSignals_(QObject):
+    info_signal = pyqtSignal(str)
+    error_signal = pyqtSignal(str)
+    warning_signal = pyqtSignal(str)
+    failed_signal = pyqtSignal(str)
+    finished_signal = pyqtSignal(str)
+    progress_singal = pyqtSignal(str, list)
+
+
+class BrowserWorkerSignals_(QObject):
+    info_signal = pyqtSignal(BrowserType, str)
+    warning_signal = pyqtSignal(BrowserType, str)
+    failed_signal = pyqtSignal(BrowserType, str, str)
+    error_signal = pyqtSignal(BrowserType, str)
+    progress_signal = pyqtSignal(BrowserType, str, list)
+    finished_signal = pyqtSignal(object, str, str)
+    proxy_unavailable_signal = pyqtSignal(BrowserType, str)
+    proxy_not_ready_signal = pyqtSignal(BrowserType, str)
+    require_phone_number_signal = pyqtSignal(BrowserType)
+    require_otp_code_signal = pyqtSignal(BrowserType)
